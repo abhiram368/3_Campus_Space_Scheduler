@@ -6,32 +6,47 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
     tools:context=".MainActivity">
 
     <LinearLayout
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="24dp"
+        android:gravity="center_horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <EditText
-            android:id="@+id/inputText"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Type something" />
+            android:layout_marginBottom="16dp"
+            android:hint="Type something">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/btnSend"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Send to Firebase" />
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Send to Firebase"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"
+            android:layout_marginBottom="24dp" />
 
         <TextView
             android:id="@+id/outputText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Waiting..." />
-    </LinearLayout>
+            android:text="Waiting for input..."
+            android:textSize="16sp"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

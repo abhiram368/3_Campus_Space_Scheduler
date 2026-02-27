@@ -5,6 +5,8 @@
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
 
         <item name="colorPrimary">@color/primaryDark</item>
+        <item name="colorOnPrimary">@color/onPrimaryDark</item>
+        <item name="android:windowBackground">@color/backgroundDark</item>
         <item name="colorSecondary">@color/secondaryDark</item>
         <item name="android:colorBackground">@color/backgroundDark</item>
         <item name="colorSurface">@color/surfaceDark</item>

@@ -88,7 +88,7 @@
                     app:cardBackgroundColor="?attr/colorSurfaceVariant"
                     android:layout_columnWeight="1">
                     <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_location"
+                        <ImageView android:src="@drawable/ic_space"
                             app:tint="?attr/colorOnSurfaceVariant"
                             style="@style/AdminActionIcon"/>
                         <TextView android:text="Manage Spaces"
@@ -103,10 +103,10 @@
                     app:cardBackgroundColor="?attr/colorSurfaceVariant"
                     android:layout_columnWeight="1">
                     <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_play_circle"
+                        <ImageView android:src="@drawable/ic_schedule"
                             app:tint="?attr/colorOnSurfaceVariant"
                             style="@style/AdminActionIcon"/>
-                        <TextView android:text="Initiate Schedule"
+                        <TextView android:text="Initiate and Edit Schedule"
                             android:textColor="?attr/colorOnSurface"
                             style="@style/AdminActionText"/>
                     </LinearLayout>
@@ -118,7 +118,7 @@
                     app:cardBackgroundColor="?attr/colorSurfaceVariant"
                     android:layout_columnWeight="1">
                     <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_terminal"
+                        <ImageView android:src="@drawable/ic_logs"
                             app:tint="?attr/colorOnSurfaceVariant"
                             style="@style/AdminActionIcon"/>
                         <TextView android:text="System Logs"

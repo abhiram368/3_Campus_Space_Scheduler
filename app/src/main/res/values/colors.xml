@@ -2,12 +2,16 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
     <color name="primary">#FFA4A4</color>
-    <color name="secondary">#FFBDBD</color>
+    <color name="secondary">#FFFAF0</color>
     <color name="background">#FCF9EA</color>
-    <color name="surface">#BADFDB</color>
+    <color name="surface">#FFFFFF</color>
+
     <color name="primaryDark">#5FBDFF</color>
     <color name="secondaryDark">#96EFFF</color>
     <color name="backgroundDark">#000000</color>
     <color name="surfaceDark">#222222</color>
-</resources>
+
+    <color name="onPrimary">#4A0000</color>    <color name="onSurface">#1A1C1E</color>    <color name="onSurfaceVariant">#44474E</color> <color name="onPrimaryDark">#003355</color>
+    <color name="onSurfaceDark">#E2E2E6</color> <color name="onSurfaceVariantDark">#C4C6D0</color> </resources>

@@ -6,4 +6,6 @@
     <string name="default_web_client_id" translatable="false">912074136407-oqk8d1b622381tblfdqum3u504npjop6.apps.googleusercontent.com</string>
     <string name="navigation_drawer_open">Open</string>
     <string name="navigation_drawer_close">Close</string>
+    <string name="labs">Labs</string>
+    <string name="classrooms">Classrooms</string>
 </resources>

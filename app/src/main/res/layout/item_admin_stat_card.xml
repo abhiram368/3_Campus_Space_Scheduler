@@ -6,7 +6,8 @@
     android:layout_height="wrap_content"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    android:layout_margin="4dp">
+    android:layout_margin="4dp"
+    app:cardBackgroundColor="?attr/colorSurfaceVariant">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,15 +21,19 @@
             android:layout_height="wrap_content"
             android:text="Active Users"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.05" />
 
         <TextView
             android:id="@+id/stat_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="1,284"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
