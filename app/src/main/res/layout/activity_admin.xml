@@ -1,146 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
-    tools:context=".AdminActivity">
+    android:background="#101622">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:background="#101622"
+        app:elevation="0dp">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/header_card"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="?attr/colorSurface"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.MediumComponent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_height="?attr/actionBarSize"
+            app:title="Admin Portal"
+            app:titleTextColor="#FFFFFF" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/admin_toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:title="Admin Console"
-                app:titleTextColor="?attr/colorOnSurface" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <LinearLayout
-            android:id="@+id/stats_row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:weightSum="2"
-            android:baselineAligned="false"
-            app:layout_constraintTop_toBottomOf="@id/header_card">
-
-            <include layout="@layout/item_admin_stat_card"
-                android:id="@+id/card_users"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"/>
-
-            <include layout="@layout/item_admin_stat_card"
-                android:id="@+id/card_spaces"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/stats_row">
-
-            <GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:padding="12dp">
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btn_manage_users"
-                    style="@style/AdminActionCard"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    android:layout_columnWeight="1">
-                    <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_people"
-                            app:tint="?attr/colorOnSurfaceVariant"
-                            style="@style/AdminActionIcon"/>
-                        <TextView android:text="Manage Users"
-                            android:textColor="?attr/colorOnSurface"
-                            style="@style/AdminActionText"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btn_manage_spaces"
-                    style="@style/AdminActionCard"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    android:layout_columnWeight="1">
-                    <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_space"
-                            app:tint="?attr/colorOnSurfaceVariant"
-                            style="@style/AdminActionIcon"/>
-                        <TextView android:text="Manage Spaces"
-                            android:textColor="?attr/colorOnSurface"
-                            style="@style/AdminActionText"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btn_manage_schedule"
-                    style="@style/AdminActionCard"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    android:layout_columnWeight="1">
-                    <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_schedule"
-                            app:tint="?attr/colorOnSurfaceVariant"
-                            style="@style/AdminActionIcon"/>
-                        <TextView android:text="Initiate and Edit Schedule"
-                            android:textColor="?attr/colorOnSurface"
-                            style="@style/AdminActionText"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btn_view_logs"
-                    style="@style/AdminActionCard"
-                    app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                    android:layout_columnWeight="1">
-                    <LinearLayout style="@style/AdminActionContent">
-                        <ImageView android:src="@drawable/ic_logs"
-                            app:tint="?attr/colorOnSurfaceVariant"
-                            style="@style/AdminActionIcon"/>
-                        <TextView android:text="System Logs"
-                            android:textColor="?attr/colorOnSurface"
-                            style="@style/AdminActionText"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </GridLayout>
-        </androidx.core.widget.NestedScrollView>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="?attr/colorSurface"
-        app:itemTextColor="?attr/colorOnSurface"
-        app:itemIconTint="?attr/colorOnSurfaceVariant"
-        app:headerLayout="@layout/nav_header_admin"
-        app:menu="@menu/admin_drawer_menu" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-</androidx.drawerlayout.widget.DrawerLayout>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#101622"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/admin_bottom_nav" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

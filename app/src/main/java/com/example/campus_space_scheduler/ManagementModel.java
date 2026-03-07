@@ -1,34 +1,58 @@
 package com.example.campus_space_scheduler;
 
-import com.google.firebase.database.IgnoreExtraProperties;
-
-@IgnoreExtraProperties
 public class ManagementModel {
+
     private String name;
-    private String identifier;
-    private String roomName;
-    private String capacity;
+    private String emailId;
+    private Object phoneNumber;
+    private Object rollNo;
     private String role;
+    private String uid;
 
-    public ManagementModel() {} // Required for Firebase
+    private String roomName;
+    private Object capacity;
 
-    // Getters for Users
-    public String getName() { return name; }
-    public String getIdentifier() { return identifier; }
+    public ManagementModel() {}
 
-    // Getters for Spaces
-    public String getRoomName() { return roomName; }
-    public String getCapacity() { return capacity; }
+    public String getName() {
+        return name == null ? "" : name;
+    }
 
-    // Common Getter
-    public String getRole() { return role; }
+    public String getEmailId() {
+        return emailId == null ? "" : emailId;
+    }
 
-    // Dynamic Helper for Table Rows
+    public String getPhoneNumber() {
+        return phoneNumber == null ? "" : phoneNumber.toString();
+    }
+
+    public String getRollNo() {
+        return rollNo == null ? "" : rollNo.toString();
+    }
+
+    public String getRole() {
+        return role == null ? "" : role;
+    }
+
+    public String getUid() {
+        return uid == null ? "" : uid;
+    }
+
+    public String getRoomName() {
+        return roomName == null ? "" : roomName;
+    }
+
+    public String getCapacity() {
+        return capacity == null ? "" : capacity.toString();
+    }
+
     public String getPrimaryValue(String mode) {
-        return "USER".equals(mode) ? name : roomName;
+        if ("USER".equals(mode)) return getName();
+        return getRoomName();
     }
 
     public String getSecondaryValue(String mode) {
-        return "USER".equals(mode) ? identifier : capacity;
+        if ("USER".equals(mode)) return getEmailId();
+        return getCapacity();
     }
 }
