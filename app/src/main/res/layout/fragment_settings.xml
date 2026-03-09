@@ -31,7 +31,7 @@
             android:text="Integrations &amp; Comms" />
 
         <include
-            android:id="@+id/btnEmailTemplates"
+            android:id="@+id/btnApprovalHierarchy"
             layout="@layout/item_settings_row" />
         <include
             android:id="@+id/btnGoogleSync"

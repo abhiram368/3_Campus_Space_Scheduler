@@ -11,6 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.campus_space_scheduler.databinding.ActivityViewLogsBinding;
 import com.example.campus_space_scheduler.databinding.ItemLogBinding;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,27 +30,31 @@ public class ViewLogsActivity extends AppCompatActivity {
         // Correct way to set the back button listener using Binding
         binding.toolbar.setNavigationOnClickListener(v -> finish());
 
-        setupMockData();
+        loadLogs();
     }
 
-    private void setupMockData() {
-        List<LogMock> mockLogs = new ArrayList<>();
-        // Formatting data to reflect your NITC project context
-        mockLogs.add(new LogMock("10:45 PM", "CSV_UPLOAD", "Added 260 users to NITC database.", "#4CAF50"));
-        mockLogs.add(new LogMock("09:12 PM", "USER_EDIT", "Admin updated role for Abhiram Katta to 'App admin'.", "#2196F3"));
-        mockLogs.add(new LogMock("08:30 PM", "SPACE_REMOVE", "Room 'SSL Lab' deleted from database.", "#F44336"));
-        mockLogs.add(new LogMock("06:15 PM", "SYSTEM", "Automated schedule generated for Feb 10 - Feb 16.", "#FF9800"));
-        mockLogs.add(new LogMock("04:00 PM", "LOGIN", "New admin login detected: admin.office@nitc.ac.in", "#9C27B0"));
-        mockLogs.add(new LogMock("Yesterday", "CSV_ERROR", "Row 142 failed: Capacity must be a number.", "#F44336"));
-        mockLogs.add(new LogMock("03:30 PM", "MANUAL_ASSIGN", "HoD Dr. Rajesh Kumar assigned NLHC 201 to Faculty Incharge despite Lab admin booking.", "#2196F3"));
-        mockLogs.add(new LogMock("02:15 PM", "ROLE_CHANGE", "User 'Divya Patel' role updated from 'Student' to 'Lab admin'.", "#9C27B0"));
-        mockLogs.add(new LogMock("01:00 PM", "SYSTEM_RESET", "Admin cleared 'spaces' node; re-initialized via spaces.csv (60 entries).", "#F44336"));
-        mockLogs.add(new LogMock("11:45 AM", "STAFF_UPDATE", "Staff Incharge 'Neha Reddy' assigned to OS Lab oversight.", "#4CAF50"));
-        mockLogs.add(new LogMock("10:20 AM", "MAINTENANCE", "CSED Staff marked SSL Lab as 'Unavailable' for hardware upgrades.", "#FF9800"));
-        mockLogs.add(new LogMock("09:00 AM", "CONFLICT", "Auto-resolved overlap in Main Hall: Shifted HoD meeting to 10:30 AM.", "#FF9800"));
+    private void loadLogs() {
 
-        binding.rvLogs.setLayoutManager(new LinearLayoutManager(this));
-        binding.rvLogs.setAdapter(new LogAdapter(mockLogs));
+        FirebaseDatabase.getInstance()
+                .getReference("logs")
+                .limitToLast(50)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+
+                    List<LogMock> logs = new ArrayList<>();
+
+                    for (DataSnapshot s : snapshot.getChildren()) {
+
+                        String time = s.child("time").getValue(String.class);
+                        String action = s.child("action").getValue(String.class);
+                        String details = s.child("details").getValue(String.class);
+
+                        logs.add(new LogMock(time, action, details, "#2196F3"));
+                    }
+
+                    binding.rvLogs.setLayoutManager(new LinearLayoutManager(this));
+                    binding.rvLogs.setAdapter(new LogAdapter(logs));
+                });
     }
 
     // --- INTERNAL ADAPTER FOR PRESENTATION ---
