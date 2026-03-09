@@ -306,7 +306,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../SAD%20ABHIRAM/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/chevron_right/outline_chevron_right_24.xml" />
+                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../SAD%20ABHIRAM/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/arrow_shape_up_stack/outline_arrow_shape_up_stack_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -316,8 +316,7 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="ic_lock" />
+                            <entry key="outputName" value="ic_hierarchy" />
                             <entry key="sourceFile" value="C:\Users\SAD ABHIRAM\Downloads\CSSIcons\icons8-lock-24.svg" />
                           </map>
                         </option>

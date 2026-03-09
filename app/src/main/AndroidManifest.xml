@@ -55,6 +55,13 @@
         <activity android:name=".SignUpActivity" />
         <activity android:name=".BookingUserActivity" />
         <activity android:name=".OtherUserActivity" />
+        <activity android:name=".EditScheduleActivity" />
+        <activity android:name=".ViewScheduleActivity" />
+        <activity android:name=".DetailedViewScheduleActivity" />
+        <activity android:name=".BaseScheduleSelectorActivity"/>
+        <activity android:name=".WeekScheduleActivity" />
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".ApprovalHierarchyActivity" />
 
 
     </application>
