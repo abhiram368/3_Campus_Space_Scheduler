@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Upload CSV File -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/btn_upload_csv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="Upload CSV File"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_upload"
+            android:drawablePadding="16dp"
+            app:drawableTint="?attr/colorPrimary" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Add Single Entry -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/btn_add_single"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="Add Single Entry"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_add"
+            android:drawablePadding="16dp"
+            app:drawableTint="?attr/colorPrimary" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Edit Details (Search ID/Mail) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/btn_edit_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="Edit Details (Search ID/Mail)"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="16dp"
+            app:drawableTint="?attr/colorPrimary" />
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

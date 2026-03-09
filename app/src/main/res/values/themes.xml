@@ -1,0 +1,26 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.CampusSpaceScheduler" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnPrimary">@color/onPrimary</item> <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorSurfaceVariant">@color/secondary</item>
+<!--        <item name="colorOnSurface">@color/background</item>-->
+<!--        <item name="colorOnSurfaceVariant">@color/background</item>-->
+        <item name="colorOnSurface">@color/onSurface</item> <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
+    </style>
+
+    <style name="CircleImage" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="RoundedImage" parent="">
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="Theme.CampusSpaceScheduler" parent="Base.Theme.CampusSpaceScheduler" />
+</resources>

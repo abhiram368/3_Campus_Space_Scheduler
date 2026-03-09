@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Campus-Space-Scheduler</string>
+    <string name="user_id">User ID</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="default_web_client_id" translatable="false">912074136407-oqk8d1b622381tblfdqum3u504npjop6.apps.googleusercontent.com</string>
+    <string name="navigation_drawer_open">Open</string>
+    <string name="navigation_drawer_close">Close</string>
+    <string name="labs">Labs</string>
+    <string name="classrooms">Classrooms</string>
+</resources>

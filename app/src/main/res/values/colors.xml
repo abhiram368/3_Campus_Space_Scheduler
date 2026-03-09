@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Updated to match dashboard primary -->
+    <color name="primary">#135BEC</color>
+    <color name="secondary">#96EFFF</color>
+
+    <!-- Dashboard background -->
+    <color name="background">#F6F6F8</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Dark mode -->
+    <color name="primaryDark">#135BEC</color>
+    <color name="secondaryDark">#96EFFF</color>
+    <color name="backgroundDark">#101622</color>
+    <color name="surfaceDark">#0F172A</color>
+
+    <!-- Text colors -->
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="onSurface">#0F172A</color>
+    <color name="onSurfaceVariant">#64748B</color>
+
+    <color name="onPrimaryDark">#FFFFFF</color>
+    <color name="onSurfaceDark">#F1F5F9</color>
+    <color name="onSurfaceVariantDark">#94A3B8</color>
+
+</resources>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "912074136407",
+    "project_id": "campus-space-scheduler",
+    "storage_bucket": "campus-space-scheduler.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:912074136407:android:95e471257e8b8426923c12",
+        "android_client_info": {
+          "package_name": "com.example.campus_space_scheduler"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWb9iXXVWREyrU0bfi5xzmBZ6LdTedGxE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

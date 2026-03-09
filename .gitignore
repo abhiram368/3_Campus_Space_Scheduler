@@ -1,0 +1,10 @@
+local/
+# Firebase configuration file
+app/google-services.json
+
+# Keystore files
+*.jks
+*.keystore
+
+# Local properties (contains SDK paths)
+local.properties

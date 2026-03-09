@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.CampusSpaceScheduler" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+
+        <item name="colorPrimary">@color/primaryDark</item>
+        <item name="colorOnPrimary">@color/onPrimaryDark</item>
+        <item name="android:windowBackground">@color/backgroundDark</item>
+        <item name="colorSecondary">@color/secondaryDark</item>
+        <item name="android:colorBackground">@color/backgroundDark</item>
+        <item name="colorSurface">@color/surfaceDark</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnSurfaceVariant">#CAC4D0</item>
+    </style>
+</resources>
