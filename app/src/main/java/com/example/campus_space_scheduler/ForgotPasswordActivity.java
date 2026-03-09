@@ -39,9 +39,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         auth.sendPasswordResetEmail(email)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        // Email sent successfully
+                        LogHelper.log("PASSWORD_RESET", "Password reset email sent to " + email);
                         Toast.makeText(this, "Reset link sent to your email!", Toast.LENGTH_LONG).show();
                         finish(); // Go back to login after success
                     } else {
+                        // If email sending failed
+                        LogHelper.log("PASSWORD_RESET_FAILED", "Failed to send password reset email to " + email);
                         String error = task.getException() != null ? task.getException().getMessage() : "Failed to send email";
                         Toast.makeText(this, "Error: " + error, Toast.LENGTH_SHORT).show();
                     }
