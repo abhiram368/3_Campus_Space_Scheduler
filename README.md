@@ -1,6 +1,6 @@
 # Campus Space Scheduler
 
-Campus Space Scheduler is a cross-platform, mobile-first campus space scheduling system developed using Flutter and Firebase designed to manage and schedule the booking of academic spaces such as classrooms, laboratories, and halls within a campus. It helps avoid scheduling conflicts, improves space utilization, and provides a centralized platform for students, faculty, and administrators.
+Campus Space Scheduler is a cross-platform, mobile-first campus space scheduling system developed using Java (Android), XML (Android Layouts) and Firebase designed to manage and schedule the booking of academic spaces such as classrooms, laboratories, and halls within a campus. It helps avoid scheduling conflicts, improves space utilization, and provides a centralized platform for students, faculty, and administrators.
 
 ## Problem Statement
 Manual or fragmented scheduling of campus spaces often leads to conflicts, inefficient utilization, and lack of transparency. This system aims to provide a structured and automated solution for managing campus space bookings.
@@ -12,13 +12,30 @@ Manual or fragmented scheduling of campus spaces often leads to conflicts, ineff
 - View availability of campus spaces
 - Manage bookings and schedules centrally
 
-## Tech Stack
-(To be updated)
-- Frontend: Flutter
-- Backend: Firebase
-- Database: Firestore
-- Tools & Libraries: Flutter and Firebase
-
+# Tech Stack:
+### Frontend (Client Application)
+- Java (Android) – Core application logic, activities, adapters, scheduling logic.
+- XML (Android Layouts) – UI layout design for screens such as login, profile, schedule view, and admin panels.
+- RecyclerView / Custom Views – Display weekly schedules and lists of bookings.
+### Backend / Cloud Services
+- Firebase Authentication – User login and identity management.
+- Firebase Realtime Database – Stores users, roles, bookings, and schedule data.
+- Firebase Cloud Functions (Node.js) – Admin operations such as creating users or enforcing backend logic.
+### Data & Access Control
+- Firebase Security Rules – Role-based access control (e.g., admin vs normal user).
+- JSON Data Structure – Data stored in hierarchical format in Realtime Database.
+### Development Tools
+- Android Studio – Main IDE for development.
+- Git + GitHub – Version control and collaboration.
+- Firebase CLI – Deploy cloud functions and manage backend.
+### Optional Supporting Libraries
+- Firebase SDK for Android
+- Material Components for Android – UI components and theming.
+### System Architecture
+- Client–Cloud architecture
+- Android app communicates directly with Firebase services through SDK.
+- Authentication controls access.
+- Cloud Functions handle privileged operations.
 ## Project Structure
 ```
 campus-space-scheduler/
