@@ -1,5 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
+    <style name="Base.Theme.HOD" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Make window background transparent to show gradient -->
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+
+        <item name="colorPrimary">@color/accent_blue</item>
+    </style>
+
+    <style name="Theme.HOD" parent="Base.Theme.HOD" />
+
+    <style name="DarkCalendarTheme" parent="Theme.AppCompat.Light">
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:colorControlActivated">@color/accent_blue</item>
+    </style>
     <style name="Base.Theme.CampusSpaceScheduler" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->

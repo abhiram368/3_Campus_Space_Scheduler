@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Refined Blue Glass Theme (Reference: Prakthis style) -->
+    <color name="glass_bg_start">#3B82F6</color> <!-- Vibrant Blue -->
+    <color name="glass_bg_end">#06B6D4</color>   <!-- Vibrant Teal -->
+
+    <color name="glass_content_bg">#F8FAFC</color> <!-- Off-white for content area -->
+
+    <color name="glass_card_fill">#CCFFFFFF</color> <!-- 80% White -->
+    <color name="glass_card_stroke">#4DFFFFFF</color> <!-- 30% White stroke -->
+
+    <color name="text_primary">#0F172A</color> <!-- Dark Slate -->
+    <color name="text_secondary">#64748B</color> <!-- Slate Grey -->
+
+    <color name="accent_blue">#2563EB</color>
+    <color name="accent_teal">#0D9488</color>
+
+    <color name="status_available">#10B981</color>
+    <color name="status_booked">#EF4444</color>
+
+    <!-- Gold Gradient -->
+    <color name="gold_gradient_start">#FDB813</color>
+    <color name="gold_gradient_end">#F8D44C</color>
+
+    <!-- Glass Fill and Stroke (used in some drawables) -->
+    <color name="glass_fill">#CCFFFFFF</color>
+    <color name="glass_stroke">#4DFFFFFF</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

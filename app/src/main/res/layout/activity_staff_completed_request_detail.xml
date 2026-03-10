@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- TITLE -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Completed Request Details"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- BASIC DETAILS -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Student: Jane Doe"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Lab: Computer Networks"
+            android:layout_marginTop="6dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Timeslot: 10:00 - 12:00"
+            android:layout_marginTop="6dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Usage Status: Completed"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:layout_marginTop="10dp"/>
+
+        <!-- STUDENT STATUS -->
+        <TextView
+            android:id="@+id/tvBlockStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Student Status: Active"
+            android:textStyle="bold"
+            android:textColor="#2E7D32"
+            android:layout_marginTop="20dp"/>
+
+        <!-- REMARK -->
+        <EditText
+            android:id="@+id/remarkBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter remark to block/unblock"
+            android:inputType="text"
+            android:autofillHints=""
+            android:layout_marginTop="12dp"/>
+
+        <!-- ACTION BUTTONS -->
+        <Button
+            android:id="@+id/btnBlockStudent"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="Block Student"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_red_button"/>
+
+        <Button
+            android:id="@+id/btnUnblockStudent"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="Unblock Student"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/rounded_green_button"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+</ScrollView>
