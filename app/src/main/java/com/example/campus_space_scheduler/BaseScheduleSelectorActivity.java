@@ -29,7 +29,7 @@ public abstract class BaseScheduleSelectorActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_select_schedule);
+        setContentView(R.layout.a_activity_select_schedule);
 
         spaceSpinner = findViewById(R.id.spaceSpinner);
         calendarView = findViewById(R.id.calendarView);

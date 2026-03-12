@@ -13,7 +13,7 @@ import com.example.campus_space_scheduler.ForgotPasswordActivity;
 import com.example.campus_space_scheduler.helper.LogHelper;
 import com.example.campus_space_scheduler.LoginActivity;
 import com.example.campus_space_scheduler.R;
-import com.example.campus_space_scheduler.databinding.FragmentSettingsBinding;
+import com.example.campus_space_scheduler.databinding.AFragmentSettingsBinding;
 import com.example.campus_space_scheduler.databinding.ItemSettingsRowBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -21,12 +21,12 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class SettingsFragment extends Fragment {
 
-    private FragmentSettingsBinding binding;
+    private AFragmentSettingsBinding binding;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentSettingsBinding.inflate(inflater, container, false);
+        binding = AFragmentSettingsBinding.inflate(inflater, container, false);
 
         setupRows();
         return binding.getRoot();
@@ -90,7 +90,7 @@ public class SettingsFragment extends Fragment {
     private void handleLogout() {
 
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
-        View view = getLayoutInflater().inflate(R.layout.dialog_exit_confirmation, null);
+        View view = getLayoutInflater().inflate(R.layout.a_dialog_exit_confirmation, null);
         dialog.setContentView(view);
 
         MaterialButton btnConfirm = view.findViewById(R.id.btnConfirmExit);

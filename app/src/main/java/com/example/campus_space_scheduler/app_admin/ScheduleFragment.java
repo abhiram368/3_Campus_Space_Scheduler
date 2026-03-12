@@ -57,7 +57,7 @@ public class ScheduleFragment extends Fragment {
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_schedule, container, false);
+        View view = inflater.inflate(R.layout.a_fragment_schedule, container, false);
 
         db = FirebaseDatabase.getInstance().getReference();
 

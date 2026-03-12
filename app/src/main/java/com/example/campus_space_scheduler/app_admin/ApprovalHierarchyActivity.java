@@ -28,7 +28,7 @@ public class ApprovalHierarchyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_approval_hierarchy);
+        setContentView(R.layout.a_activity_approval_hierarchy);
 
 //        FirebaseUtils.ensureApprovalHierarchy();
 

@@ -29,9 +29,6 @@
     <color name="glass_fill">#CCFFFFFF</color>
     <color name="glass_stroke">#4DFFFFFF</color>
 
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-
     <!-- Updated to match dashboard primary -->
     <color name="primary">#135BEC</color>
     <color name="secondary">#96EFFF</color>

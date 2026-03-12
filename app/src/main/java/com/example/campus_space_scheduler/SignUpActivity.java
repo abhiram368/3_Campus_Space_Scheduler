@@ -9,16 +9,16 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.campus_space_scheduler.databinding.ActivitySignUpBinding;
+import com.example.campus_space_scheduler.databinding.AActivitySignUpBinding;
 
 public class SignUpActivity extends AppCompatActivity {
 
-    private ActivitySignUpBinding binding;
+    private AActivitySignUpBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivitySignUpBinding.inflate(getLayoutInflater());
+        binding = AActivitySignUpBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // Button to trigger Forgot Password flow

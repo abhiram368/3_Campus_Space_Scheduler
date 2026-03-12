@@ -49,7 +49,7 @@ public class WeekScheduleActivity extends AppCompatActivity {
         }
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_week_schedule);
+        setContentView(R.layout.a_activity_week_schedule);
 
         ImageButton backBtn = findViewById(R.id.backButton);
         backBtn.setOnClickListener(v -> finish());

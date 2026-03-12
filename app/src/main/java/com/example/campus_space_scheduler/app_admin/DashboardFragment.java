@@ -7,17 +7,17 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.example.campus_space_scheduler.databinding.FragmentDashboardBinding;
+import com.example.campus_space_scheduler.databinding.AFragmentDashboardBinding;
 import com.google.firebase.database.*;
 
 public class DashboardFragment extends Fragment {
-    private FragmentDashboardBinding binding;
+    private AFragmentDashboardBinding binding;
     private DatabaseReference usersRef, bookingsRef, requestsRef;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentDashboardBinding.inflate(inflater, container, false);
+        binding = AFragmentDashboardBinding.inflate(inflater, container, false);
 
         // Initialize Firebase
         usersRef = FirebaseDatabase.getInstance().getReference("users");

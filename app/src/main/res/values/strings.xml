@@ -74,7 +74,6 @@
     <!-- View Schedule -->
     <string name="header_labs">LABS</string>
     <string name="header_halls">HALLS</string>
-    <string name="app_name">Campus-Space-Scheduler</string>
     <string name="user_id">User ID</string>
     <string name="password">Password</string>
     <string name="login">Login</string>

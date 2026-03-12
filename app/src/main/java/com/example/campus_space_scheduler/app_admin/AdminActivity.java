@@ -6,15 +6,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.campus_space_scheduler.R;
-import com.example.campus_space_scheduler.databinding.ActivityAdminBinding;
+import com.example.campus_space_scheduler.databinding.AActivityAdminBinding;
 
 public class AdminActivity extends AppCompatActivity {
-    private ActivityAdminBinding binding;
+    private AActivityAdminBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityAdminBinding.inflate(getLayoutInflater());
+        binding = AActivityAdminBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // 1. Setup Adapter

@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campus_space_scheduler.model.LogMock;
-import com.example.campus_space_scheduler.databinding.ActivityViewLogsBinding;
+import com.example.campus_space_scheduler.databinding.AActivityViewLogsBinding;
 import com.example.campus_space_scheduler.databinding.ItemLogBinding;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
@@ -21,12 +21,12 @@ import java.util.List;
 
 public class ViewLogsActivity extends AppCompatActivity {
 
-    private ActivityViewLogsBinding binding;
+    private AActivityViewLogsBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityViewLogsBinding.inflate(getLayoutInflater());
+        binding = AActivityViewLogsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // Correct way to set the back button listener using Binding

@@ -3,20 +3,20 @@ package com.example.campus_space_scheduler.app_admin;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.campus_space_scheduler.databinding.ActivityProfileBinding;
+import com.example.campus_space_scheduler.databinding.AActivityProfileBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private ActivityProfileBinding binding;
+    private AActivityProfileBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityProfileBinding.inflate(getLayoutInflater());
+        binding = AActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         binding.btnBack.setOnClickListener(v -> finish());

@@ -20,7 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.campus_space_scheduler.R;
-import com.example.campus_space_scheduler.databinding.ActivityAdminManagementBinding;
+import com.example.campus_space_scheduler.databinding.AActivityAdminManagementBinding;
 import com.example.campus_space_scheduler.databinding.DialogAddItemBinding;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -37,7 +37,7 @@ import java.util.HashMap;
 
 public class ManagementFragment extends Fragment {
 
-    private ActivityAdminManagementBinding binding;
+    private AActivityAdminManagementBinding binding;
     private DatabaseReference dbRef;
     private String mode;
     private FirebaseAuth mAuth;
@@ -64,7 +64,7 @@ public class ManagementFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = ActivityAdminManagementBinding.inflate(inflater, container, false);
+        binding = AActivityAdminManagementBinding.inflate(inflater, container, false);
         mAuth = FirebaseAuth.getInstance();
         mode = getArguments() != null ? getArguments().getString("MODE") : "USER";
         dbRef = FirebaseDatabase.getInstance()
@@ -100,7 +100,7 @@ public class ManagementFragment extends Fragment {
 
     private void addCategoryChip(String title) {
         MaterialButton chip = (MaterialButton) getLayoutInflater()
-                .inflate(R.layout.item_category_chip, binding.categoryContainer, false);
+                .inflate(R.layout.a_item_category_chip, binding.categoryContainer, false);
         chip.setText(title);
 
         // Reset layout params to wrap_content so they don't stretch unnaturally

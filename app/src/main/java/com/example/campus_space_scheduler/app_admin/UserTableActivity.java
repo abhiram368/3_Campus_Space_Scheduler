@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.campus_space_scheduler.databinding.ActivityUserTableBinding;
+import com.example.campus_space_scheduler.databinding.AActivityUserTableBinding;
 import com.example.campus_space_scheduler.databinding.DialogAddItemBinding;
 import com.example.campus_space_scheduler.model.ManagementModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -19,7 +19,7 @@ import java.util.List;
 
 public class UserTableActivity extends AppCompatActivity {
 
-    private ActivityUserTableBinding binding;
+    private AActivityUserTableBinding binding;
     private String mode, filterRole;
 
     private final List<DataNode> fullList = new ArrayList<>();
@@ -39,7 +39,7 @@ public class UserTableActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityUserTableBinding.inflate(getLayoutInflater());
+        binding = AActivityUserTableBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         mode = getIntent().getStringExtra("DB_NODE");

@@ -17,6 +17,16 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    sourceSets {
+        main {
+            res.srcDirs = [
+                    'src/main/res/layout_app_admin',
+                    'src/main/res/layout_hod',
+                    'src/main/res'
+            ]
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false

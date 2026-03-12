@@ -3,19 +3,19 @@ package com.example.campus_space_scheduler;
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.campus_space_scheduler.databinding.ActivityForgotPasswordBinding;
+import com.example.campus_space_scheduler.databinding.AActivityForgotPasswordBinding;
 import com.example.campus_space_scheduler.helper.LogHelper;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
 
-    private ActivityForgotPasswordBinding binding;
+    private AActivityForgotPasswordBinding binding;
     private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityForgotPasswordBinding.inflate(getLayoutInflater());
+        binding = AActivityForgotPasswordBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         auth = FirebaseAuth.getInstance();
