@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campus_space_scheduler.model.LogMock;
 import com.example.campus_space_scheduler.databinding.AActivityViewLogsBinding;
-import com.example.campus_space_scheduler.databinding.ItemLogBinding;
+import com.example.campus_space_scheduler.databinding.AItemLogBinding;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -51,7 +51,11 @@ public class ViewLogsActivity extends AppCompatActivity {
                         String action = s.child("action").getValue(String.class);
                         String details = s.child("details").getValue(String.class);
 
-                        logs.add(new LogMock(time, action, details, "#2196F3"));
+                        // ---------------------------------------------------------
+                        // UI COLOR CONFIGURATION: Default color for the log action text
+                        // ---------------------------------------------------------
+                        String defaultLogActionHex = "#2196F3";
+                        logs.add(new LogMock(time, action, details, defaultLogActionHex));
                     }
 
                     binding.rvLogs.setLayoutManager(new LinearLayoutManager(this));
@@ -67,7 +71,7 @@ public class ViewLogsActivity extends AppCompatActivity {
         @NonNull
         @Override
         public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ItemLogBinding b = ItemLogBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            AItemLogBinding b = AItemLogBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new LogViewHolder(b);
         }
 
@@ -76,7 +80,14 @@ public class ViewLogsActivity extends AppCompatActivity {
             LogMock log = logs.get(position);
             holder.binding.logTime.setText(log.time);
             holder.binding.logAction.setText(log.action);
-            holder.binding.logAction.setTextColor(Color.parseColor(log.color));
+
+            // ---------------------------------------------------------
+            // UI COLOR CONFIGURATION: Sets the color of the action label
+            // based on the hex string stored in the log object.
+            // ---------------------------------------------------------
+            int actionTextColor = Color.parseColor(log.color);
+            holder.binding.logAction.setTextColor(actionTextColor);
+
             holder.binding.logDetails.setText(log.details);
         }
 
@@ -84,8 +95,8 @@ public class ViewLogsActivity extends AppCompatActivity {
         public int getItemCount() { return logs.size(); }
 
         class LogViewHolder extends RecyclerView.ViewHolder {
-            ItemLogBinding binding;
-            LogViewHolder(ItemLogBinding b) { super(b.getRoot()); this.binding = b; }
+            AItemLogBinding binding;
+            LogViewHolder(AItemLogBinding b) { super(b.getRoot()); this.binding = b; }
         }
     }
 }

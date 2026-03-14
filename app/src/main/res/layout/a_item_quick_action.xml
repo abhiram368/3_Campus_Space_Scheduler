@@ -11,7 +11,7 @@
         android:id="@+id/actionIconContainer"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        app:cardBackgroundColor="#1A2232"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp">
 
@@ -21,7 +21,7 @@
             android:layout_height="30dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_space"
-            app:tint="#FFFFFF" />
+            app:tint="?attr/colorPrimary" />
     </com.google.android.material.card.MaterialCardView>
 
     <TextView
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="Action"
-        android:textColor="#94A3B8"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp"
         android:textStyle="bold" />
 </LinearLayout>

@@ -116,7 +116,11 @@ public class ScheduleFragment extends Fragment {
 
                         if (!snapshot.exists()) {
                             header.setText("No Space Selected");
-                            header.setTextColor(Color.RED);
+                            // ---------------------------------------------------------
+                            // UI COLOR CONFIGURATION: Error text when no space is selected
+                            // ---------------------------------------------------------
+                            int noSpaceSelectedTextColor = Color.RED;
+                            header.setTextColor(noSpaceSelectedTextColor);
                             table.setVisibility(View.GONE);
                             return;
                         }
@@ -138,6 +142,8 @@ public class ScheduleFragment extends Fragment {
         db.child("spaces").child(currentSpaceId).child("roomName").get()
                 .addOnSuccessListener(snapshot -> {
 
+                    if (!isAdded()) return;
+
                     String roomName = snapshot.getValue(String.class);
 
                     if (roomName == null) roomName = "Unknown Room";
@@ -148,7 +154,11 @@ public class ScheduleFragment extends Fragment {
                     String today = dateFormat.format(Calendar.getInstance().getTime());
 
                     header.setText(roomName + " • " + today);
-                    header.setTextColor(Color.WHITE);
+                    // ---------------------------------------------------------
+                    // UI COLOR CONFIGURATION: Active room name/date text color
+                    // ---------------------------------------------------------
+                    int activeHeaderTextColor = Color.WHITE;
+                    header.setTextColor(activeHeaderTextColor);
 
                     table.setVisibility(View.VISIBLE);
 
@@ -279,6 +289,11 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void populateGrid(View rootView, TableLayout table, String spaceId) {
+
+        if (!isAdded() || getContext() == null) {
+            return; // Fragment is detached, stop trying to update UI
+        }
+
         table.removeAllViews();
 
         String[] days = {"M", "T", "W", "Th", "F", "Sa", "S"};
@@ -308,7 +323,11 @@ public class ScheduleFragment extends Fragment {
                 params.setMargins(1, 1, 1, 1); // Border effect
                 cell.setLayoutParams(params);
 
-                cell.setBackgroundColor(Color.WHITE);
+                // ---------------------------------------------------------
+                // UI COLOR CONFIGURATION: Default empty slot background
+                // ---------------------------------------------------------
+                int defaultGridSlotColor = Color.WHITE;
+                cell.setBackgroundColor(defaultGridSlotColor);
                 cell.setTag(j + "_" + i);
                 row.addView(cell);
             }
@@ -322,7 +341,14 @@ public class ScheduleFragment extends Fragment {
         tv.setGravity(android.view.Gravity.CENTER);
         tv.setPadding(4, 8, 4, 8);
         tv.setTextSize(10f);
-        tv.setBackgroundColor(isHeader ? Color.parseColor("#F5F5F5") : Color.WHITE);
+        // ---------------------------------------------------------
+        // UI COLOR CONFIGURATION: Background and text for headers (Days/Times)
+        // ---------------------------------------------------------
+        String tableHeaderBgHex = "#F5F5F5";
+        int tableHeaderBackgroundColor = Color.parseColor(tableHeaderBgHex);
+        int tableCellDefaultColor = Color.WHITE;
+
+        tv.setBackgroundColor(isHeader ? tableHeaderBackgroundColor : tableCellDefaultColor);
         if (isHeader) tv.setTypeface(null, android.graphics.Typeface.BOLD);
 
         TableRow.LayoutParams params = new TableRow.LayoutParams(0, TableRow.LayoutParams.MATCH_PARENT, 1f);
@@ -354,7 +380,11 @@ public class ScheduleFragment extends Fragment {
                 // Gets color from your Mapper
                 dot.setBackgroundColor(SlotColorMapper.getColor(status));
             } catch (IllegalArgumentException e) {
-                dot.setBackgroundColor(Color.LTGRAY); // Fallback for unknown status
+                // ---------------------------------------------------------
+                // UI COLOR CONFIGURATION: Color used when the slot status is unknown
+                // ---------------------------------------------------------
+                int unknownStatusFallbackColor = Color.LTGRAY;
+                dot.setBackgroundColor(unknownStatusFallbackColor);
             }
         }
     }

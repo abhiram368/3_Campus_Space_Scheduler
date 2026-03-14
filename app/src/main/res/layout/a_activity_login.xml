@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#101622"
+    android:background="?attr/colorSurface"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,14 +18,14 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_arrow_back"
-            app:tint="#F1F5F9" />
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="Welcome Back"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="36sp"
             android:fontFamily="sans-serif-black"
             android:lineSpacingExtra="4dp" />
@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Log in to book your next creative space."
-            android:textColor="#94A3B8"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="16sp" />
 
         <TextView
@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="Email"
-            android:textColor="#E2E8F0"
+            android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
             android:textSize="14sp" />
 
@@ -56,8 +56,8 @@
             android:hint="Enter your email"
             android:inputType="textEmailAddress"
             android:paddingHorizontal="16dp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#475569" />
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -68,7 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Password"
-                android:textColor="#E2E8F0"
+                android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
                 android:textSize="14sp" />
 
@@ -78,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:text="Forgot Password?"
-                android:textColor="#135bec"
+                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 android:textSize="14sp" />
         </RelativeLayout>
@@ -92,8 +92,8 @@
             android:hint="Enter your password"
             android:inputType="textPassword"
             android:paddingHorizontal="16dp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#475569" />
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogin"
@@ -104,7 +104,8 @@
             android:textAllCaps="false"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:backgroundTint="#135bec"
+            android:textColor="?attr/colorOnPrimary"
+            app:backgroundTint="?attr/colorPrimary"
             app:cornerRadius="12dp"
             app:elevation="4dp" />
 
@@ -119,14 +120,14 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1"
-                android:background="#1E293B" />
+                android:background="?attr/colorOutline" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
                 android:text="OR CONTINUE WITH"
-                android:textColor="#64748B"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -134,7 +135,7 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1"
-                android:background="#1E293B" />
+                android:background="?attr/colorOutline" />
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -144,11 +145,11 @@
             android:layout_height="56dp"
             android:text="Sign in with Google"
             android:textAllCaps="false"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnSurface"
             app:cornerRadius="12dp"
             app:icon="@drawable/ic_google_logo"
             app:iconGravity="textStart"
-            app:strokeColor="#1E293B" />
+            app:strokeColor="?attr/colorOutline" />
 
         <TextView
             android:id="@+id/tvSignUp"
@@ -158,7 +159,7 @@
             android:layout_marginTop="40dp"
             android:layout_marginBottom="24dp"
             android:text="Don't have an account? Sign Up"
-            android:textColor="#94A3B8" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>
 </ScrollView>

@@ -21,7 +21,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.campus_space_scheduler.R;
 import com.example.campus_space_scheduler.databinding.AActivityAdminManagementBinding;
-import com.example.campus_space_scheduler.databinding.DialogAddItemBinding;
+import com.example.campus_space_scheduler.databinding.ADialogAddItemBinding;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.FirebaseApp;
@@ -122,7 +122,7 @@ public class ManagementFragment extends Fragment {
     }
 
     private void showAddDialog() {
-        DialogAddItemBinding dBinding = DialogAddItemBinding.inflate(getLayoutInflater());
+        ADialogAddItemBinding dBinding = ADialogAddItemBinding.inflate(getLayoutInflater());
 
         if ("USER".equals(mode)) {
             // Hints for User Mode

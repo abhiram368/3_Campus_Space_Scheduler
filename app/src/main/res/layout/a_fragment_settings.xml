@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#101622"
+    android:background="?attr/colorSurface"
     android:clipToPadding="false"
     android:paddingBottom="100dp">
 
@@ -14,7 +14,13 @@
 
         <TextView
             style="@style/SettingsHeader"
-            android:text="Account" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Account"
+            android:textColor="?attr/colorPrimary" />
 
         <include
             android:id="@+id/btnProfile"
@@ -28,7 +34,13 @@
 
         <TextView
             style="@style/SettingsHeader"
-            android:text="Integrations &amp; Comms" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Integrations &amp; Comms"
+            android:textColor="?attr/colorPrimary" />
 
         <include
             android:id="@+id/btnApprovalHierarchy"
@@ -39,7 +51,13 @@
 
         <TextView
             style="@style/SettingsHeader"
-            android:text="Logs &amp; Reports" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Logs &amp; Reports"
+            android:textColor="?attr/colorPrimary" />
 
         <include
             android:id="@+id/btnDownloadReports"
@@ -47,7 +65,13 @@
 
         <TextView
             style="@style/SettingsHeader"
-            android:text="Support &amp; Info" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Support &amp; Info"
+            android:textColor="?attr/colorPrimary" />
 
         <include
             android:id="@+id/btnAppVersion"

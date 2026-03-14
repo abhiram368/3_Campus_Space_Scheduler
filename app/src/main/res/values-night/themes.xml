@@ -4,13 +4,33 @@
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
 
-        <item name="colorPrimary">@color/primaryDark</item>
+        <item name="colorPrimary">@color/blue_500</item>
         <item name="colorOnPrimary">@color/onPrimaryDark</item>
         <item name="android:windowBackground">@color/backgroundDark</item>
         <item name="colorSecondary">@color/secondaryDark</item>
         <item name="android:colorBackground">@color/backgroundDark</item>
-        <item name="colorSurface">@color/surfaceDark</item>
+
+        <item name="colorPrimaryContainer">@color/blue_900</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSurface">@color/slate_900</item>
         <item name="colorOnSurface">@color/white</item>
-        <item name="colorOnSurfaceVariant">#CAC4D0</item>
+        <item name="colorOnSurfaceVariant">@color/slate_400</item>
+        <item name="colorSurfaceVariant">@color/slate_800</item>
+        <item name="colorOutline">@color/slate_700</item>
+
+        <item name="colorError">@color/red_error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/red_error_tint_light</item>
+    </style>
+
+    <style name="Theme.CampusScheduler" parent="Theme.Material3.Dark">
+        <item name="colorPrimary">@color/blue_500</item>
+        <item name="colorPrimaryContainer">@color/blue_900</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSurface">@color/slate_900</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/slate_400</item>
+        <item name="colorSurfaceVariant">@color/slate_800</item>
+        <item name="colorOutline">@color/slate_700</item>
     </style>
 </resources>

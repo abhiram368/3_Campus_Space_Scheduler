@@ -8,7 +8,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.campus_space_scheduler.databinding.AActivityUserTableBinding;
-import com.example.campus_space_scheduler.databinding.DialogAddItemBinding;
+import com.example.campus_space_scheduler.databinding.ADialogAddItemBinding;
 import com.example.campus_space_scheduler.model.ManagementModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.database.*;
@@ -171,7 +171,7 @@ public class UserTableActivity extends AppCompatActivity {
 
     private void showEditDialog(ManagementModel item, String key) {
 
-        DialogAddItemBinding dBinding = DialogAddItemBinding.inflate(getLayoutInflater());
+        ADialogAddItemBinding dBinding = ADialogAddItemBinding.inflate(getLayoutInflater());
 
         if ("USER".equals(mode)) {
 

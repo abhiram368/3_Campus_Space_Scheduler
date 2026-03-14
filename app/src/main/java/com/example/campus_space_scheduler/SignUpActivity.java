@@ -39,7 +39,14 @@ public class SignUpActivity extends AppCompatActivity {
         int start = text.indexOf("Sign In");
         int end = text.length();
 
-        ss.setSpan(new ForegroundColorSpan(Color.parseColor("#135bec")), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        // ---------------------------------------------------------
+        // UI COLOR CONFIGURATION
+        // Change the hex string below to update the 'Sign In' link color
+        // ---------------------------------------------------------
+        String signInLinkHexColor = "#135bec";
+        int signInLinkColorInt = Color.parseColor(signInLinkHexColor);
+
+        ss.setSpan(new ForegroundColorSpan(signInLinkColorInt), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         ss.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         binding.tvSignInLink.setText(ss);

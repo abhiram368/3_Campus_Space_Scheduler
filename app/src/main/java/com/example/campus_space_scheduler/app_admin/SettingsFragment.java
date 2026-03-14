@@ -14,7 +14,7 @@ import com.example.campus_space_scheduler.helper.LogHelper;
 import com.example.campus_space_scheduler.LoginActivity;
 import com.example.campus_space_scheduler.R;
 import com.example.campus_space_scheduler.databinding.AFragmentSettingsBinding;
-import com.example.campus_space_scheduler.databinding.ItemSettingsRowBinding;
+import com.example.campus_space_scheduler.databinding.AItemSettingsRowBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,19 +52,25 @@ public class SettingsFragment extends Fragment {
                 startActivity(new Intent(requireContext(), ApprovalHierarchyActivity.class)));
 
         // Row with Status Badge
-        ItemSettingsRowBinding syncRow = ItemSettingsRowBinding.bind(binding.btnGoogleSync.getRoot());
+        AItemSettingsRowBinding syncRow = AItemSettingsRowBinding.bind(binding.btnGoogleSync.getRoot());
         syncRow.rowTitle.setText("Google Calendar Sync");
         syncRow.rowIcon.setImageResource(R.drawable.ic_calendar);
         syncRow.rowStatus.setVisibility(View.VISIBLE);
         syncRow.rowStatus.setText("Active");
-        syncRow.rowStatus.setTextColor(android.graphics.Color.parseColor("#10B981"));
+        // ---------------------------------------------------------
+        // UI COLOR CONFIGURATION: 'Active' status badge color
+        // ---------------------------------------------------------
+        String googleSyncStatusHexColor = "#10B981";
+        int activeStatusBadgeColor = android.graphics.Color.parseColor(googleSyncStatusHexColor);
+
+        syncRow.rowStatus.setTextColor(activeStatusBadgeColor);
 
         configureRow(binding.btnDownloadReports.getRoot(), "View System Logs", R.drawable.ic_logs, false);
         binding.btnDownloadReports.getRoot().setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), ViewLogsActivity.class)));
 
         // App Version (No Chevron)
-        ItemSettingsRowBinding versionRow = ItemSettingsRowBinding.bind(binding.btnAppVersion.getRoot());
+        AItemSettingsRowBinding versionRow = AItemSettingsRowBinding.bind(binding.btnAppVersion.getRoot());
         versionRow.rowTitle.setText("App Version");
         versionRow.rowIcon.setImageResource(R.drawable.ic_info);
         versionRow.rowChevron.setVisibility(View.GONE);
@@ -74,15 +80,22 @@ public class SettingsFragment extends Fragment {
 
     private void configureRow(View rowView, String title, int iconRes, boolean isDestructive) {
         // We bind to the specific root view passed in
-        ItemSettingsRowBinding rowBinding = ItemSettingsRowBinding.bind(rowView);
+        AItemSettingsRowBinding rowBinding = AItemSettingsRowBinding.bind(rowView);
         rowBinding.rowTitle.setText(title);
         rowBinding.rowIcon.setImageResource(iconRes);
 
         if (isDestructive) {
-            // Red theme for logout
-            rowBinding.rowTitle.setTextColor(android.graphics.Color.parseColor("#EF4444"));
-            rowBinding.rowIcon.setImageTintList(android.content.res.ColorStateList.valueOf(
-                    android.graphics.Color.parseColor("#EF4444")));
+            // ---------------------------------------------------------
+            // UI COLOR CONFIGURATION: Destructive/Warning action color (Red)
+            // ---------------------------------------------------------
+            String destructiveHexColor = "#EF4444";
+            int destructiveActionColor = android.graphics.Color.parseColor(destructiveHexColor);
+
+            rowBinding.rowTitle.setTextColor(destructiveActionColor);
+            rowBinding.rowIcon.setImageTintList(android.content.res.ColorStateList.valueOf(destructiveActionColor));
+
+            // Note: The background drawable 'bg_rounded_red_tint' likely
+            // contains color data as well.
             rowBinding.rowIcon.setBackgroundResource(R.drawable.bg_rounded_red_tint);
         }
     }

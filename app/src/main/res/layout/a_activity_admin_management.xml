@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#101622"
+    android:background="?attr/colorSurface"
     android:clipToPadding="false"
     android:paddingBottom="100dp">
 
@@ -28,7 +28,7 @@
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:backgroundTint="#135bec"
+                app:backgroundTint="?attr/colorPrimary"
                 app:cornerRadius="12dp"
                 app:icon="@drawable/ic_add"
                 app:iconGravity="textStart" />
@@ -37,9 +37,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                app:cardBackgroundColor="#1A2232"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="16dp"
-                app:strokeColor="#2D3748"
+                app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -53,7 +53,7 @@
                         android:background="@drawable/bg_circle_dark"
                         android:padding="8dp"
                         android:src="@drawable/ic_upload"
-                        app:tint="#94A3B8" />
+                        app:tint="?attr/colorOnSurfaceVariant" />
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -64,14 +64,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Bulk Upload"
-                            android:textColor="#FFFFFF"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Ensure your CSV follows the template."
-                            android:textColor="#94A3B8"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="12sp" />
                     </LinearLayout>
                     <com.google.android.material.button.MaterialButton
@@ -81,8 +81,8 @@
                         android:layout_height="wrap_content"
                         android:text="Upload"
                         android:textAllCaps="false"
-                        android:textColor="#135bec"
-                        app:backgroundTint="#1A135BEC"
+                        android:textColor="?attr/colorPrimary"
+                        app:backgroundTint="?attr/colorPrimaryContainer"
                         app:cornerRadius="8dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="Resource Categories"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -114,7 +114,7 @@
                 android:layout_marginTop="16dp"
                 android:text="View All Resources"
                 android:textAllCaps="false"
-                android:textColor="#135bec"
+                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -136,7 +136,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     app:icon="@drawable/ic_arrow_back"
-                    app:iconTint="#FFFFFF" />
+                    app:iconTint="?attr/colorOnSurface" />
                 <TextView
                     android:id="@+id/tvTableTitle"
                     android:layout_width="0dp"
@@ -144,7 +144,7 @@
                     android:layout_weight="1"
                     android:text="Manage Resources"
                     android:textAlignment="center"
-                    android:textColor="#FFFFFF"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="18sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -153,7 +153,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:layout_marginHorizontal="16dp"
-                app:cardBackgroundColor="#1A2232"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
                 <LinearLayout
@@ -165,7 +165,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_search"
-                        app:tint="#94A3B8" />
+                        app:tint="?attr/colorOnSurfaceVariant" />
                     <EditText
                         android:id="@+id/etSearch"
                         android:layout_width="match_parent"
@@ -173,8 +173,8 @@
                         android:background="@android:color/transparent"
                         android:hint="Search resources..."
                         android:paddingStart="8dp"
-                        android:textColor="#FFFFFF"
-                        android:textColorHint="#94A3B8"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textColorHint="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

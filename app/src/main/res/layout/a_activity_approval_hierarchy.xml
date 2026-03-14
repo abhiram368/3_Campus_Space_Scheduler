@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#101622"
+    android:background="?attr/colorSurface"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -11,8 +10,6 @@
         android:padding="24dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
-        <!-- Header -->
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -24,36 +21,30 @@
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_arrow_back"
-                app:tint="#FFFFFF" />
+                app:tint="?attr/colorOnSurface" />
 
             <TextView
                 android:layout_centerInParent="true"
                 android:text="Approval Hierarchy"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/colorOnSurface"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </RelativeLayout>
 
-
-        <!-- Instructions -->
-
         <TextView
             android:text="Select the approval order for each role. \nApproval order: 3 >> 2 >> 1"
-            android:textColor="#94A3B8"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="13sp"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="24dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-
-        <!-- LABS -->
-
         <TextView
             android:text="Labs"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="12dp"
@@ -69,12 +60,9 @@
         <include layout="@layout/a_item_hierarchy_row"
             android:id="@+id/rowLabsStaff"/>
 
-
-        <!-- HALLS -->
-
         <TextView
             android:text="Halls"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="32dp"
@@ -91,18 +79,14 @@
         <include layout="@layout/a_item_hierarchy_row"
             android:id="@+id/rowHallsIncharge"/>
 
-
-        <!-- SAVE -->
-
         <Button
             android:id="@+id/btnSave"
             android:text="Save Changes"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#135bec"
+            android:textColor="?attr/colorOnPrimary"
+            android:backgroundTint="?attr/colorPrimary"
             android:layout_marginTop="32dp"
             android:layout_width="match_parent"
             android:layout_height="48dp"/>
 
     </LinearLayout>
-
 </ScrollView>

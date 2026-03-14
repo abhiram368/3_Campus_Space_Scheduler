@@ -1,30 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/bg_card_dark"
+    android:background="?attr/colorSurfaceVariant"
     android:layout_marginBottom="12dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <!-- Step title -->
-
     <TextView
         android:id="@+id/stepCircle"
         android:text="Step 1"
-        android:textColor="#94A3B8"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-
-
-    <!-- Role selector -->
 
     <Spinner
         android:id="@+id/roleSpinner"
         android:layout_marginTop="6dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:backgroundTint="?attr/colorPrimary" />
 
 </LinearLayout>

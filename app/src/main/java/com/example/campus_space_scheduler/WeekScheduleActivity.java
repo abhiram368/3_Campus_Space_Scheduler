@@ -118,7 +118,11 @@ public class WeekScheduleActivity extends AppCompatActivity {
                 params.setMargins(1,1,1,1);
 
                 cell.setLayoutParams(params);
-                cell.setBackgroundColor(Color.WHITE);
+                // ---------------------------------------------------------
+                // UI COLOR CONFIGURATION: Default Slot Background
+                // ---------------------------------------------------------
+                int defaultSlotBackgroundColor = Color.WHITE;
+                cell.setBackgroundColor(defaultSlotBackgroundColor);
 
                 cell.setTag(day+"_"+slot);
 
@@ -143,7 +147,12 @@ public class WeekScheduleActivity extends AppCompatActivity {
         tv.setTextSize(10f);
         tv.setPadding(4,8,4,8);
 
-        tv.setBackgroundColor(Color.parseColor("#F5F5F5"));
+        // ---------------------------------------------------------
+        // UI COLOR CONFIGURATION: Header Background (Time/Days)
+        // ---------------------------------------------------------
+        String headerBackgroundHex = "#F5F5F5";
+        int headerBackgroundColor = Color.parseColor(headerBackgroundHex);
+        tv.setBackgroundColor(headerBackgroundColor);
 
         TableRow.LayoutParams params =
                 new TableRow.LayoutParams(
@@ -219,7 +228,11 @@ public class WeekScheduleActivity extends AppCompatActivity {
 
         }catch(Exception e){
 
-            cell.setBackgroundColor(Color.LTGRAY);
+            // ---------------------------------------------------------
+            // UI COLOR CONFIGURATION: Fallback Color if mapping fails
+            // ---------------------------------------------------------
+            int slotErrorFallbackColor = Color.LTGRAY;
+            cell.setBackgroundColor(slotErrorFallbackColor);
         }
     }
 

@@ -5,7 +5,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.campus_space_scheduler.databinding.ItemUserCardBinding;
+import com.example.campus_space_scheduler.databinding.AItemUserCardBinding;
 import com.example.campus_space_scheduler.model.ManagementModel;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ItemUserCardBinding binding = ItemUserCardBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        AItemUserCardBinding binding = AItemUserCardBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new ViewHolder(binding);
     }
 
@@ -54,8 +54,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        ItemUserCardBinding binding;
-        ViewHolder(ItemUserCardBinding binding) {
+        AItemUserCardBinding binding;
+        ViewHolder(AItemUserCardBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
