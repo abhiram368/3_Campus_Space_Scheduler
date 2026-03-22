@@ -14,15 +14,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CampusSpaceScheduler">
-<!--        <activity-->
-<!--            android:name=".MainActivity"-->
-<!--            android:exported="true">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
-
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
-<!--        </activity>-->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -33,11 +24,11 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:launchMode="singleTop" />
         <activity
             android:name=".app_admin.AdminActivity"
             android:exported="true"/>
-<!--        <activity android:name=".AdminScheduleManagementActivity" />-->
         <activity android:name=".app_admin.ViewLogsActivity" />
         <activity android:name=".app_admin.UserTableActivity" />
         <activity android:name=".ForgotPasswordActivity" />
@@ -50,8 +41,17 @@
         <activity android:name=".BaseScheduleSelectorActivity"/>
         <activity android:name=".WeekScheduleActivity" />
         <activity android:name=".app_admin.ProfileActivity" />
-        <activity android:name=".app_admin.ApprovalHierarchyActivity" />
+        <activity android:name=".app_admin.ManageBookingsActivity" />
+        <activity android:name=".DayScheduleActivity" />
+        <activity android:name=".csed_office.CsedOfficeStaffActivity" />
 
+        <!-- Teja -->
+        <activity android:name=".booking_user.BookingDetailsActivity" />
+        <activity android:name=".booking_user.CancelRequestActivity" />
+        <activity android:name=".booking_user.BookingHistoryActivity" />
+        <activity android:name=".booking_user.AvailableTimeSlotsActivity" />
+        <activity android:name=".booking_user.ProfileActivity" />
+        <activity android:name=".booking_user.BookingFormActivity" />
 
     </application>
 
