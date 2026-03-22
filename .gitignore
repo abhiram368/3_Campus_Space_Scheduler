@@ -8,3 +8,5 @@ app/google-services.json
 
 # Local properties (contains SDK paths)
 local.properties
+
+bfg-1.15.0.jar
