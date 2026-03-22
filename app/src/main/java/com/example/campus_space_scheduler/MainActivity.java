@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campus_space_scheduler.app_admin.AdminActivity;
 import com.example.campus_space_scheduler.booking_user.BookingUserActivity;
+import com.example.campus_space_scheduler.csed_office.CsedOfficeStaffActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
@@ -73,25 +74,35 @@ public class MainActivity extends AppCompatActivity {
                             if ("App admin".equals(role)) {
                                 navigateTo(AdminActivity.class);
 
-                            } else if ("Student".equals(role) ||
-                                    "Faculty".equals(role) ||
-                                    "HoD".equals(role) ||
-                                    "Faculty Incharge".equals(role) ||
-                                    "Lab admin".equals(role)) {
+                            } else if ("Student".equals(role) || "Faculty".equals(role)) {
+                                Intent intent = new Intent(MainActivity.this, BookingUserActivity.class);
+                                intent.putExtra("ROLE", role);
+                                startActivity(intent);
+                                finish();
 
+                            } else if ("HOD".equals(role)) {
                                 navigateTo(BookingUserActivity.class);
 
-                            } else if ("CSED Staff".equals(role) ||
-                                    "Hall Incharge".equals(role) ||
-                                    "Staff Incharge".equals(role)) {
+                            } else if ("Faculty Incharge".equals(role)) {
+                                navigateTo(BookingUserActivity.class);
 
+                            } else if ("Lab admin".equals(role)) {
+                                navigateTo(BookingUserActivity.class);
+
+                            } else if ("CSED Staff".equals(role)) {
+                                navigateTo(CsedOfficeStaffActivity.class);
+
+                            } else if ("Hall Incharge".equals(role)) {
+                                navigateTo(OtherUserActivity.class);
+
+                            } else if ("Staff Incharge".equals(role)) {
                                 navigateTo(OtherUserActivity.class);
 
                             } else {
                                 navigateTo(LoginActivity.class);
                             }
 
-                        }, 2000); // 2 seconds
+                        }, 1000); // 1 seconds
                     }
 
                     @Override
