@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class ManagementFragment extends Fragment {
 
@@ -158,10 +159,10 @@ public class ManagementFragment extends Fragment {
                 .setTitle("Add New " + mode)
                 .setView(dBinding.getRoot())
                 .setPositiveButton("Save", (d, w) -> {
-                    String f1 = dBinding.editField1.getText().toString().trim();
-                    String f2 = dBinding.editField2.getText().toString().trim();
-                    String f3 = dBinding.editField3.getText().toString().trim();
-                    String f4 = dBinding.editField4.getText().toString().trim();
+                    String f1 = Objects.requireNonNull(dBinding.editField1.getText()).toString().trim();
+                    String f2 = Objects.requireNonNull(dBinding.editField2.getText()).toString().trim();
+                    String f3 = Objects.requireNonNull(dBinding.editField3.getText()).toString().trim();
+                    String f4 = Objects.requireNonNull(dBinding.editField4.getText()).toString().trim();
                     String role = dBinding.roleDropdown.getText().toString();
 
                     if ("USER".equals(mode)) {
