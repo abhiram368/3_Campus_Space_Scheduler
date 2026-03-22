@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:clipToPadding="false"
+    android:paddingBottom="100dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Account"
+            android:textColor="?attr/colorPrimary" />
+
+        <include
+            android:id="@+id/btnProfile"
+            layout="@layout/a_item_settings_row" />
+        <include
+            android:id="@+id/btnChangePassword"
+            layout="@layout/a_item_settings_row" />
+        <include
+            android:id="@+id/btnLogout"
+            layout="@layout/a_item_settings_row" />
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Integrations &amp; Comms"
+            android:textColor="?attr/colorPrimary" />
+
+        <include
+            android:id="@+id/btnGoogleSync"
+            layout="@layout/a_item_settings_row" />
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Support &amp; Info"
+            android:textColor="?attr/colorPrimary" />
+
+        <include
+            android:id="@+id/btnAppVersion"
+            layout="@layout/a_item_settings_row" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

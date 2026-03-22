@@ -1,0 +1,53 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/slotTime"
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:paddingHorizontal="12dp"
+        android:textSize="10sp"
+        android:textColor="?attr/colorOnSurfaceVariant"/>
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline"/>
+
+        <LinearLayout
+            android:id="@+id/slotBlock"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_margin="8dp"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:background="@drawable/bg_slot_block">
+
+            <TextView
+                android:id="@+id/slotRange"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+
+            <TextView
+                android:id="@+id/slotStatus"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

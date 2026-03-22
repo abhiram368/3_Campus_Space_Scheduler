@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.example.campus_space_scheduler'
-    compileSdk 36
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.campus_space_scheduler"
         minSdk 24
-        targetSdk 35
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -22,7 +22,9 @@ android {
             res.srcDirs = [
                     'src/main/res/layout_app_admin',
                     'src/main/res/layout_hod',
-                    'src/main/res'
+                    'src/main/res',
+                    'src/main/res/layout_csed_office',
+                    'src/main/res/layout_booking_user'
             ]
         }
     }

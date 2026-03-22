@@ -82,4 +82,30 @@
     <string name="navigation_drawer_close">Close</string>
     <string name="labs">Labs</string>
     <string name="classrooms">Classrooms</string>
+
+    <!-- Teja -->
+    <string name="student_dashboard">Student Dashboard</string>
+    <string name="halls">Halls</string>
+    <string name="faculty_dashboard">Faculty Dashboard</string>
+    <string name="lor_instructions">Please upload your Letter of Recommendation (LOR) to Google Drive and paste the public URL here.</string>
+    <!-- New Strings for Warnings -->
+    <string name="no_schedule_found">No schedule found for %1$s</string>
+    <string name="no_available_slots">No available slots for the selected time.</string>
+    <string name="purpose_required">Purpose is required</string>
+    <string name="lor_url_required">LOR URL is required</string>
+    <string name="user_not_logged_in">User not logged in</string>
+    <string name="missing_schedule_info">Missing schedule information</string>
+    <string name="slot_not_available">Slot no longer available.</string>
+    <string name="booking_request_sent">Booking Request Sent</string>
+    <string name="failed_save_booking">Failed to save booking.</string>
+    <string name="rejection_reason">Reason for Rejection: %1$s</string>
+    <string name="remarks_label">Remarks: %1$s</string>
+    <string name="approved_by_label">Approved by: %1$s</string>
+    <string name="rejected_by_label">Rejected by: %1$s</string>
+    <string name="unknown_user">Unknown User</string>
+    <string name="error_loading_info">Error loading info</string>
+    <string name="invalid_lor_link">Invalid LOR Link</string>
+    <string name="booking_cancelled_successfully">Booking Cancelled Successfully</string>
+    <string name="failed_cancel_booking">Failed to cancel booking</string>
+    <string name="failed_update_schedule">Failed to update schedule</string>
 </resources>

@@ -5,7 +5,7 @@
 
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorOnPrimary">@color/onPrimary</item>
-        <item name="android:windowBackground">@color/background</item>
+<!--        <item name="android:windowBackground">@color/background</item>-->
         <item name="android:colorBackground">@color/background</item>
 
         <item name="colorPrimary">@color/blue_500</item>
@@ -20,6 +20,7 @@
         <item name="colorError">@color/red_error</item>
         <item name="colorOnError">@color/white</item>
         <item name="colorErrorContainer">@color/red_error_tint_light</item>
+        <item name="android:windowBackground">@color/background</item>
     </style>
 
     <style name="CircleImage" parent="">
@@ -39,6 +40,26 @@
         <item name="colorOnSurfaceVariant">@color/slate_500</item>
         <item name="colorSurfaceVariant">@color/gray_200</item>
         <item name="colorOutline">@color/slate_300</item>
+    </style>
+
+    <!-- Teja -->
+
+    <style name="Theme.CampusSpaceScheduler.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="colorPrimary">@color/primary_blue</item>
+    </style>
+
+    <style name="Theme.CampusSpaceScheduler.Dialog.Custom" parent="Theme.CampusSpaceScheduler.Dialog">
+        <!-- Add any custom attributes if needed, or just keep it as a child of the base dialog theme -->
+    </style>
+
+    <style name="CustomCalendarTheme" parent="Theme.AppCompat.Light">
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:colorControlActivated">@color/accent_cyan</item>
     </style>
 
     <style name="Theme.CampusSpaceScheduler" parent="Base.Theme.CampusSpaceScheduler" />

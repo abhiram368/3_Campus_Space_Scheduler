@@ -1,0 +1,13 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="?attr/colorSurface" />
+    </item>
+
+    <item>
+        <bitmap
+            android:src="@drawable/ic_gen"
+            android:tileMode="repeat"
+            android:alpha="0.5"
+            android:tint="?attr/colorPrimary"
+            android:tintMode="src_in" /> </item>
+</layer-list>

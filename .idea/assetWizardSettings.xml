@@ -79,7 +79,7 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\Users\SAD ABHIRAM\Downloads\FullLogo_Transparent_NoBuffer.png" />
+                                                <entry key="imagePath" value="C:\Users\SAD ABHIRAM\Downloads\image7.webp" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -113,6 +113,7 @@
                                     <map>
                                       <entry key="backgroundAssetType" value="COLOR" />
                                       <entry key="backgroundColor" value="fcf9ea" />
+                                      <entry key="outputName" value="ic_test" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -306,7 +307,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../SAD%20ABHIRAM/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/arrow_shape_up_stack/outline_arrow_shape_up_stack_24.xml" />
+                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../SAD%20ABHIRAM/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/history/outline_history_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -316,7 +317,7 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="ic_hierarchy" />
+                            <entry key="outputName" value="ic_history" />
                             <entry key="sourceFile" value="C:\Users\SAD ABHIRAM\Downloads\CSSIcons\icons8-lock-24.svg" />
                           </map>
                         </option>

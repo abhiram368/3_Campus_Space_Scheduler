@@ -81,4 +81,15 @@
     <color name="red_error_tint_light">#FEE2E2</color>
     <color name="red_error_tint_dark">#450A0A</color>
 
+    <!-- Dark Theme Colors based on the UI reference -->
+    <color name="background_dark">#0F1621</color>
+    <color name="surface_dark">#1A222F</color>
+    <color name="primary_blue">#1D61E7</color>
+    <color name="accent_cyan">#7ED9F5</color>
+
+    <!-- Original colors (kept for compatibility) -->
+    <color name="blue">#1D61E7</color>
+    <color name="purple_logo">#6A1B9A</color>
+    <color name="purple_logo_light">#9C27B0</color>
+
 </resources>
