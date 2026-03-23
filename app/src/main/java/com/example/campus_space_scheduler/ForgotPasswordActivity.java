@@ -20,6 +20,16 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
+        if (auth.getCurrentUser() != null) {
+            String email = auth.getCurrentUser().getEmail();
+
+            if (email != null) {
+                binding.etResetEmail.setText(email);
+                binding.etResetEmail.setFocusable(false);
+                binding.etResetEmail.setClickable(false);
+            }
+        }
+
         // Send Link Button
         binding.btnSendLink.setOnClickListener(v -> handlePasswordReset());
 
