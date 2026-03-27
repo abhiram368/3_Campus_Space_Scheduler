@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
+    android:background="?attr/colorSurface"
     android:fitsSystemWindows="true">
 
     <!-- Header -->
@@ -25,13 +25,13 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white" />
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Booking Details"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -57,7 +57,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/surface_dark"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:strokeColor="#2A3342"
@@ -73,7 +73,7 @@
                         android:id="@+id/textViewSpaceName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         tools:text="CSED Seminar Hall" />
@@ -100,7 +100,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/surface_dark"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:strokeColor="#2A3342"
@@ -116,7 +116,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TIME SLOT"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -125,7 +125,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         tools:text="2024-05-20 | 10:00 - 11:00" />
 
@@ -139,7 +139,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="PURPOSE"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -148,7 +148,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         tools:text="Workshop on AI and Machine Learning" />
 
@@ -162,7 +162,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="DESCRIPTION"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -171,7 +171,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
                         tools:text="Detailed description of the event goes here..." />
 
@@ -185,7 +185,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="REQUESTED ON"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -194,7 +194,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
                         tools:text="2024-05-18 14:30:00" />
 
@@ -206,7 +206,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/surface_dark"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:strokeColor="#2A3342"
@@ -222,7 +222,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="BOOKED BY"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -231,7 +231,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:textColor="@color/white"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         tools:text="John Doe (B230267CS)" />
 
@@ -251,7 +251,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp"
                         android:visibility="gone"
                         tools:text="Remarks: Space is available for the requested time."

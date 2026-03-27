@@ -3,26 +3,18 @@
     <color name="black">#FF000000</color>
 
     <!-- Refined Blue Glass Theme (Reference: Prakthis style) -->
-    <color name="glass_bg_start">#3B82F6</color> <!-- Vibrant Blue -->
-    <color name="glass_bg_end">#06B6D4</color>   <!-- Vibrant Teal -->
 
     <color name="glass_content_bg">#F8FAFC</color> <!-- Off-white for content area -->
 
-    <color name="glass_card_fill">#CCFFFFFF</color> <!-- 80% White -->
-    <color name="glass_card_stroke">#4DFFFFFF</color> <!-- 30% White stroke -->
 
     <color name="text_primary">#0F172A</color> <!-- Dark Slate -->
     <color name="text_secondary">#64748B</color> <!-- Slate Grey -->
 
-    <color name="accent_blue">#2563EB</color>
-    <color name="accent_teal">#0D9488</color>
 
     <color name="status_available">#10B981</color>
     <color name="status_booked">#EF4444</color>
 
     <!-- Gold Gradient -->
-    <color name="gold_gradient_start">#FDB813</color>
-    <color name="gold_gradient_end">#F8D44C</color>
 
     <!-- Glass Fill and Stroke (used in some drawables) -->
     <color name="glass_fill">#CCFFFFFF</color>
@@ -91,5 +83,62 @@
     <color name="blue">#1D61E7</color>
     <color name="purple_logo">#6A1B9A</color>
     <color name="purple_logo_light">#9C27B0</color>
+
+    <!-- Venkat -->
+    <!-- Professional Design Language Colors -->
+
+    <color name="background_light">#F8FAFC</color>
+    <color name="card_white">#FFFFFF</color>
+
+
+
+
+    <!-- Status Colors -->
+    <color name="status_approved">#16A34A</color>
+    <color name="status_pending">#F59E0B</color>
+    <color name="status_rejected">#DC2626</color>
+    <color name="v_status_booked">#2563EB</color>
+    <color name="v_status_available">#10B981</color>
+
+    <!-- Theme Overrides -->
+    <color name="v_primary">#2563EB</color>
+    <color name="v_secondary">#6B7280</color>
+    <color name="v_background">#F8FAFC</color>
+    <color name="v_surface">#FFFFFF</color>
+    <color name="v_onPrimary">#FFFFFF</color>
+    <color name="v_onSurface">#111827</color>
+    <color name="v_onSurfaceVariant">#6B7280</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="v_primaryDark">#2563EB</color>
+    <color name="v_onPrimaryDark">#FFFFFF</color>
+    <color name="v_backgroundDark">#0F172A</color>
+    <color name="v_secondaryDark">#6B7280</color>
+    <color name="v_surfaceDark">#1E293B</color>
+    <color name="textPrimaryDark">#F8FAFC</color>
+    <color name="textSecondaryDark">#CBD5E1</color>
+    <color name="statusGreenDark">#16A34A</color>
+    <color name="statusRedDark">#DC2626</color>
+    <color name="statusOrangeDark">#F59E0B</color>
+
+    <!-- UI Redesign Elements -->
+    <color name="glass_card_fill">#FFFFFF</color>
+    <color name="glass_card_stroke">#33FFFFFF</color>
+    <color name="gold_gradient_start">#FBBF24</color>
+    <color name="gold_gradient_end">#F59E0B</color>
+    <color name="glass_bg_start">#EFF6FF</color>
+    <color name="glass_bg_end">#DBEAFE</color>
+    <color name="accent_blue">#2563EB</color>
+    <color name="accent_teal">#14B8A6</color>
+
+    <!-- Text Color Aliases for Style Compatibility -->
+    <color name="textPrimary">#111827</color>
+    <color name="textSecondary">#6B7280</color>
+    <color name="divider">#E2E8F0</color>
+
+    <!-- Adaptive Colors for Theme Consistency -->
+    <color name="status_text_color">#000000</color>
+    <color name="action_bar_bg">#FFFFFF</color>
+    <color name="gold">#D7C02D</color>
 
 </resources>

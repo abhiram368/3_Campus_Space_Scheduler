@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.campus_space_scheduler.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.color.MaterialColors;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -162,10 +163,14 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         slotButton.setAllCaps(false);
         slotButton.setCornerRadius(24);
 
-        slotButton.setBackgroundColor(ContextCompat.getColor(this, R.color.surface_dark));
+        int colorBackground = MaterialColors.getColor(slotButton, com.google.android.material.R.attr.colorSurfaceVariant);
+        slotButton.setBackgroundColor(colorBackground);
+//        slotButton.setBackgroundColor(ContextCompat.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
+//        int colorStroke = MaterialColors.getColor(slotButton, com.google.android.material.R.attr.colorPrimary);
         slotButton.setStrokeColorResource(R.color.primary_blue);
         slotButton.setStrokeWidth(2);
-        slotButton.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        int colorText = MaterialColors.getColor(slotButton, com.google.android.material.R.attr.colorOnSurfaceVariant);
+        slotButton.setTextColor(colorText);
 
         slotButton.setOnClickListener(v -> {
             Intent intent = new Intent(AvailableTimeSlotsActivity.this, BookingFormActivity.class);

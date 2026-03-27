@@ -4,6 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="12dp"
-    android:textColor="@color/white"
-    android:background="@color/surface_dark"
+    android:textColor="?attr/colorOnSurface"
+    android:background="?attr/colorSurface"
     android:textSize="16sp" />

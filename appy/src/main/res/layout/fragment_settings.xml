@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101622"
+    android:clipToPadding="false"
+    android:paddingBottom="100dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:text="Account" />
+
+        <include
+            android:id="@+id/btnProfile"
+            layout="@layout/item_settings_row" />
+        <include
+            android:id="@+id/btnChangePassword"
+            layout="@layout/item_settings_row" />
+        <include
+            android:id="@+id/btnLogout"
+            layout="@layout/item_settings_row" />
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:text="Integrations &amp; Comms" />
+
+        <include
+            android:id="@+id/btnApprovalHierarchy"
+            layout="@layout/item_settings_row" />
+        <include
+            android:id="@+id/btnGoogleSync"
+            layout="@layout/item_settings_row" />
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:text="Logs &amp; Reports" />
+
+        <include
+            android:id="@+id/btnDownloadReports"
+            layout="@layout/item_settings_row" />
+
+        <TextView
+            style="@style/SettingsHeader"
+            android:text="Support &amp; Info" />
+
+        <include
+            android:id="@+id/btnAppVersion"
+            layout="@layout/item_settings_row" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

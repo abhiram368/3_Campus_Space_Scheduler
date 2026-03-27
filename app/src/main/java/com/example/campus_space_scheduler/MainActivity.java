@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.campus_space_scheduler.app_admin.AdminActivity;
 import com.example.campus_space_scheduler.booking_user.BookingUserActivity;
 import com.example.campus_space_scheduler.csed_office.CsedOfficeStaffActivity;
+import com.example.hod.hod.HodDashboardActivity;
+import com.example.hod.staff.StaffDashboardActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
@@ -64,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
                         String role = snapshot.child("role").getValue(String.class);
                         String name = snapshot.child("name").getValue(String.class);
+                        String inchargeToSpace = snapshot.child("inchargeToSpace").getValue(String.class);
+
+
 
                         nameText.setText(name);
                         roleText.setText(role);
@@ -80,8 +85,8 @@ public class MainActivity extends AppCompatActivity {
                                 startActivity(intent);
                                 finish();
 
-                            } else if ("HOD".equals(role)) {
-                                navigateTo(BookingUserActivity.class);
+                            } else if ("HoD".equals(role)) {
+                                navigateTo(HodDashboardActivity.class);
 
                             } else if ("Faculty Incharge".equals(role)) {
                                 navigateTo(BookingUserActivity.class);
@@ -95,8 +100,13 @@ public class MainActivity extends AppCompatActivity {
                             } else if ("Hall Incharge".equals(role)) {
                                 navigateTo(OtherUserActivity.class);
 
-                            } else if ("Staff Incharge".equals(role)) {
-                                navigateTo(OtherUserActivity.class);
+                            } else if ("StaffIncharge".equals(role)) {
+                                Intent intent = new Intent(MainActivity.this, StaffDashboardActivity.class);
+                                intent.putExtra("ROLE", role);
+                                intent.putExtra("labId", inchargeToSpace);
+                                intent.putExtra("userName", name);
+                                startActivity(intent);
+                                finish();
 
                             } else {
                                 navigateTo(LoginActivity.class);

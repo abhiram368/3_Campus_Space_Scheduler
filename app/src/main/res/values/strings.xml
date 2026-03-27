@@ -108,4 +108,75 @@
     <string name="booking_cancelled_successfully">Booking Cancelled Successfully</string>
     <string name="failed_cancel_booking">Failed to cancel booking</string>
     <string name="failed_update_schedule">Failed to update schedule</string>
+
+    <!-- Venkat -->
+    <!-- HOD Master Dashboard -->
+    <string name="hod_dashboard_title">HOD Dashboard</string>
+    <string name="role_hod">Head of Department</string>
+    <string name="approval_history_title">Approval History</string>
+    <string name="escalated_requests_title">Escalated Requests</string>
+    <string name="request_detail_title">Request Detail</string>
+    <string name="pending_hod_approval_subtitle">Pending HOD Approval</string>
+    <string name="completed_booking_subtitle">Completed Booking</string>
+    <string name="label_space">Space: </string>
+    <string name="label_purpose">Purpose: </string>
+    <string name="label_slot">Slot: </string>
+    <string name="label_booking_date">Booking Date: </string>
+    <string name="label_final_decision">Final Decision: </string>
+    <string name="label_requester">Requester: </string>
+    <string name="label_records_found">%d records found</string>
+    <string name="label_pending_actions">%d pending actions</string>
+    <string name="label_bookings"> Bookings</string>
+    <string name="label_decision_by">Decision By: </string>
+
+    <!-- View Schedule -->
+    <string name="hod_profile_title">HOD Profile</string>
+    <string name="staff_profile_title">Staff Profile</string>
+    <string name="my_profile">My Profile</string>
+    <string name="account_settings">Account Settings</string>
+
+    <string name="error_missing_lab_id">Missing Lab ID</string>
+    <string name="label_lab_schedule">%s Schedule</string>
+    <string name="label_schedule_for_full">Schedule for: %1$s (%2$s)</string>
+    <string name="error_fetching_schedule">Error fetching schedule</string>
+    <string name="error_failed_load_spaces">Failed to load spaces</string>
+    <string name="subtitle_all_labs">All Spaces</string>
+    <string name="error_staff_dashboard_not_found_msg">Staff Dashboard not found: %s</string>
+    <string name="label_no_document">No document attached</string>
+    <string name="error_cannot_open_link">Cannot open link</string>
+    <string name="label_off_hours">OFF HOURS</string>
+    <string name="status_closed_off_hours">CLOSED (OFF HOURS)</string>
+    <string name="hint_enter_remark_mandatory">Enter remark (mandatory)</string>
+    <string name="label_decided_by">Decided By: %s</string>
+    <string name="label_decided_by_na">Decided By: N/A</string>
+    <string name="no_spaces_found">No spaces found</string>
+    <string name="user_email_prefix">Email: %s</string>
+    <string name="user_phone_prefix">Contact No: %s</string>
+
+    <!-- Added for HodCompletedRequestDetailActivity -->
+    <string name="error_booking_data_missing">Booking data is missing.</string>
+    <string name="no_documents_available">No documents available for this booking.</string>
+    <string name="msg_confirm_unblock">Are you sure you want to unblock this student?</string>
+    <string name="label_purpose_prefix">Purpose: %s</string>
+    <string name="label_slot_usage_prefix">Slot: %s</string>
+    <string name="label_booking_date_prefix">Booked On: %s</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="label_final_decision_prefix">Final Decision: %s</string>
+    <string name="label_requester_prefix">Requester: %s</string>
+    <string name="status_student_blocked">Blocked</string>
+    <string name="status_student_active">Active</string>
+    <string name="label_decision_by_prefix">Decision By: %s</string>
+    <string name="dialog_title_cancel_booking">Cancel Booking</string>
+    <string name="error_remark_required">Remark is required.</string>
+    <string name="msg_booking_cancelled">Booking cancelled successfully.</string>
+    <string name="hint_block_reason">Enter reason for blocking</string>
+    <string name="dialog_title_block_student">Block Student</string>
+    <string name="msg_enter_block_reason">Please provide a reason for blocking this student.</string>
+    <string name="error_reason_mandatory">Reason is mandatory.</string>
+    <string name="msg_student_blocked">Student blocked successfully.</string>
+    <string name="msg_student_unblocked">Student unblocked successfully.</string>
+    <string name="dialog_title_reapprove">Re-approve Booking</string>
+    <string name="msg_provide_reapprove_reason">Provide a reason for re-approving this booking.</string>
+    <string name="hint_reapprove_reason">Enter re-approval reason</string>
+    <string name="msg_booking_approved">Booking approved successfully.</string>
 </resources>

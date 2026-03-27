@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="?attr/colorSurface">
 
     <!-- Header -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -24,13 +24,13 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white" />
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Booking Form"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -58,7 +58,7 @@
                 android:id="@+id/textViewSpaceName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:gravity="center"
@@ -69,7 +69,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp"
                 android:gravity="center"
                 tools:text="2024-05-20 | 10:00 - 11:00" />
@@ -78,7 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                app:cardBackgroundColor="@color/surface_dark"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:strokeWidth="1dp"
@@ -96,7 +96,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Purpose of Booking *"
-                        android:textColorHint="@color/text_secondary"
+                        android:textColorHint="?attr/colorOnSurfaceVariant"
                         app:boxStrokeColor="@color/primary_blue"
                         app:hintTextColor="@color/primary_blue">
 
@@ -112,7 +112,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="@string/lor_instructions"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -122,7 +122,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:hint="LOR URL *"
-                        android:textColorHint="@color/text_secondary"
+                        android:textColorHint="?attr/colorOnSurfaceVariant"
                         app:boxStrokeColor="@color/primary_blue"
                         app:hintTextColor="@color/primary_blue">
 
@@ -151,7 +151,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:hint="Description (Optional)"
-                        android:textColorHint="@color/text_secondary"
+                        android:textColorHint="?attr/colorOnSurfaceVariant"
                         app:boxStrokeColor="@color/primary_blue"
                         app:hintTextColor="@color/primary_blue">
 
@@ -161,7 +161,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="top"
                             android:lines="3"
-                            android:textColor="@color/white" />
+                            android:textColor="?attr/colorOnSurface" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>

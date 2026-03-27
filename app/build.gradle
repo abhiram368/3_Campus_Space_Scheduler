@@ -21,7 +21,7 @@ android {
         main {
             res.srcDirs = [
                     'src/main/res/layout_app_admin',
-                    'src/main/res/layout_hod',
+                    'src/main/res/layout_approval_user',
                     'src/main/res',
                     'src/main/res/layout_csed_office',
                     'src/main/res/layout_booking_user'
@@ -54,6 +54,7 @@ dependencies {
     implementation libs.activity
     implementation libs.constraintlayout
     implementation libs.firebase.auth
+    implementation libs.firebase.firestore
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
@@ -61,4 +62,5 @@ dependencies {
     implementation libs.play.services.auth
     implementation libs.play.services.auth.v2100
     implementation 'com.firebaseui:firebase-ui-database:8.0.2' // do not change this
+    implementation project(':appy')
 }

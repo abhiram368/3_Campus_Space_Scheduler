@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name="com.example.hod.hod.RoleSelectionActivity" />
+        <activity android:name="com.example.hod.hod.HodDashboardActivity" />
+        <activity android:name="com.example.hod.hod.LiveStatusActivity" />
+        <activity android:name="com.example.hod.hod.HodSpaceScheduleActivity" />
+        <activity android:name="com.example.hod.hod.HodLabSlotDetailActivity" />
+        <activity android:name="com.example.hod.hod.ViewDocumentActivity" />
+        <activity android:name="com.example.hod.hod.HodRequestDetailActivity" />
+        <activity android:name="com.example.hod.hod.HodApprovalHistoryActivity" />
+        <activity android:name="com.example.hod.hod.HodViewScheduleHomeActivity" />
+        <activity android:name="com.example.hod.hod.HodEscalatedRequestsActivity" />
+        <activity android:name="com.example.hod.hod.HodCompletedRequestDetailActivity" />
+        <activity android:name="com.example.hod.hod.HodProfileActivity" />
+        <activity android:name="com.example.hod.hod.HodHelpAboutActivity" />
+        <activity android:name="com.example.hod.hod.HodNotificationsActivity" />
+        <activity android:name="com.example.hod.staff.StaffDashboardActivity" />
+        <activity android:name="com.example.hod.staff.LabSlotDetailActivity" />
+        <activity android:name="com.example.hod.staff.StaffSpaceScheduleActivity" />
+        <activity android:name="com.example.hod.staff.StaffProfileActivity" />
+        <activity android:name="com.example.hod.staff.StaffBlockedUsersActivity" />
+        <activity android:name="com.example.hod.staff.StaffBlockedUserDetailActivity" />
+        <activity android:name="com.example.hod.staff.LabDetailsActivity" />
+        <activity android:name="com.example.hod.staff.PendingRequestsActivity" />
+        <activity android:name="com.example.hod.staff.LabLiveStatusActivity" />
+        <activity android:name="com.example.hod.staff.ViewScheduleActivity" />
+        <activity android:name="com.example.hod.staff.ApprovalHistoryActivity" />
+        <activity android:name="com.example.hod.staff.LabAdminsHomeActivity" />
+        <activity android:name="com.example.hod.staff.FacultyDashboardActivity" />
+        <activity android:name="com.example.hod.staff.RequestDetailActivity" />
+        <activity android:name="com.example.hod.staff.AdminDetailsActivity" />
+        <activity android:name="com.example.hod.staff.AdminScheduleActivity" />
+        <activity android:name="com.example.hod.staff.LabCompletedRequestDetailActivity" />
+        <activity android:name="com.example.hod.staff.StaffCompletedRequestDetailActivity" />
+        <activity android:name="com.example.hod.staff.LorViewerActivity" />
+        <activity android:name="com.example.hod.staff.ViewAdminsActivity" />
+        <activity android:name="com.example.hod.staff.AddLabAdminActivity" />
+        <activity android:name="com.example.hod.staff.WorkspaceStaffInchargeActivity" />
+        <activity android:name="com.example.hod.staff.DailySlotsActivity" />
+        <activity android:name="com.example.hod.staff.HelpActivity" />
+        <activity android:name="com.example.hod.staff.NotificationsActivity" />
+    </application>
+</manifest>

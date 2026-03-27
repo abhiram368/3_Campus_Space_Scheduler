@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="?attr/colorSurface">
 
     <!-- Header -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -19,18 +19,18 @@
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:padding="12dp"
-            android:src="@drawable/ic_user"
+            android:src="@drawable/ic_back"
             android:contentDescription="Back"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white" />
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancel Requests"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"

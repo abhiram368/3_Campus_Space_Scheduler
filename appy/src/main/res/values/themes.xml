@@ -1,0 +1,33 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.CampusSpaceScheduler" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/primary_blue</item>
+        <item name="colorSecondary">@color/text_secondary</item>
+        <item name="android:windowBackground">@color/background_light</item>
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorSurface">@color/card_white</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        
+        <!-- Large readable typography -->
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Material3.HeadlineLarge</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Material3.TitleLarge</item>
+    </style>
+
+    <style name="Theme.CampusSpaceScheduler" parent="Base.Theme.CampusSpaceScheduler" />
+
+    <!-- Custom Card Style: Radius 20dp, Elevation 6dp, Padding 16dp -->
+    <style name="ProfessionalCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <!-- Specific styles for other themes if needed -->
+    <style name="Theme.HOD" parent="Theme.CampusSpaceScheduler" />
+    <style name="LabelMedium" parent="TextAppearance.Material3.LabelMedium" />
+    <style name="LabelLarge" parent="TextAppearance.Material3.LabelLarge" />
+
+</resources>

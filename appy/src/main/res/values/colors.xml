@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Professional Design Language Colors -->
+    <color name="primary_blue">#2563EB</color>
+    <color name="background_light">#F8FAFC</color>
+    <color name="card_white">#FFFFFF</color>
+    
+    <color name="text_primary">#111827</color>
+    <color name="text_secondary">#6B7280</color>
+
+    <!-- Status Colors -->
+    <color name="status_approved">#16A34A</color>
+    <color name="status_pending">#F59E0B</color>
+    <color name="status_rejected">#DC2626</color>
+    <color name="status_booked">#2563EB</color>
+    <color name="status_available">#10B981</color>
+
+    <!-- Theme Overrides -->
+    <color name="primary">#2563EB</color>
+    <color name="secondary">#6B7280</color>
+    <color name="background">#F8FAFC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="onSurface">#111827</color>
+    <color name="onSurfaceVariant">#6B7280</color>
+    
+    <!-- Dark Theme Colors -->
+    <color name="primaryDark">#2563EB</color>
+    <color name="onPrimaryDark">#FFFFFF</color>
+    <color name="backgroundDark">#0F172A</color>
+    <color name="secondaryDark">#6B7280</color>
+    <color name="surfaceDark">#1E293B</color>
+    <color name="textPrimaryDark">#F8FAFC</color>
+    <color name="textSecondaryDark">#CBD5E1</color>
+    <color name="statusGreenDark">#16A34A</color>
+    <color name="statusRedDark">#DC2626</color>
+    <color name="statusOrangeDark">#F59E0B</color>
+
+    <!-- UI Redesign Elements -->
+    <color name="glass_card_fill">#FFFFFF</color>
+    <color name="glass_card_stroke">#33FFFFFF</color>
+    <color name="gold_gradient_start">#FBBF24</color>
+    <color name="gold_gradient_end">#F59E0B</color>
+    <color name="glass_bg_start">#EFF6FF</color>
+    <color name="glass_bg_end">#DBEAFE</color>
+    <color name="accent_blue">#2563EB</color>
+    <color name="accent_teal">#14B8A6</color>
+    
+    <!-- Text Color Aliases for Style Compatibility -->
+    <color name="textPrimary">#111827</color>
+    <color name="textSecondary">#6B7280</color>
+    <color name="divider">#E2E8F0</color>
+
+    <!-- Adaptive Colors for Theme Consistency -->
+    <color name="status_text_color">#000000</color>
+    <color name="action_bar_bg">#FFFFFF</color>
+    <color name="gold">#D7C02D</color>
+</resources>

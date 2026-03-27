@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_terminal"
+        android:title="Search"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_upload_csv"
+        android:title="Upload CSV"
+        app:showAsAction="never" />
+</menu>

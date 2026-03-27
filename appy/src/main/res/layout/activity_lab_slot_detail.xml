@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
+
+    <!-- Header -->
+    <include
+        android:id="@+id/header_layout"
+        layout="@layout/layout_common_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/header_layout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Slot Info Card -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/ProfessionalCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:id="@+id/tvDetailTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="09:00 AM – 10:00 AM"
+                        style="@style/TitleLarge"
+                        android:textSize="28sp"
+                        android:textColor="@color/primary_blue" />
+
+                    <TextView
+                        android:id="@+id/tvDetailDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="20 March 2026"
+                        style="@style/BodySecondary"
+                        android:layout_marginTop="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider"
+                        android:layout_marginVertical="20dp" />
+
+                    <!-- Status Badge -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Status:"
+                            style="@style/LabelMedium"
+                            android:layout_marginEnd="12dp" />
+
+                        <TextView
+                            android:id="@+id/tvDetailStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/badge_green"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="4dp"
+                            android:text="AVAILABLE"
+                            android:textColor="@android:color/white"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Booker Sections (Visible if booked) -->
+                    <LinearLayout
+                        android:id="@+id/bookerSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/tvDetailBookedBy"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Booked by: John Doe"
+                            style="@style/BodyPrimary"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:id="@+id/tvDetailPurpose"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Purpose: Regular Lab Session"
+                            style="@style/BodySecondary" />
+
+                    </LinearLayout>
+
+                    <!-- Block Section (Visible if blocked) -->
+                    <LinearLayout
+                        android:id="@+id/blockSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:id="@+id/tvBlockReason"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Reason: Maintenance work"
+                            android:textColor="@color/status_rejected"
+                            style="@style/BodySecondary"
+                            android:textStyle="italic" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Actions Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Administrative Actions"
+                style="@style/LabelLarge"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Block Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBlockSlot"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Block Slot"
+                app:icon="@drawable/ic_status_offline"
+                android:textColor="@color/status_rejected"
+                app:iconTint="@color/status_rejected" />
+
+            <!-- Unblock Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUnblockSlot"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Unblock Slot"
+                app:icon="@drawable/ic_status_online"
+                android:visibility="gone"
+                android:textColor="@color/primary_blue"
+                app:iconTint="@color/primary_blue" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Note: Blocking a booked slot will automatically notify the student."
+                android:textAlignment="center"
+                style="@style/BodySecondary"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/header_layout" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

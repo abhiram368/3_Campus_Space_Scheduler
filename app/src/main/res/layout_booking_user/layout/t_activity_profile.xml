@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
+    android:background="?attr/colorSurface"
     android:fitsSystemWindows="true">
 
     <!-- Custom Header -->
@@ -25,13 +25,13 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white" />
+            app:tint="?attr/colorOnSurface" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="My Profile"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -60,7 +60,7 @@
                 android:layout_marginTop="20dp"
                 app:cardCornerRadius="60dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/surface_dark">
+                app:cardBackgroundColor="?attr/colorSurfaceVariant">
 
                 <ImageView
                     android:id="@+id/profile_image"
@@ -76,7 +76,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 tools:text="User Name" />
@@ -86,7 +86,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="16sp"
                 tools:text="user@nitc.ac.in" />
 
@@ -94,7 +94,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                app:cardBackgroundColor="@color/surface_dark"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
                 app:strokeColor="#2A3342"
@@ -115,14 +115,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Account Type"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="12sp" />
                         <TextView
                             android:id="@+id/textViewRoleValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:textColor="@color/accent_cyan"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             tools:text="Student" />
@@ -132,7 +132,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginVertical="12dp"
-                        android:background="#2A3342" />
+                        android:background="?attr/colorOnSurface" />
 
                     <!-- Phone Number Section -->
                     <LinearLayout
@@ -143,14 +143,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Phone Number"
-                            android:textColor="@color/text_secondary"
+                            android:textColor="?colorOnSurfaceVariant"
                             android:textSize="12sp" />
                         <TextView
                             android:id="@+id/textViewPhoneNumberValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             tools:text="+91 XXXXXXXXXX" />
                     </LinearLayout>

@@ -65,32 +65,35 @@ public class BookingsFragment extends Fragment {
 
                     String spaceId = booking.getSpaceName();
 
-                    spacesRef.child(spaceId)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot spaceSnap) {
+                    spacesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot spacesSnap) {
 
-                                    String role = spaceSnap.child("role").getValue(String.class);
+                            for (DataSnapshot spaceSnap : spacesSnap.getChildren()) {
+
+                                String roomName = spaceSnap.child("roomName").getValue(String.class);
+                                String role = spaceSnap.child("role").getValue(String.class);
+
+                                if (roomName != null && roomName.equals(booking.getSpaceName())) {
 
                                     if ("Classroom".equals(role)) {
 
-                                        // total
                                         int newTotal = Integer.parseInt(tvTotal.getText().toString()) + 1;
                                         tvTotal.setText(String.valueOf(newTotal));
 
-                                        // upcoming (Approved)
-                                        if ("Approved".equals(booking.getStatus())) {
+                                        if ("approved".equalsIgnoreCase(booking.getStatus())) {
                                             upcomingList.add(booking);
-
                                             tvUpcoming.setText(String.valueOf(upcomingList.size()));
                                             adapter.notifyDataSetChanged();
                                         }
                                     }
                                 }
+                            }
+                        }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {}
-                            });
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
+                    });
                 }
             }
 

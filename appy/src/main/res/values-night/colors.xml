@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Color Palette -->
+    <color name="primary_blue">#60A5FA</color>
+    <color name="background_light">#0F172A</color>
+    <color name="card_white">#1E293B</color>
+    
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#CBD5E1</color>
+    
+    <color name="primary">#60A5FA</color>
+    <color name="background">#0F172A</color>
+    <color name="surface">#1E293B</color>
+    <color name="onPrimary">#0F172A</color>
+    <color name="onSurface">#F8FAFC</color>
+    <color name="onSurfaceVariant">#CBD5E1</color>
+
+    <!-- Specific Fixes for Icons and Cards -->
+    <color name="glass_card_fill">#1AFFFFFF</color>
+    <color name="glass_card_stroke">#33FFFFFF</color>
+    
+    <!-- Status Colors for Dark Mode (Lighter versions for contrast) -->
+    <color name="status_approved">#4ADE80</color>
+    <color name="status_pending">#FBBF24</color>
+    <color name="status_rejected">#F87171</color>
+    <color name="status_booked">#60A5FA</color>
+    <color name="status_available">#34D399</color>
+
+    <!-- Aliases -->
+    <color name="textPrimary">#F8FAFC</color>
+    <color name="textSecondary">#CBD5E1</color>
+
+    <color name="status_text_color">#FFFFFF</color>
+    <color name="action_bar_bg">#1E293B</color>
+    <color name="divider">#334155</color>
+    <color name="glass_bg_start">#0F172A</color>
+    <color name="glass_bg_end">#1E293B</color>
+</resources>

@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Campus-Space-Scheduler"
-include ':app'
+include ':app' , ':appy'
