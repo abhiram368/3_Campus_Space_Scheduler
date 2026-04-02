@@ -1,23 +1,31 @@
 package com.example.campus_space_scheduler.booking_user;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CalendarView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.campus_space_scheduler.R;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,10 +46,13 @@ import java.util.Map;
 public class BookingUserActivity extends AppCompatActivity {
 
     private static final String TAG = "DashboardActivity";
+    private static final int NOTIFICATION_PERMISSION_CODE = 102;
+    
     private String selectedDate;
     private String userRole;
     private DatabaseReference spacesRef;
     private DatabaseReference schedulesRef;
+    private DatabaseReference bookingsRef;
     private List<String> spaceNames;
     private Map<String, String> spaceIdMap; // Maps roomName to spaceId
     private Map<String, String> spaceTypeMap; // Maps roomName to space type (role)
@@ -55,16 +66,9 @@ public class BookingUserActivity extends AppCompatActivity {
     private TextView textViewStatusDetails;
 
     private ValueEventListener liveStatusListener;
+    private ValueEventListener bookingStatusListener;
     private Query currentQuery;
     private String currentSelectedSpaceId;
-
-    public enum SlotStatus {
-        AVAILABLE,
-        BOOKED,
-        PENDING,
-        BLOCKED,
-        MAINTENANCE
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,12 +78,15 @@ public class BookingUserActivity extends AppCompatActivity {
         userRole = getIntent().getStringExtra("ROLE");
         Log.d(TAG, "User Role in Dashboard: " + userRole);
 
+        // Initialize Notification Channel
+        NotificationHelper.createNotificationChannel(this);
+        checkNotificationPermission();
+
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-        Spinner spinnerWorkspace = findViewById(R.id.spinnerWorkspace);
+        AutoCompleteTextView spinnerWorkspace = findViewById(R.id.spinnerWorkspace);
         CalendarView calendarView = findViewById(R.id.calendarView);
         Button buttonCancelRequest = findViewById(R.id.buttonCancelRequest);
-        View layoutProfile = findViewById(R.id.layoutProfile);
-        View layoutHistory = findViewById(R.id.layoutHistory);
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
 
         // Initialize Status Views
         cardLiveStatus = findViewById(R.id.cardLiveStatus);
@@ -92,11 +99,11 @@ public class BookingUserActivity extends AppCompatActivity {
         spaceTypeMap = new HashMap<>();
 
         adapter = new ArrayAdapter<>(this, R.layout.spinner_item, spaceNames);
-        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerWorkspace.setAdapter(adapter);
 
         spacesRef = FirebaseDatabase.getInstance().getReference("spaces");
         schedulesRef = FirebaseDatabase.getInstance().getReference("schedules");
+        bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
 
         swipeRefreshLayout.setOnRefreshListener(() -> {
             fetchSpaces();
@@ -108,24 +115,15 @@ public class BookingUserActivity extends AppCompatActivity {
         });
 
         fetchSpaces();
+        setupBookingStatusObserver();
 
-        spinnerWorkspace.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position >= 0 && position < spaceNames.size()) {
-                    String selected = spaceNames.get(position);
-                    currentSelectedSpaceId = spaceIdMap.get(selected);
-                    Log.d(TAG, "Selected Space: " + selected + " ID: " + currentSelectedSpaceId);
-                    if (currentSelectedSpaceId != null) {
-                        observeLiveStatus(currentSelectedSpaceId);
-                    } else {
-                        cardLiveStatus.setVisibility(View.GONE);
-                    }
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+        spinnerWorkspace.setOnItemClickListener((parent, view, position, id) -> {
+            String selected = (String) parent.getItemAtPosition(position);
+            currentSelectedSpaceId = spaceIdMap.get(selected);
+            Log.d(TAG, "Selected Space: " + selected + " ID: " + currentSelectedSpaceId);
+            if (currentSelectedSpaceId != null) {
+                observeLiveStatus(currentSelectedSpaceId);
+            } else {
                 cardLiveStatus.setVisibility(View.GONE);
             }
         });
@@ -140,8 +138,8 @@ public class BookingUserActivity extends AppCompatActivity {
                 return;
             }
 
-            if (spinnerWorkspace.getSelectedItem() != null) {
-                String selectedSpaceName = spinnerWorkspace.getSelectedItem().toString();
+            String selectedSpaceName = spinnerWorkspace.getText().toString();
+            if (!selectedSpaceName.isEmpty()) {
                 String selectedSpaceId = spaceIdMap.get(selectedSpaceName);
                 String selectedSpaceType = spaceTypeMap.get(selectedSpaceName);
 
@@ -153,7 +151,11 @@ public class BookingUserActivity extends AppCompatActivity {
                     intent.putExtra("DATE", selectedDate);
                     intent.putExtra("ROLE", userRole);
                     startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Please select a valid space", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(this, "Please select a workspace first", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -163,16 +165,110 @@ public class BookingUserActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        layoutProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(BookingUserActivity.this, ProfileActivity.class);
-            intent.putExtra("ROLE", userRole);
-            startActivity(intent);
-        });
+        // Set up bottom navigation to act as buttons
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_none); // Select the invisible dummy item
+            bottomNav.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId == R.id.nav_history) {
+                    startActivity(new Intent(BookingUserActivity.this, BookingHistoryActivity.class));
+                } else if (itemId == R.id.nav_profile) {
+                    Intent intent = new Intent(BookingUserActivity.this, ProfileActivity.class);
+                    intent.putExtra("ROLE", userRole);
+                    startActivity(intent);
+                }
+                return false; // Prevents the item from staying selected
+            });
+        }
+    }
 
-        layoutHistory.setOnClickListener(v -> {
-            Intent intent = new Intent(BookingUserActivity.this, BookingHistoryActivity.class);
-            startActivity(intent);
-        });
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Notification permission granted");
+            } else {
+                Toast.makeText(this, "Notifications are disabled. You won't receive booking updates.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void setupBookingStatusObserver() {
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) return;
+
+        SharedPreferences prefs = getSharedPreferences("BookingStatusPrefs", MODE_PRIVATE);
+
+        bookingStatusListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot bookingSnapshot : snapshot.getChildren()) {
+                    String bookingId = bookingSnapshot.getKey();
+                    String status = bookingSnapshot.child("status").getValue(String.class);
+                    String spaceName = bookingSnapshot.child("spaceName").getValue(String.class);
+
+                    if (bookingId != null && status != null) {
+                        String lastStatus = prefs.getString(bookingId, null);
+
+                        // If lastStatus is null, it's the first time we're seeing this booking
+                        // We store the current status but don't notify unless it's not "Pending"
+                        if (lastStatus == null) {
+                            prefs.edit().putString(bookingId, status).apply();
+                            continue;
+                        }
+
+                        if (!status.equalsIgnoreCase(lastStatus)) {
+                            // Status changed!
+                            String message = "";
+                            if (status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted")) {
+                                message = "Your booking for " + spaceName + " has been approved!";
+                            } else if (status.equalsIgnoreCase("Rejected")) {
+                                message = "Your booking for " + spaceName + " has been rejected.";
+                            } else if (status.equalsIgnoreCase("Forwarded")) {
+                                message = "Your booking for " + spaceName + " has been forwarded to the HOD.";
+                            }
+
+                            if (!message.isEmpty()) {
+                                NotificationHelper.showNotification(BookingUserActivity.this, "Booking Update", message);
+                            }
+
+                            // Save new status
+                            prefs.edit().putString(bookingId, status).apply();
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Booking observer failed: " + error.getMessage());
+            }
+        };
+
+        bookingsRef.orderByChild("bookedBy").equalTo(currentUserId).addValueEventListener(bookingStatusListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Clear focus from workspace selector
+        View currentFocus = getCurrentFocus();
+        if (currentFocus != null) currentFocus.clearFocus();
+
+        // Reset bottom navigation selection state
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_none);
+        }
     }
 
     private boolean isPastDate(String dateStr) {
@@ -361,6 +457,9 @@ public class BookingUserActivity extends AppCompatActivity {
         super.onDestroy();
         if (currentQuery != null && liveStatusListener != null) {
             currentQuery.removeEventListener(liveStatusListener);
+        }
+        if (bookingsRef != null && bookingStatusListener != null) {
+            bookingsRef.removeEventListener(bookingStatusListener);
         }
     }
 }

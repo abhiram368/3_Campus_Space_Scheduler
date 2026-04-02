@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campus_space_scheduler.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,6 +34,7 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
     private List<Booking> historyList;
     private ProgressBar progressBar;
     private TextView emptyTextView;
+    private DatabaseReference bookingsRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,11 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
             buttonBack.setOnClickListener(v -> finish());
         }
 
+        ImageView buttonClearHistory = findViewById(R.id.buttonClearHistory);
+        if (buttonClearHistory != null) {
+            buttonClearHistory.setOnClickListener(v -> showClearHistoryConfirmation());
+        }
+
         recyclerViewHistory = findViewById(R.id.recyclerViewHistory);
         progressBar = findViewById(R.id.progressBar);
         emptyTextView = findViewById(R.id.emptyTextView);
@@ -55,7 +62,50 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
         recyclerViewHistory.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewHistory.setAdapter(adapter);
 
+        bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         fetchUserBookings();
+    }
+
+    private void showClearHistoryConfirmation() {
+        if (historyList.isEmpty()) {
+            Toast.makeText(this, "History is already empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new MaterialAlertDialogBuilder(this, R.style.Theme_CampusSpaceScheduler_Dialog_Custom)
+                .setTitle("Clear History")
+                .setMessage("Are you sure you want to clear your booking history? This will delete all your booking records.")
+                .setPositiveButton("Clear All", (dialog, which) -> clearUserHistory())
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void clearUserHistory() {
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null) return;
+
+        progressBar.setVisibility(View.VISIBLE);
+        
+        bookingsRef.orderByChild("bookedBy").equalTo(currentUserId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot ds : snapshot.getChildren()) {
+                            ds.getRef().removeValue();
+                        }
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(BookingHistoryActivity.this, "History cleared successfully", Toast.LENGTH_SHORT).show();
+                        historyList.clear();
+                        adapter.notifyDataSetChanged();
+                        updateEmptyState();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(BookingHistoryActivity.this, "Failed to clear history", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void fetchUserBookings() {
@@ -67,7 +117,6 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
 
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         bookingsRef.orderByChild("bookedBy").equalTo(currentUserId)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -85,7 +134,6 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
                                 }
 
                                 fetchScheduleDetails(booking);
-                                fetchUserDetails(booking);
                                 historyList.add(booking);
                             }
                         }
@@ -110,25 +158,6 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
         } else {
             if (emptyTextView != null) emptyTextView.setVisibility(View.GONE);
         }
-    }
-
-    private void fetchUserDetails(Booking booking) {
-        if (booking.getBookedBy() == null) return;
-
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(booking.getBookedBy());
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    String name = snapshot.child("name").getValue(String.class);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Error fetching user name: " + error.getMessage());
-            }
-        });
     }
 
     private void fetchScheduleDetails(Booking booking) {

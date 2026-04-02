@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campus_space_scheduler.R;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -58,7 +58,7 @@ public class BookingFormActivity extends AppCompatActivity {
         slotStart = getIntent().getStringExtra("SLOT_START");
 
         // Initialize views
-        ImageView buttonBack = findViewById(R.id.buttonBack);
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
         TextView textViewSpaceName = findViewById(R.id.textViewSpaceName);
         TextView textViewSelectedSlot = findViewById(R.id.textViewSelectedSlot);
 
@@ -75,7 +75,9 @@ public class BookingFormActivity extends AppCompatActivity {
 
         updateUIBasedOnRole(userRole, spaceType);
 
-        buttonBack.setOnClickListener(v -> finish());
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
         buttonSubmit.setOnClickListener(v -> {
             if (validateForm(userRole, spaceType)) {
                 checkAvailabilityAndSubmit();
@@ -85,6 +87,14 @@ public class BookingFormActivity extends AppCompatActivity {
 
     private void updateUIBasedOnRole(String role, String spaceType) {
         if (role == null || spaceType == null) return;
+        
+        // Direct booking for Classrooms - hide LOR requirements regardless of role
+        if (spaceType.equalsIgnoreCase("Classroom")) {
+            textInputLayoutLorUrl.setVisibility(View.GONE);
+            buttonDownloadLorFormat.setVisibility(View.GONE);
+            return;
+        }
+
         if (role.equalsIgnoreCase("Student") && (spaceType.equalsIgnoreCase("Lab") || spaceType.equalsIgnoreCase("Hall"))) {
             textInputLayoutLorUrl.setVisibility(View.VISIBLE);
             buttonDownloadLorFormat.setVisibility(View.VISIBLE);
@@ -103,6 +113,12 @@ public class BookingFormActivity extends AppCompatActivity {
             etPurpose.setError("Purpose is required");
             return false;
         }
+        
+        // Skip LOR validation for Classrooms (Direct booking)
+        if (spaceType != null && spaceType.equalsIgnoreCase("Classroom")) {
+            return true;
+        }
+
         if ("Student".equalsIgnoreCase(role) && ("Lab".equalsIgnoreCase(spaceType) || "Hall".equalsIgnoreCase(spaceType))) {
             if (TextUtils.isEmpty(etLorUrl.getText().toString().trim())) {
                 etLorUrl.setError("LOR URL is required");
@@ -127,6 +143,8 @@ public class BookingFormActivity extends AppCompatActivity {
         buttonSubmit.setEnabled(false);
         DatabaseReference slotsRef = FirebaseDatabase.getInstance().getReference("schedules").child(scheduleId).child("slots");
 
+        boolean isClassroom = spaceType != null && spaceType.equalsIgnoreCase("Classroom");
+
         slotsRef.runTransaction(new Transaction.Handler() {
             @NonNull
             @Override
@@ -137,7 +155,9 @@ public class BookingFormActivity extends AppCompatActivity {
                     if (start != null && start.replace(":", "").equals(slotStart)) {
                         String status = slot.child("status").getValue(String.class);
                         if ("AVAILABLE".equalsIgnoreCase(status)) {
-                            slot.child("status").setValue("Pending");
+                            // If classroom, mark as BOOKED immediately (direct booking)
+                            // Otherwise, mark as Pending for approval
+                            slot.child("status").setValue(isClassroom ? "BOOKED" : "Pending");
                             found = true;
                             break;
                         } else {
@@ -189,6 +209,8 @@ public class BookingFormActivity extends AppCompatActivity {
         reqTime.put("date", sdfDate.format(now));
         reqTime.put("time", sdfTime.format(now));
 
+        boolean isClassroom = spaceType != null && spaceType.equalsIgnoreCase("Classroom");
+
         Map<String, Object> data = new HashMap<>();
         data.put("bookingId", bookingId);
         data.put("bookedBy", uid);
@@ -201,17 +223,30 @@ public class BookingFormActivity extends AppCompatActivity {
         data.put("date", date);
         data.put("timeSlot", timeSlot);
         data.put("spaceName", spaceName);
-        data.put("status", "Pending");
-        data.put("approvedBy", ""); // Default empty for new requests
-
-        data.put("facultyInchargeApproval", false);
-        data.put("hodApproval", false);
+        
+        // Direct booking for Classrooms
+        data.put("status", isClassroom ? "Approved" : "Pending");
+        data.put("approvedBy", isClassroom ? "System (Auto)" : "");
+        data.put("facultyInchargeApproval", isClassroom);
+        data.put("hodApproval", isClassroom);
+        if (isClassroom) {
+            data.put("remarks", "Directly booked (First Come First Serve)");
+        }
 
         bookingsRef.child(bookingId).setValue(data).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                Toast.makeText(this, "Booking Request Sent", Toast.LENGTH_SHORT).show();
-                // Close the form and the slots page to return to Dashboard
-                Intent intent = new Intent(this, BookingFormActivity.class);
+                String toastMsg = isClassroom ? "Booking Confirmed!" : "Booking Request Sent";
+                Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
+                
+                // Show notification
+                NotificationHelper.showNotification(
+                    this, 
+                    isClassroom ? "Booking Confirmed" : "Booking Submitted", 
+                    isClassroom ? "Your booking for " + spaceName + " is confirmed!" : "Booking request submitted successfully"
+                );
+
+                // Close the form and return to Dashboard
+                Intent intent = new Intent(this, BookingUserActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 intent.putExtra("ROLE", userRole);
                 startActivity(intent);

@@ -1,10 +1,12 @@
 package com.example.campus_space_scheduler.booking_user;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.GridLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -14,7 +16,6 @@ import androidx.core.content.ContextCompat;
 
 import com.example.campus_space_scheduler.R;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.color.MaterialColors;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,7 +29,7 @@ import java.util.Locale;
 public class AvailableTimeSlotsActivity extends AppCompatActivity {
 
     private String spaceId, spaceName, date, role, spaceType;
-    private LinearLayout slotsContainer;
+    private GridLayout gridLayoutSlots;
     private ProgressBar progressBar;
     private TextView noSlotsTextView;
     private DatabaseReference schedulesRef;
@@ -47,12 +48,12 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         ImageView buttonBack = findViewById(R.id.buttonBack);
         TextView spaceNameTextView = findViewById(R.id.textViewSpaceName);
         TextView dateTextView = findViewById(R.id.textViewDate);
-        slotsContainer = findViewById(R.id.linearLayoutSlotsContainer);
+        gridLayoutSlots = findViewById(R.id.gridLayoutSlots);
         progressBar = findViewById(R.id.progressBarSlots);
         noSlotsTextView = findViewById(R.id.textViewNoSlots);
 
-        spaceNameTextView.setText(spaceName);
-        dateTextView.setText(date);
+        if (spaceNameTextView != null) spaceNameTextView.setText(spaceName);
+        if (dateTextView != null) dateTextView.setText(date);
 
         if (buttonBack != null) {
             buttonBack.setOnClickListener(v -> finish());
@@ -64,9 +65,9 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
     }
 
     private void fetchAvailableSlots() {
-        progressBar.setVisibility(View.VISIBLE);
-        noSlotsTextView.setVisibility(View.GONE);
-        slotsContainer.removeAllViews();
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        if (noSlotsTextView != null) noSlotsTextView.setVisibility(View.GONE);
+        if (gridLayoutSlots != null) gridLayoutSlots.removeAllViews();
 
         schedulesRef.orderByChild("spaceId").equalTo(spaceId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -79,7 +80,7 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
                         }
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
-                            progressBar.setVisibility(View.GONE);
+                            if (progressBar != null) progressBar.setVisibility(View.GONE);
                         }
                     });
                 } else {
@@ -89,27 +90,27 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                progressBar.setVisibility(View.GONE);
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
             }
         });
     }
 
     private void handleScheduleSnapshot(DataSnapshot snapshot) {
-        progressBar.setVisibility(View.GONE);
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
         boolean foundSchedule = false;
 
         for (DataSnapshot scheduleSnapshot : snapshot.getChildren()) {
             String scheduleDate = scheduleSnapshot.child("date").getValue(String.class);
-            if (date.equals(scheduleDate)) {
+            if (date != null && date.equals(scheduleDate)) {
                 foundSchedule = true;
                 processSlots(scheduleSnapshot.child("slots"), scheduleSnapshot.getKey());
                 break;
             }
         }
 
-        if (!foundSchedule) {
+        if (!foundSchedule && noSlotsTextView != null) {
             noSlotsTextView.setVisibility(View.VISIBLE);
-            noSlotsTextView.setText(getString(R.string.no_schedule_found, date));
+            noSlotsTextView.setText("No schedule found for " + date);
         }
     }
 
@@ -125,11 +126,10 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
             String startStr = slotSnapshot.child("start").getValue(String.class);
             String endStr = slotSnapshot.child("end").getValue(String.class);
 
-            // ONLY show slots that are explicitly "AVAILABLE"
             if (status != null && status.equalsIgnoreCase("AVAILABLE") && startStr != null && endStr != null) {
                 int startTime = Integer.parseInt(startStr.replace(":", ""));
 
-                if (date.equals(todayDate)) {
+                if (date != null && date.equals(todayDate)) {
                     if (startTime >= currentIntTime) {
                         addSlotButton(startStr, endStr, scheduleId);
                         hasAvailableSlots = true;
@@ -141,9 +141,9 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
             }
         }
 
-        if (!hasAvailableSlots) {
+        if (!hasAvailableSlots && noSlotsTextView != null) {
             noSlotsTextView.setVisibility(View.VISIBLE);
-            noSlotsTextView.setText(getString(R.string.no_available_slots));
+            noSlotsTextView.setText("No available slots for the selected time.");
         }
     }
 
@@ -153,24 +153,23 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
 
         MaterialButton slotButton = new MaterialButton(this);
 
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        params.setMargins(0, 12, 0, 12);
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.width = 0;
+        params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+        params.setMargins(8, 8, 8, 8);
         slotButton.setLayoutParams(params);
+        
         slotButton.setText(timeLabel);
         slotButton.setAllCaps(false);
-        slotButton.setCornerRadius(24);
+        slotButton.setCornerRadius(12 * (int) getResources().getDisplayMetrics().density);
+        slotButton.setTextSize(14);
+        slotButton.setPadding(0, 32, 0, 32);
 
-        int colorBackground = MaterialColors.getColor(slotButton, com.google.android.material.R.attr.colorSurfaceVariant);
-        slotButton.setBackgroundColor(colorBackground);
-//        slotButton.setBackgroundColor(ContextCompat.getColor(this, com.google.android.material.R.attr.colorSurfaceVariant));
-//        int colorStroke = MaterialColors.getColor(slotButton, com.google.android.material.R.attr.colorPrimary);
-        slotButton.setStrokeColorResource(R.color.primary_blue);
-        slotButton.setStrokeWidth(2);
-        int colorText = MaterialColors.getColor(slotButton, com.google.android.material.R.attr.colorOnSurfaceVariant);
-        slotButton.setTextColor(colorText);
+        // Blue background and White words as requested
+        int blueColor = ContextCompat.getColor(this, R.color.primary);
+        slotButton.setBackgroundTintList(ColorStateList.valueOf(blueColor));
+        slotButton.setTextColor(Color.WHITE);
 
         slotButton.setOnClickListener(v -> {
             Intent intent = new Intent(AvailableTimeSlotsActivity.this, BookingFormActivity.class);
@@ -185,6 +184,8 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        slotsContainer.addView(slotButton);
+        if (gridLayoutSlots != null) {
+            gridLayoutSlots.addView(slotButton);
+        }
     }
 }

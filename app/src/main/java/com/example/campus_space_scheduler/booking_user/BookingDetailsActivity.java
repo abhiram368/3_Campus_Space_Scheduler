@@ -1,6 +1,9 @@
 package com.example.campus_space_scheduler.booking_user;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,8 +14,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.campus_space_scheduler.R;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.database.DataSnapshot;
@@ -24,18 +30,20 @@ import com.google.firebase.database.ValueEventListener;
 public class BookingDetailsActivity extends AppCompatActivity {
 
     private static final String TAG = "BookingDetailsActivity";
+    private static final int CALENDAR_PERMISSION_REQUEST_CODE = 101;
+    
     private TextView bookedByTextView;
     private TextView approvedByTextView;
     private TextView textViewRemarks;
-    private String bookingId, scheduleId, timeSlot, slotStart;
+    private String bookingId, scheduleId, timeSlot, slotStart, spaceName, date, purpose, description;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.t_activity_booking_details);
 
-        // Get views
-        ImageView buttonBack = findViewById(R.id.buttonBack);
+        // Initialize views
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
         TextView spaceNameTextView = findViewById(R.id.textViewSpaceName);
         TextView statusTextView = findViewById(R.id.textViewStatus);
         TextView dateTimeTextView = findViewById(R.id.textViewDateTime);
@@ -47,17 +55,18 @@ public class BookingDetailsActivity extends AppCompatActivity {
         textViewRemarks = findViewById(R.id.textViewRemarks);
         MaterialButton buttonViewLor = findViewById(R.id.buttonViewLor);
         MaterialButton buttonCancelBooking = findViewById(R.id.buttonCancelBooking);
+        MaterialButton buttonAddToCalendar = findViewById(R.id.buttonAddToCalendar);
 
         // Get data from intent
         bookingId = getIntent().getStringExtra("BOOKING_ID");
         scheduleId = getIntent().getStringExtra("SCHEDULE_ID");
         slotStart = getIntent().getStringExtra("SLOT_START");
-        String spaceName = getIntent().getStringExtra("SPACE_NAME");
+        spaceName = getIntent().getStringExtra("SPACE_NAME");
         String bookedById = getIntent().getStringExtra("BOOKED_BY_ID");
-        String date = getIntent().getStringExtra("DATE");
+        date = getIntent().getStringExtra("DATE");
         timeSlot = getIntent().getStringExtra("TIME_SLOT");
-        String purpose = getIntent().getStringExtra("PURPOSE");
-        String description = getIntent().getStringExtra("DESCRIPTION");
+        purpose = getIntent().getStringExtra("PURPOSE");
+        description = getIntent().getStringExtra("DESCRIPTION");
         String status = getIntent().getStringExtra("STATUS");
         String remarks = getIntent().getStringExtra("REMARKS");
         String actionBy = getIntent().getStringExtra("ACTION_BY");
@@ -68,79 +77,135 @@ public class BookingDetailsActivity extends AppCompatActivity {
         String approvedByUid = getIntent().getStringExtra("APPROVED_BY");
 
         // Set initial data to views
-        spaceNameTextView.setText(spaceName != null ? spaceName : "N/A");
-        statusTextView.setText(status != null ? status : "PENDING");
-        dateTimeTextView.setText((date != null ? date : "") + " | " + (timeSlot != null ? timeSlot : ""));
-        purposeTextView.setText(purpose != null ? purpose : "N/A");
-        descriptionTextView.setText(description != null ? description : "No description provided.");
-        requestedOnTextView.setText(requestedOn != null ? requestedOn : "N/A");
+        if (spaceNameTextView != null) spaceNameTextView.setText(spaceName != null ? spaceName : "N/A");
+        if (statusTextView != null) statusTextView.setText(status != null ? status.toUpperCase() : "PENDING");
+        if (dateTimeTextView != null) dateTimeTextView.setText((date != null ? date : "") + " | " + (timeSlot != null ? timeSlot : ""));
+        if (purposeTextView != null) purposeTextView.setText(purpose != null ? purpose : "N/A");
+        if (descriptionTextView != null) descriptionTextView.setText(description != null ? description : "No description provided.");
+        if (requestedOnTextView != null) requestedOnTextView.setText(requestedOn != null ? requestedOn : "N/A");
 
-        if (bookedById != null) {
+        if (bookedById != null && bookedByTextView != null) {
             fetchUserName(bookedById, bookedByTextView, null);
-        } else {
+        } else if (bookedByTextView != null) {
             bookedByTextView.setText(R.string.unknown_user);
         }
 
         // UI styling for status
-        updateStatusUI(status, statusTextView);
+        if (statusTextView != null) {
+            updateStatusUI(status, statusTextView);
+        }
 
-        // Handle Approval/Rejection and Remarks
-        if (status != null && !status.equalsIgnoreCase("Pending")) {
+        // Handle Approval/Rejection/Forwarded and Remarks
+        if (status != null) {
             boolean isApproved = status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted");
-            String label = getString(isApproved ? R.string.approved_by_label : R.string.rejected_by_label, "");
+            boolean isForwarded = status.equalsIgnoreCase("Forwarded");
+            boolean isRejected = status.equalsIgnoreCase("Rejected");
 
-            if (approvedByUid != null && !approvedByUid.isEmpty()) {
-                // If the approvedBy value looks like a UID (no spaces, long), fetch it
-                if (approvedByUid.length() > 15 && !approvedByUid.contains(" ")) {
-                    fetchUserName(approvedByUid, approvedByTextView, label);
+            // Google Calendar Integration for Approved bookings
+            if (isApproved && buttonAddToCalendar != null) {
+                buttonAddToCalendar.setVisibility(View.VISIBLE);
+                buttonAddToCalendar.setOnClickListener(v -> checkCalendarPermissions());
+            } else if (buttonAddToCalendar != null) {
+                buttonAddToCalendar.setVisibility(View.GONE);
+            }
+
+            if (approvedByTextView != null) {
+                String label;
+                if (isApproved) label = "Approved by: ";
+                else if (isForwarded) label = "Forwarded by: ";
+                else if (isRejected) label = "Rejected by: ";
+                else label = "Action by: ";
+
+                if (!status.equalsIgnoreCase("Pending")) {
+                    if (approvedByUid != null && !approvedByUid.isEmpty()) {
+                        if (approvedByUid.length() > 15 && !approvedByUid.contains(" ")) {
+                            fetchUserName(approvedByUid, approvedByTextView, label);
+                        } else {
+                            approvedByTextView.setText(label + approvedByUid);
+                            approvedByTextView.setVisibility(View.VISIBLE);
+                        }
+                    } else if (actionBy != null && !actionBy.isEmpty()) {
+                        approvedByTextView.setText(label + actionBy);
+                        approvedByTextView.setVisibility(View.VISIBLE);
+                    } else {
+                        approvedByTextView.setText(label + "Authority");
+                        approvedByTextView.setVisibility(View.VISIBLE);
+                    }
                 } else {
-                    // It might be a name already
-                    approvedByTextView.setText(label + approvedByUid);
-                    approvedByTextView.setVisibility(View.VISIBLE);
+                    approvedByTextView.setVisibility(View.GONE);
                 }
-            } else if (actionBy != null) {
-                approvedByTextView.setText(label + actionBy);
-                approvedByTextView.setVisibility(View.VISIBLE);
-            } else {
-                approvedByTextView.setText(label + "Authority");
-                approvedByTextView.setVisibility(View.VISIBLE);
             }
 
-            if (remarks != null && !remarks.isEmpty()) {
-                String remarksText = getString(isApproved ? R.string.remarks_label : R.string.rejection_reason, remarks);
-                textViewRemarks.setText(remarksText);
-                textViewRemarks.setVisibility(View.VISIBLE);
-            } else {
-                textViewRemarks.setVisibility(View.GONE);
-            }
-        } else {
-            approvedByTextView.setVisibility(View.GONE);
-            textViewRemarks.setVisibility(View.GONE);
-        }
-
-        if (hasLor && lorUrl != null && !lorUrl.isEmpty()) {
-            buttonViewLor.setVisibility(View.VISIBLE);
-            buttonViewLor.setOnClickListener(v -> {
-                try {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(lorUrl));
-                    startActivity(browserIntent);
-                } catch (Exception e) {
-                    Toast.makeText(this, R.string.invalid_lor_link, Toast.LENGTH_SHORT).show();
+            // Always show updated remarks if not null/empty
+            if (textViewRemarks != null) {
+                if (remarks != null && !remarks.trim().isEmpty()) {
+                    textViewRemarks.setText("Remarks: " + remarks);
+                    textViewRemarks.setVisibility(View.VISIBLE);
+                } else {
+                    textViewRemarks.setVisibility(View.GONE);
                 }
-            });
-        } else {
-            buttonViewLor.setVisibility(View.GONE);
+            }
         }
 
-        // Handle Cancellation Button
-        if (showCancelButton && status != null && !status.equalsIgnoreCase("Rejected")) {
-            buttonCancelBooking.setVisibility(View.VISIBLE);
-            buttonCancelBooking.setOnClickListener(v -> showCancelConfirmationDialog());
-        } else {
-            buttonCancelBooking.setVisibility(View.GONE);
+        if (buttonViewLor != null) {
+            if (hasLor && lorUrl != null && !lorUrl.isEmpty()) {
+                buttonViewLor.setVisibility(View.VISIBLE);
+                buttonViewLor.setOnClickListener(v -> {
+                    try {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(lorUrl));
+                        startActivity(browserIntent);
+                    } catch (Exception e) {
+                        Toast.makeText(this, R.string.invalid_lor_link, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                buttonViewLor.setVisibility(View.GONE);
+            }
         }
 
-        buttonBack.setOnClickListener(v -> finish());
+        if (buttonCancelBooking != null) {
+            if (showCancelButton && status != null && !status.equalsIgnoreCase("Rejected")) {
+                buttonCancelBooking.setVisibility(View.VISIBLE);
+                buttonCancelBooking.setOnClickListener(v -> showCancelConfirmationDialog());
+            } else {
+                buttonCancelBooking.setVisibility(View.GONE);
+            }
+        }
+
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
+    }
+
+    private void checkCalendarPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR}, CALENDAR_PERMISSION_REQUEST_CODE);
+        } else {
+            addToCalendar();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CALENDAR_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                addToCalendar();
+            } else {
+                Toast.makeText(this, "Calendar permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void addToCalendar() {
+        CalendarHelper.addBookingToCalendar(
+                this,
+                "Booking: " + (spaceName != null ? spaceName : "Space"),
+                "Purpose: " + (purpose != null ? purpose : "N/A") + "\nDescription: " + (description != null ? description : ""),
+                spaceName != null ? spaceName : "Campus",
+                date != null ? date : "",
+                timeSlot != null ? timeSlot : ""
+        );
     }
 
     private void showCancelConfirmationDialog() {
@@ -161,9 +226,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         DatabaseReference bookingRef = FirebaseDatabase.getInstance().getReference("bookings").child(bookingId);
         DatabaseReference slotsRef = FirebaseDatabase.getInstance().getReference("schedules").child(scheduleId).child("slots");
 
-        // 1. Delete the booking
         bookingRef.removeValue().addOnSuccessListener(aVoid -> {
-            // 2. Make the slot AVAILABLE again in schedules
             slotsRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -180,7 +243,6 @@ public class BookingDetailsActivity extends AppCompatActivity {
                         }
                     }
 
-                    // Fallback to timeSlot string matching if slotStart is missing
                     if (!updated && timeSlot != null) {
                         for (DataSnapshot slotSnapshot : snapshot.getChildren()) {
                             String start = slotSnapshot.child("start").getValue(String.class);
@@ -216,7 +278,6 @@ public class BookingDetailsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // Try multiple possible name fields
                     String name = snapshot.child("name").getValue(String.class);
                     if (name == null) name = snapshot.child("displayName").getValue(String.class);
                     if (name == null) name = snapshot.child("full_name").getValue(String.class);
@@ -233,7 +294,6 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     textView.setText((prefix != null ? prefix : "") + displayStr);
                     textView.setVisibility(View.VISIBLE);
                 } else {
-                    // If UID not found in users, show the UID itself or generic label
                     textView.setText((prefix != null ? prefix : "") + "Authority");
                     textView.setVisibility(View.VISIBLE);
                 }
@@ -257,8 +317,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
             case "REJECTED":
                 statusTextView.setBackgroundResource(R.drawable.status_rejected_bg);
                 break;
+            case "FORWARDED":
+                statusTextView.setBackgroundResource(R.drawable.status_pending_bg);
+                statusTextView.getBackground().setTint(Color.parseColor("#FF9800")); // Orange for Forwarded
+                break;
             default:
                 statusTextView.setBackgroundResource(R.drawable.status_pending_bg);
+                statusTextView.getBackground().setTintList(null);
                 break;
         }
     }

@@ -65,6 +65,21 @@
             tools:text="Purpose: Workshop on AI" />
 
         <TextView
+            android:id="@+id/textViewRemarks"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="13sp"
+            android:textStyle="italic"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewPurpose"
+            tools:text="Remarks: Forwarded by Faculty"
+            tools:visibility="visible" />
+
+        <TextView
             android:id="@+id/textViewStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
