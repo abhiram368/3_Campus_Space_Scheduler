@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class BookingHistoryActivity extends AppCompatActivity implements BookingAdapter.OnItemClickListener {
@@ -179,6 +180,9 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
                                 fullList.add(booking);
                             }
                         }
+                        
+                        // Sort by recent first (reverse order as they come from Firebase)
+                        Collections.reverse(fullList);
 
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
                         
@@ -276,6 +280,7 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
         intent.putExtra("APPROVED_BY", booking.getApprovedBy());
         intent.putExtra("SCHEDULE_ID", booking.getScheduleId());
         intent.putExtra("SLOT_START", booking.getSlotStart());
+        intent.putExtra("SPACE_TYPE", booking.getSpaceType()); // Pass space type
 
         String reqDate = "";
         String reqTime = "";

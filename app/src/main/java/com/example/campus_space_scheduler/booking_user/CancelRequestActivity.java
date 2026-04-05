@@ -245,6 +245,7 @@ public class CancelRequestActivity extends AppCompatActivity implements BookingA
         intent.putExtra("APPROVED_BY", booking.getApprovedBy());
         intent.putExtra("SCHEDULE_ID", booking.getScheduleId());
         intent.putExtra("SLOT_START", booking.getSlotStart());
+        intent.putExtra("SPACE_TYPE", booking.getSpaceType()); // Added SPACE_TYPE
 
         String reqDate = "";
         String reqTime = "";
