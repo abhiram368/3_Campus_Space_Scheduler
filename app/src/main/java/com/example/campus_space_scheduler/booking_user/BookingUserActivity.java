@@ -229,12 +229,22 @@ public class BookingUserActivity extends AppCompatActivity {
                         if (!status.equalsIgnoreCase(lastStatus)) {
                             // Status changed!
                             String message = "";
-                            if (status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted")) {
+                            String statusLower = status.toLowerCase();
+                            
+                            Log.d(TAG, "Booking status changed for " + bookingId + ": " + lastStatus + " -> " + status);
+
+                            if (statusLower.equals("approved") || statusLower.equals("accepted")) {
                                 message = "Your booking for " + spaceName + " has been approved!";
-                            } else if (status.equalsIgnoreCase("Rejected")) {
+                            } else if (statusLower.equals("rejected")) {
                                 message = "Your booking for " + spaceName + " has been rejected.";
-                            } else if (status.equalsIgnoreCase("Forwarded")) {
-                                message = "Your booking for " + spaceName + " has been forwarded to the HOD.";
+                            } else if (statusLower.contains("forwarded")) {
+                                if (statusLower.contains("faculty")) {
+                                    message = "Your booking request for " + spaceName + " has been forwarded to Faculty Incharge.";
+                                } else if (statusLower.contains("hod")) {
+                                    message = "Your booking request for " + spaceName + " has been forwarded to HOD.";
+                                } else {
+                                    message = "Your booking request for " + spaceName + " has been forwarded for further approval.";
+                                }
                             }
 
                             if (!message.isEmpty()) {
@@ -254,6 +264,7 @@ public class BookingUserActivity extends AppCompatActivity {
             }
         };
 
+        // Important: use addValueEventListener to keep monitoring changes
         bookingsRef.orderByChild("bookedBy").equalTo(currentUserId).addValueEventListener(bookingStatusListener);
     }
 

@@ -20,6 +20,7 @@ import com.example.campus_space_scheduler.R;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -266,12 +267,40 @@ public class BookingDetailsActivity extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this, R.style.Theme_CampusSpaceScheduler_Dialog_Custom)
                 .setTitle("Confirm Cancellation")
                 .setMessage("Are you sure you want to cancel this booking? This action cannot be undone.")
-                .setPositiveButton("Yes, Cancel", (dialog, which) -> performCancellation())
+                .setPositiveButton("Yes, Cancel", (dialog, which) -> fetchCurrentUserNameAndCancel())
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-    private void performCancellation() {
+    private void fetchCurrentUserNameAndCancel() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) {
+            performCancellation("User");
+            return;
+        }
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String name = "User";
+                if (snapshot.exists()) {
+                    name = snapshot.child("name").getValue(String.class);
+                    if (name == null) name = snapshot.child("displayName").getValue(String.class);
+                    if (name == null) name = snapshot.child("full_name").getValue(String.class);
+                    if (name == null) name = "User";
+                }
+                performCancellation(name);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                performCancellation("User");
+            }
+        });
+    }
+
+    private void performCancellation(String userName) {
         if (bookingId == null || scheduleId == null) {
             Toast.makeText(this, "Error: Missing IDs", Toast.LENGTH_SHORT).show();
             return;
@@ -282,7 +311,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
         // Change: Update status to "Cancelled" instead of deleting, so it shows in history
         Map<String, Object> updates = new HashMap<>();
         updates.put("status", "Cancelled");
-        updates.put("remark", "Cancelled by user"); // Changed from remarks to remark
+        updates.put("remark", "Cancelled by " + userName);
 
         bookingRef.updateChildren(updates).addOnSuccessListener(aVoid -> {
             slotsRef.addListenerForSingleValueEvent(new ValueEventListener() {

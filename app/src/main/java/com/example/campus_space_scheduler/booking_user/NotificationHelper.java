@@ -64,6 +64,7 @@ public class NotificationHelper {
             .setSmallIcon(R.drawable.ic_notifications)
             .setContentTitle(title)
             .setContentText(message)
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Enable expandable notification
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setDefaults(NotificationCompat.DEFAULT_ALL)

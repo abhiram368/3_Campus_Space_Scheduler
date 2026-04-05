@@ -243,7 +243,7 @@ public class BookingFormActivity extends AppCompatActivity {
                 String title = isClassroom ? "Booking Confirmed" : "Booking Submitted";
                 String body = isClassroom ? 
                     "Your booking for " + spaceName + " is confirmed!" : 
-                    "Your booking request for " + spaceName + " has been successfully submitted.";
+                    "Your booking request for " + spaceName + " has been Submitted.";
                 
                 NotificationHelper.showNotification(this, title, body, bookingId);
 

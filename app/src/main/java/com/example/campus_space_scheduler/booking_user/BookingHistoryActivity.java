@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class BookingHistoryActivity extends AppCompatActivity implements BookingAdapter.OnItemClickListener {
@@ -179,6 +180,9 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
                                 fullList.add(booking);
                             }
                         }
+                        
+                        // Sort by recent first (reverse order as they come from Firebase)
+                        Collections.reverse(fullList);
 
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
                         
