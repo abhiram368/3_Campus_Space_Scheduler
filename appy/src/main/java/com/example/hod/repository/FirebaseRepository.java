@@ -266,14 +266,21 @@ public void onCancelled(@NonNull DatabaseError error) {
                 if (scheduleId == null || rawTimeSlot == null) return;
                 
                 String timeSlot = rawTimeSlot;
-                String slotStatus = "AVAILABLE"; 
+                Map<String, Object> slotUpdates = new HashMap<>();
                 if ("approved".equalsIgnoreCase(newStatus)) {
-                    slotStatus = "BOOKED";
-                } 
+                    slotUpdates.put("status", "BOOKED");
+                    slotUpdates.put("bookedBy", snapshot.child("bookedBy").getValue());
+                    slotUpdates.put("requesterName", snapshot.child("requesterName").getValue());
+                    slotUpdates.put("purpose", snapshot.child("purpose").getValue());
+                } else {
+                    slotUpdates.put("status", "AVAILABLE");
+                    slotUpdates.put("bookedBy", null);
+                    slotUpdates.put("requesterName", null);
+                    slotUpdates.put("purpose", null);
+                }
                 
-                final String finalSlotStatus = slotStatus; 
-                updateSlotStatus(scheduleId, timeSlot, slotStatus, r -> {
-                    Log.d("FirebaseRepo", "Slot sync: " + scheduleId + "/" + timeSlot + " → " + finalSlotStatus);
+                updateSlotStatus(scheduleId, timeSlot, slotUpdates, r -> {
+                    Log.d("FirebaseRepo", "Slot sync: " + scheduleId + "/" + timeSlot + " → " + slotUpdates.get("status"));
                 });
             }
             @Override
@@ -283,12 +290,17 @@ public void onCancelled(@NonNull DatabaseError error) {
         });
     }
 
-    public void updateSlotStatus(@NonNull String scheduleId, @NonNull String slotKey, @NonNull String status, @NonNull Callback<Void> callback) {
+    public void updateSlotStatus(@NonNull String scheduleId, @NonNull String slotKey, @NonNull Map<String, Object> updates, @NonNull Callback<Void> callback) {
         String finalKey = formatSlotKey(slotKey);
-        schedulesRef.child(scheduleId).child("slots").child(finalKey).child("status")
-                .setValue(status)
+        schedulesRef.child(scheduleId).child("slots").child(finalKey).updateChildren(updates)
                 .addOnSuccessListener(v -> callback.onComplete(new Result.Success<>(null)))
                 .addOnFailureListener(e -> callback.onComplete(new Result.Error<>(e)));
+    }
+
+    public void updateSlotStatus(@NonNull String scheduleId, @NonNull String slotKey, @NonNull String status, @NonNull Callback<Void> callback) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("status", status);
+        updateSlotStatus(scheduleId, slotKey, updates, callback);
     }
 
     public void getBookingForSlot(String spaceId, String date, String timeRange, Callback<Booking> callback) {
@@ -1851,10 +1863,11 @@ public void onCancelled(@NonNull DatabaseError error) {
                     
                     for (String d : days) {
                         Map<String, Object> dayMap = new HashMap<>();
-                        boolean isWeekend = d.equalsIgnoreCase("Saturday") || d.equalsIgnoreCase("Sunday");
-                        int startHour = isWeekend ? 8 : 17;
+                        // Updated to 08:00 - 23:00 for ALL days as per user request
+                        int startHour = 8;
+                        int endHour = 23;
                         
-                        for (int h = startHour; h < 22; h++) {
+                        for (int h = startHour; h < endHour; h++) {
                             // Slot 1: hh:00 - hh:30
                             String t1 = String.format(java.util.Locale.US, "%02d:00 - %02d:30", h, h);
                             User admin1 = admins.get((h % admins.size()));
@@ -1883,7 +1896,7 @@ public void onCancelled(@NonNull DatabaseError error) {
                     weeklyRef.setValue(weeklyData).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             if (shouldAutoSync) {
-                                syncTemplateToDailySchedules(spaceId, weeklyData, 25, callback);
+                                syncTemplateToDailySchedules(spaceId, weeklyData, 365, callback);
                             } else {
                                 callback.onComplete(new Result.Success<>(null));
                             }
@@ -1908,7 +1921,57 @@ public void onCancelled(@NonNull DatabaseError error) {
         final String todayStr = sdf.format(cal.getTime());
         final int currentMinuteOfDay = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
 
-        int totalDays = numDays > 0 ? numDays : 8; 
+        int totalDays = numDays > 0 ? numDays : 365;
+        // Optimized 365-day sync via range query
+        long startMillis = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000L);
+        long endMillis = System.currentTimeMillis() + ((long)totalDays * 24 * 60 * 60 * 1000L);
+        String startDateStr = sdf.format(new java.util.Date(startMillis));
+        String endDateStr = sdf.format(new java.util.Date(endMillis));
+
+        schedulesRef.orderByKey().startAt(spaceId + "_" + startDateStr).endAt(spaceId + "_" + endDateStr)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot schedulesSnapshot) {
+                    Map<String, Object> batchUpdates = new HashMap<>();
+                    Calendar runner = Calendar.getInstance();
+                    runner.setTimeInMillis(startMillis); // Start 30 days ago
+                    
+                    int iterations = totalDays + 30; // Total range (past + future)
+                    for (int i = 0; i < iterations; i++) {
+                        String dStr = sdf.format(runner.getTime());
+                        String dayName = dayFormat.format(runner.getTime());
+                        Map<String, Object> template = (Map<String, Object>) weeklyData.get(dayName);
+                        if (template != null) {
+                            String sid = spaceId + "_" + dStr;
+                            DataSnapshot existingSlots = schedulesSnapshot.child(sid).child("slots");
+                            for (Map.Entry<String, Object> entry : template.entrySet()) {
+                                String sKey = entry.getKey();
+                                if (!existingSlots.child(sKey).exists()) {
+                                    Map<String, String> admin = (Map<String, String>) entry.getValue();
+                                    Map<String, Object> slot = new HashMap<>();
+                                    slot.put("status", "AVAILABLE");
+                                    String[] pts = sKey.split(" - ");
+                                    slot.put("start", formatTime(pts[0]));
+                                    slot.put("end", formatTime(pts[pts.length-1]));
+                                    slot.put("adminName", admin.get("name"));
+                                    slot.put("adminRoll", admin.get("rollNo"));
+                                    slot.put("adminUid", admin.get("uid"));
+                                    batchUpdates.put(sid + "/slots/" + sKey, slot);
+                                }
+                            }
+                        }
+                        runner.add(Calendar.DAY_OF_YEAR, 1);
+                    }
+                    if (!batchUpdates.isEmpty()) schedulesRef.updateChildren(batchUpdates);
+                    if (callback != null) callback.onComplete(new Result.Success<>(null));
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {
+                    if (callback != null) callback.onComplete(new Result.Error<>(error.toException()));
+                }
+            });
+        
+        if (true) return; // Skip old loop
+
         java.util.concurrent.atomic.AtomicInteger processedDays = new java.util.concurrent.atomic.AtomicInteger(0);
         
         // Use a synchronized map to safely collect global multi-path updates from parallel reads
@@ -2160,9 +2223,9 @@ public void onCancelled(@NonNull DatabaseError error) {
 
     private boolean isTimeWithinShift(String dayOfWeek, String slotKey) {
         if (dayOfWeek == null || slotKey == null) return true;
-        boolean isWeekend = dayOfWeek.equalsIgnoreCase("Saturday") || dayOfWeek.equalsIgnoreCase("Sunday");
-        int startHour = isWeekend ? 8 : 17;
-        int endHour = 22;
+        // Shift expanded to 08:00 - 23:00 for all days
+        int startHour = 8;
+        int endHour = 23;
 
         try {
             int slotStartMin = parseStartTime(slotKey);

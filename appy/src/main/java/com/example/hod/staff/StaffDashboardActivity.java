@@ -126,6 +126,10 @@ public class StaffDashboardActivity extends AppCompatActivity {
                 } else if (id == R.id.nav_dark) {
                     // Switch handled via ActionView logic below
                     return false;
+                } else if (id == R.id.nav_data_reset) {
+                    Intent dataUtilityIntent = new Intent(this, DataUtilityActivity.class);
+                    dataUtilityIntent.putExtra("labId", labIdToPass);
+                    startActivity(dataUtilityIntent);
                 } else if (id == R.id.nav_notifications) {
                     startActivity(new Intent(this, NotificationsActivity.class));
                 } else if (id == R.id.nav_help) {

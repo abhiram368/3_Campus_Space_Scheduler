@@ -169,7 +169,6 @@ public class AdminScheduleActivity extends AppCompatActivity {
                     if (hasLegacySlots && !generatedDays.contains(dayOfWeek)) {
                         generatedDays.add(dayOfWeek);
                         Log.d("LabAdminSchedule", "Stale data detected. Attempting repair.");
-                        Toast.makeText(AdminScheduleActivity.this, "Cleaning up legacy slots for " + labName + "...", Toast.LENGTH_SHORT).show();
                         repo.generateWeeklySchedule(labName, spaceId, true, regenResult -> {
                             runOnUiThread(() -> {
                                 if (regenResult instanceof Result.Success) {

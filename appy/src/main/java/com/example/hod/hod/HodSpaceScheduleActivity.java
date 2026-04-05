@@ -100,16 +100,18 @@ public class HodSpaceScheduleActivity extends AppCompatActivity {
                 selectedCalendar = Calendar.getInstance();
                 loadScheduleForDate(selectedCalendar);
                 rvSchedule.setVisibility(View.VISIBLE);
+                tvCalendarNote.setVisibility(View.GONE);
             } else if (checkedId == R.id.chipTomorrow) {
                 selectedCalendar = Calendar.getInstance();
                 selectedCalendar.add(Calendar.DAY_OF_YEAR, 1);
                 loadScheduleForDate(selectedCalendar);
                 rvSchedule.setVisibility(View.VISIBLE);
+                tvCalendarNote.setVisibility(View.GONE);
             } else if (checkedId == R.id.chipPickDate) {
                 calendarCard.setVisibility(View.VISIBLE);
                 tvCalendarNote.setVisibility(View.VISIBLE);
                 rvSchedule.setVisibility(View.GONE);
-                noDataTextView.setVisibility(View.VISIBLE); // Show only for Pick Date
+                noDataTextView.setVisibility(View.GONE); // FIX: Don't show 'No schedule found' until they actually pick a date
             }
         });
     }
@@ -179,6 +181,16 @@ public class HodSpaceScheduleActivity extends AppCompatActivity {
                     // FIX: Sort by actual start time instead of rawKey
                     item.startTimeMinutes = repo.parseStartTime(start);
 
+                    // PRE-POPULATE BOOKING if available in slot node
+                    if (s.child("bookedBy").exists()) {
+                        Booking b = new Booking();
+                        b.setBookedBy(s.child("bookedBy").getValue(String.class));
+                        b.setRequesterName(s.child("requesterName").getValue(String.class));
+                        b.setPurpose(s.child("purpose").getValue(String.class));
+                        b.setStatus(status);
+                        item.booking = b;
+                    }
+
                     // Use normalized keys for deduplication to prevent "Old vs New" duplicates
                     String normKey = repo.normalizeSlotKey(rawKey);
                     if (deduplicated.containsKey(normKey)) {
@@ -209,16 +221,26 @@ public class HodSpaceScheduleActivity extends AppCompatActivity {
                     repo.getBookingForSlot(spaceId, dbDate, item.slotKey, res -> {
                         if (res instanceof Result.Success) {
                             Booking booking = ((Result.Success<Booking>) res).data;
-                            item.booking = booking;
-                            if (booking != null && booking.getBookedBy() != null) {
-                                repo.getUserName(booking.getBookedBy(), nameRes -> {
-                                    if (nameRes instanceof Result.Success) {
-                                        booking.setRequesterName(((Result.Success<String>) nameRes).data);
-                                        runOnUiThread(() -> adapter.notifyDataSetChanged());
-                                    }
-                                });
+                            
+                            if (booking != null) { // FIX: Check if booking actually exists
+                                item.booking = booking;
+                                if (booking.getBookedBy() != null) {
+                                    repo.getUserName(booking.getBookedBy(), nameRes -> {
+                                        if (nameRes instanceof Result.Success) {
+                                            booking.setRequesterName(((Result.Success<String>) nameRes).data);
+                                            runOnUiThread(() -> adapter.notifyDataSetChanged());
+                                        }
+                                    });
+                                }
+                                runOnUiThread(() -> adapter.notifyDataSetChanged());
+                            } else if (item.booking == null) {
+                                // FIX: Handle orphaned slots so it stops saying "Loading details..."
+                                Booking orphan = new Booking();
+                                orphan.setRequesterName("Unknown User");
+                                orphan.setPurpose("Details missing from database");
+                                item.booking = orphan;
+                                runOnUiThread(() -> adapter.notifyDataSetChanged());
                             }
-                            runOnUiThread(() -> adapter.notifyDataSetChanged());
                         }
                     });
                 }

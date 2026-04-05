@@ -24,7 +24,7 @@
             android:layout_gravity="center"
             android:src="@drawable/ic_space_dashboard"
             android:tint="@android:color/white"
-            android:scaleType="centerInside"/>
+            />
 
     </com.google.android.material.card.MaterialCardView>
 

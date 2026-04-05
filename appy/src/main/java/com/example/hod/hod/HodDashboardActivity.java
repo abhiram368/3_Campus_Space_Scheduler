@@ -86,8 +86,8 @@ public class HodDashboardActivity extends AppCompatActivity {
         navigationView.setItemIconTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#3B82F6")));
         
         // Remove non-essential utilities from the drawer
-        MenuItem navDataReset = navigationView.getMenu().findItem(R.id.nav_data_reset);
-        if (navDataReset != null) navDataReset.setVisible(false);
+        // MenuItem navDataReset = navigationView.getMenu().findItem(R.id.nav_data_reset);
+        // if (navDataReset != null) navDataReset.setVisible(false);
         
         MenuItem navHistory = navigationView.getMenu().findItem(R.id.nav_history);
         if (navHistory != null) navHistory.setVisible(false);
@@ -101,6 +101,9 @@ public class HodDashboardActivity extends AppCompatActivity {
                 return false;
             } else if (id == R.id.nav_notifications) {
                 startActivity(new Intent(this, HodNotificationsActivity.class));
+            } else if (id == R.id.nav_data_reset) {
+                Intent dataUtilityIntent = new Intent(this, com.example.hod.staff.DataUtilityActivity.class);
+                startActivity(dataUtilityIntent);
             } else if (id == R.id.nav_help) {
                 startActivity(new Intent(this, HodHelpAboutActivity.class));
             } else if (id == R.id.nav_logout) {

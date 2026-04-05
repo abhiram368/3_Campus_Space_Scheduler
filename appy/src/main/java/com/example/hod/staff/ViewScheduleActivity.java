@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.widget.ImageButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.example.hod.R;
 import com.example.hod.adapters.StaffScheduleAdapter;
 import com.example.hod.models.Booking;
@@ -68,8 +70,14 @@ public class ViewScheduleActivity extends AppCompatActivity {
         if (headerView != null) {
             TextView title = headerView.findViewById(R.id.header_title);
             View btnBack = headerView.findViewById(R.id.btnBack);
+            ImageButton btnSync = headerView.findViewById(R.id.btnAction);
+            
             if (title != null) title.setText("Loading...");
             if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+            
+            if (btnSync != null) {
+                btnSync.setVisibility(View.GONE);
+            }
         }
 
         CalendarView calendarView = findViewById(R.id.calendarView);
@@ -224,11 +232,10 @@ public class ViewScheduleActivity extends AppCompatActivity {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 DataSnapshot snapshot = null;
                 if (result instanceof Result.Success) snapshot = ((Result.Success<DataSnapshot>) result).data;
-
-                int availableCount = 0;
-                int blockedCount = 0;
-                int bookedCount = 0;
-                int unusedCount = 0;
+                final int[] availableCount = {0};
+                final int[] blockedCount = {0};
+                final int[] bookedCount = {0};
+                final int[] unusedCount = {0};
                 boolean anyFound = snapshot != null && snapshot.exists();
 
                 Map<String, StaffScheduleAdapter.SlotItem> deduplicated = new HashMap<>();
@@ -252,17 +259,6 @@ public class ViewScheduleActivity extends AppCompatActivity {
                             continue;
                         }
 
-                        boolean isPastSlot = isPastDate || isSlotInPast(date, rawKey);
-                        
-                        if ("AVAILABLE".equalsIgnoreCase(status)) {
-                            if (isPastSlot) unusedCount++;
-                            else availableCount++;
-                        } else if ("BLOCKED".equalsIgnoreCase(status)) {
-                            blockedCount++;
-                        } else if ("BOOKED".equalsIgnoreCase(status) || "USED".equalsIgnoreCase(status) || "COMPLETED".equalsIgnoreCase(status)) {
-                            bookedCount++;
-                        }
-
                         String formattedKey = repo.formatSlotKey(rawKey);
                         String start = s.child("start").getValue(String.class);
                         String end = s.child("end").getValue(String.class);
@@ -275,6 +271,16 @@ public class ViewScheduleActivity extends AppCompatActivity {
                         item.slotKey = rawKey; 
                         item.startTimeMinutes = repo.parseStartTime(rawKey);
                         item.adminName = s.child("adminName").getValue(String.class);
+
+                        // PRE-POPULATE BOOKING if available in slot node
+                        if (s.child("bookedBy").exists()) {
+                            Booking b = new Booking();
+                            b.setBookedBy(s.child("bookedBy").getValue(String.class));
+                            b.setRequesterName(s.child("requesterName").getValue(String.class));
+                            b.setPurpose(s.child("purpose").getValue(String.class));
+                            b.setStatus(status);
+                            item.booking = b;
+                        }
 
                         if (deduplicated.containsKey(formattedKey)) {
                             StaffScheduleAdapter.SlotItem existing = deduplicated.get(formattedKey);
@@ -291,27 +297,48 @@ public class ViewScheduleActivity extends AppCompatActivity {
 
                 slotList.clear();
                 slotList.addAll(deduplicated.values());
-                
+
                 for (StaffScheduleAdapter.SlotItem item : slotList) {
-                    String sStat = (item.status != null) ? item.status.toUpperCase() : "";
+                    String sStat = (item.status != null) ? item.status.toUpperCase() : "AVAILABLE";
+                    boolean isPastSlot = isPastDate || isSlotInPast(date, item.slotKey);
+
+                    if ("AVAILABLE".equalsIgnoreCase(sStat)) {
+                        if (isPastSlot) unusedCount[0]++;
+                        else availableCount[0]++;
+                    } else if ("BLOCKED".equalsIgnoreCase(sStat)) {
+                        blockedCount[0]++;
+                    } else if ("BOOKED".equalsIgnoreCase(sStat) || "USED".equalsIgnoreCase(sStat) || "COMPLETED".equalsIgnoreCase(sStat) || "APPROVED".equalsIgnoreCase(sStat)) {
+                        bookedCount[0]++;
+                    }
+
                     if ("BOOKED".equals(sStat) || "USED".equals(sStat) || "COMPLETED".equals(sStat) || "APPROVED".equals(sStat)) {
                         repo.getBookingForSlot(labId, date, item.slotKey, res -> {
                             if (res instanceof Result.Success) {
                                 Booking b = ((Result.Success<Booking>) res).data;
-                                item.booking = b;
-                                if (b != null && b.getBookedBy() != null) {
-                                    String bBy = b.getBookedBy();
-                                    repo.getUserName(bBy, nameRes -> {
-                                        if (nameRes instanceof Result.Success) {
-                                            String name = ((Result.Success<String>) nameRes).data;
-                                            if (item.booking != null) {
-                                                item.booking.setRequesterName(name);
+                                
+                                if (b != null) { // FIX: Check if booking actually exists
+                                    item.booking = b;
+                                    if (b.getBookedBy() != null) {
+                                        String bBy = b.getBookedBy();
+                                        repo.getUserName(bBy, nameRes -> {
+                                            if (nameRes instanceof Result.Success) {
+                                                String name = ((Result.Success<String>) nameRes).data;
+                                                if (item.booking != null) {
+                                                    item.booking.setRequesterName(name);
+                                                }
+                                                runOnUiThread(() -> adapter.notifyDataSetChanged());
                                             }
-                                            runOnUiThread(() -> adapter.notifyDataSetChanged());
-                                        }
-                                    });
+                                        });
+                                    }
+                                    runOnUiThread(() -> adapter.notifyDataSetChanged());
+                                } else if (item.booking == null) {
+                                    // FIX: Handle orphaned slots so it stops saying "Loading details..."
+                                    Booking orphan = new Booking();
+                                    orphan.setRequesterName("Unknown User");
+                                    orphan.setPurpose("Details missing from database");
+                                    item.booking = orphan;
+                                    runOnUiThread(() -> adapter.notifyDataSetChanged());
                                 }
-                                runOnUiThread(() -> adapter.notifyDataSetChanged());
                             }
                         });
                     }
@@ -360,36 +387,36 @@ public class ViewScheduleActivity extends AppCompatActivity {
                     }
 
                     if (btnUnblock != null) {
-                        btnUnblock.setVisibility(blockedCount > 0 && !isPastDate ? View.VISIBLE : View.GONE);
+                        btnUnblock.setVisibility(blockedCount[0] > 0 && !isPastDate ? View.VISIBLE : View.GONE);
                     }
                     if (btnBlock != null) {
-                        btnBlock.setVisibility(!isPastDate && availableCount > 0 ? View.VISIBLE : View.GONE);
+                        btnBlock.setVisibility(!isPastDate && availableCount[0] > 0 ? View.VISIBLE : View.GONE);
                     }
                     
-                    if (availableCount > 0) {
-                        statusText = "Status: " + availableCount + " Slots Available";
+                    if (availableCount[0] > 0) {
+                        statusText = "Status: " + availableCount[0] + " Slots Available";
                         color = 0xFF10B981;
                     } else {
                         if (isToday || isPastDate) {
-                            if (bookedCount > 0 || blockedCount > 0 || unusedCount > 0) {
+                            if (bookedCount[0] > 0 || blockedCount[0] > 0 || unusedCount[0] > 0) {
                                 StringBuilder sb = new StringBuilder("Status: ");
-                                if (unusedCount > 0) sb.append(unusedCount).append(" Unused");
-                                if (bookedCount > 0) {
-                                    if (unusedCount > 0) sb.append(", ");
-                                    sb.append(bookedCount).append(" Booked");
+                                if (unusedCount[0] > 0) sb.append(unusedCount[0]).append(" Unused");
+                                if (bookedCount[0] > 0) {
+                                    if (unusedCount[0] > 0) sb.append(", ");
+                                    sb.append(bookedCount[0]).append(" Booked");
                                 }
-                                if (blockedCount > 0) {
-                                    if (unusedCount > 0 || bookedCount > 0) sb.append(", ");
-                                    sb.append(blockedCount).append(" Blocked");
+                                if (blockedCount[0] > 0) {
+                                    if (unusedCount[0] > 0 || bookedCount[0] > 0) sb.append(", ");
+                                    sb.append(blockedCount[0]).append(" Blocked");
                                 }
                                 statusText = sb.toString();
-                                color = (bookedCount > 0) ? 0xFF3B82F6 : 0xFF64748B;
+                                color = (bookedCount[0] > 0) ? 0xFF3B82F6 : 0xFF64748B;
                             } else {
                                 statusText = "Status: No Slots Found";
                                 color = 0xFF64748B;
                             }
                         } else {
-                            if (blockedCount == slotList.size()) {
+                            if (blockedCount[0] == slotList.size()) {
                                 statusText = "Status: FULLY BLOCKED";
                                 color = 0xFFEF4444;
                             } else {
@@ -794,6 +821,36 @@ public class ViewScheduleActivity extends AppCompatActivity {
         });
     }
 
+
+    private void performManualSync() {
+        if (labId == null || labId.isEmpty()) return;
+
+        android.app.ProgressDialog progress = new android.app.ProgressDialog(this);
+        progress.setMessage("Initializing 365-day schedule...");
+        progress.setCancelable(false);
+        progress.show();
+
+        repo.getSpaceDetails(labId, res -> {
+            String name = roomName;
+            if (res instanceof Result.Success) {
+                com.example.hod.models.Space space = ((Result.Success<com.example.hod.models.Space>) res).data;
+                if (space != null && space.getRoomName() != null) name = space.getRoomName();
+            }
+            
+            final String finalName = name;
+            repo.generateWeeklySchedule(finalName, labId, true, result -> {
+                runOnUiThread(() -> {
+                    progress.dismiss();
+                    if (result instanceof Result.Success) {
+                        Toast.makeText(this, "Schedule initialized for 365 days", Toast.LENGTH_LONG).show();
+                        fetchDayStatus(currentSelectedDate); // Refresh
+                    } else {
+                        Toast.makeText(this, "Sync failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        });
+    }
 
     @Override
     protected void onDestroy() {

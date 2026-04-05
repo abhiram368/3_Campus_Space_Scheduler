@@ -31,7 +31,8 @@
         <item
             android:id="@+id/nav_data_reset"
             android:icon="@drawable/ic_sync"
-            android:title="Data Reset Utility" />
+            android:title="Clean Reset Utility"
+            android:visible="false" />
     </group>
 
     <item android:title="">

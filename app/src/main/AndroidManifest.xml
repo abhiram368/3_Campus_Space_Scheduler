@@ -13,9 +13,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/ic_space_dashboard"
+        android:icon="@drawable/ic_dashboard"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_space_dashboard"
+        android:roundIcon="@drawable/ic_dashboard"
         android:supportsRtl="true"
         android:theme="@style/Theme.CampusSpaceScheduler">
 

@@ -11,4 +11,13 @@
         android:layout_height="wrap_content"
         android:text="Clean Old Data" />
 
+    <Button
+        android:id="@+id/btnManualSync"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Initialize/Sync 365-Day Schedule"
+        android:backgroundTint="#FF9800"
+        android:textColor="#FFFFFF" />
+
 </LinearLayout>
