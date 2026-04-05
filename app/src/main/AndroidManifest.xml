@@ -37,7 +37,6 @@
         <activity android:name=".app_admin.UserTableActivity" />
         <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".SignUpActivity" />
-        <activity android:name=".booking_user.BookingUserActivity" />
         <activity android:name=".OtherUserActivity" />
         <activity android:name=".EditScheduleActivity" />
         <activity android:name=".ViewScheduleActivity" />
@@ -50,13 +49,20 @@
         <activity android:name=".csed_office.CsedOfficeStaffActivity" />
 
         <!-- Teja -->
-        <activity android:name=".booking_user.BookingDetailsActivity" />
-        <activity android:name=".booking_user.CancelRequestActivity" />
-        <activity android:name=".booking_user.BookingHistoryActivity" />
+        <activity android:name=".booking_user.BookingUserActivity"
+            android:exported="true"/>
+        <activity android:name=".booking_user.BookingDetailsActivity"
+            android:exported="true"/>
+        <activity android:name=".booking_user.CancelRequestActivity"
+            android:exported="true"  />
+        <activity android:name=".booking_user.BookingHistoryActivity"
+            android:exported="true"/>
         <activity android:name=".booking_user.AvailableTimeSlotsActivity"
             android:exported="true" />
-        <activity android:name=".booking_user.ProfileActivity" />
-        <activity android:name=".booking_user.BookingFormActivity" />
+        <activity android:name=".booking_user.ProfileActivity"
+            android:exported="true"/>
+        <activity android:name=".booking_user.BookingFormActivity"
+            android:exported="true"/>
 
     </application>
 

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -14,6 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campus_space_scheduler.R;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CancelRequestActivity extends AppCompatActivity implements BookingAdapter.OnItemClickListener {
@@ -29,29 +31,81 @@ public class CancelRequestActivity extends AppCompatActivity implements BookingA
     private static final String TAG = "CancelRequestActivity";
     private RecyclerView recyclerViewBookings;
     private BookingAdapter adapter;
-    private List<Booking> cancellableList;
+    private List<Booking> cancellableList; // Currently shown list
+    private List<Booking> fullCancellableList; // All valid records for cancellation
     private ProgressBar progressBar;
     private TextView emptyTextView;
+    private TabLayout tabLayoutFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.t_activity_cancel_request);
 
-        ImageView buttonBack = findViewById(R.id.buttonBack);
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
+
         recyclerViewBookings = findViewById(R.id.recyclerViewBookings);
-        progressBar = findViewById(R.id.progressBar); // Added to layout if missing or handle null
-        emptyTextView = findViewById(R.id.emptyTextView); // Added to layout if missing or handle null
+        progressBar = findViewById(R.id.progressBar);
+        emptyTextView = findViewById(R.id.emptyTextView);
+        tabLayoutFilter = findViewById(R.id.tabLayoutFilter);
 
         cancellableList = new ArrayList<>();
+        fullCancellableList = new ArrayList<>();
         adapter = new BookingAdapter(cancellableList, this);
 
         recyclerViewBookings.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewBookings.setAdapter(adapter);
 
+        setupTabLayout();
         fetchCancellableBookings();
+    }
 
-        buttonBack.setOnClickListener(v -> finish());
+    private void setupTabLayout() {
+        if (tabLayoutFilter == null) return;
+        
+        tabLayoutFilter.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                filterCancellableRequests(tab.getText().toString());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+    }
+
+    private void filterCancellableRequests(String filterText) {
+        cancellableList.clear();
+        if (filterText.equalsIgnoreCase("All")) {
+            cancellableList.addAll(fullCancellableList);
+        } else {
+            for (Booking booking : fullCancellableList) {
+                String status = booking.getStatus();
+                if (status == null) continue;
+
+                if (filterText.equalsIgnoreCase("Forwarded")) {
+                    if (status.toLowerCase().contains("forwarded")) {
+                        cancellableList.add(booking);
+                    }
+                } else if (filterText.equalsIgnoreCase("Approved")) {
+                    if (status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted")) {
+                        cancellableList.add(booking);
+                    }
+                } else {
+                    if (status.equalsIgnoreCase(filterText)) {
+                        cancellableList.add(booking);
+                    }
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+        updateEmptyState();
     }
 
     private void fetchCancellableBookings() {
@@ -65,13 +119,15 @@ public class CancelRequestActivity extends AppCompatActivity implements BookingA
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        cancellableList.clear();
+                        fullCancellableList.clear();
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             Booking booking = dataSnapshot.getValue(Booking.class);
                             if (booking != null) {
                                 String status = booking.getStatus();
-                                // Only show Pending or Approved/Accepted bookings for cancellation
-                                if (status != null && !status.equalsIgnoreCase("Rejected")) {
+                                // Only show requests that are NOT Rejected, Cancelled, or Expired
+                                if (status != null && !status.equalsIgnoreCase("Rejected") 
+                                        && !status.equalsIgnoreCase("Cancelled")
+                                        && !status.toLowerCase().contains("expired")) {
 
                                     if (booking.getDate() == null && booking.getBookedTime() != null) {
                                         booking.setDate(booking.getBookedTime().get("date"));
@@ -81,14 +137,27 @@ public class CancelRequestActivity extends AppCompatActivity implements BookingA
                                     }
 
                                     fetchScheduleDetails(booking);
-                                    cancellableList.add(booking);
+                                    fullCancellableList.add(booking);
                                 }
                             }
                         }
 
+                        // Sort by recent first
+                        Collections.reverse(fullCancellableList);
+
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
-                        updateEmptyState();
-                        adapter.notifyDataSetChanged();
+                        
+                        // Apply current tab filter
+                        if (tabLayoutFilter != null) {
+                            int selectedTabPos = tabLayoutFilter.getSelectedTabPosition();
+                            if (selectedTabPos != -1) {
+                                filterCancellableRequests(tabLayoutFilter.getTabAt(selectedTabPos).getText().toString());
+                            } else {
+                                filterCancellableRequests("All");
+                            }
+                        } else {
+                            filterCancellableRequests("All");
+                        }
                     }
 
                     @Override
@@ -173,7 +242,9 @@ public class CancelRequestActivity extends AppCompatActivity implements BookingA
         intent.putExtra("LOR_UPLOAD", booking.getLorUpload());
         intent.putExtra("REMARKS", booking.getRemarks());
         intent.putExtra("ACTION_BY", booking.getActionBy());
+        intent.putExtra("APPROVED_BY", booking.getApprovedBy());
         intent.putExtra("SCHEDULE_ID", booking.getScheduleId());
+        intent.putExtra("SLOT_START", booking.getSlotStart());
 
         String reqDate = "";
         String reqTime = "";
