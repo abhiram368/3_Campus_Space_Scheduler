@@ -11,6 +11,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.campus_space_scheduler.MainActivity;
 import com.example.campus_space_scheduler.R;
 
 public class NotificationHelper {
@@ -39,7 +40,9 @@ public class NotificationHelper {
         Log.d(TAG, "Showing notification: " + title + " - " + message);
         createNotificationChannel(context);
 
-        Intent intent = new Intent(context, BookingUserActivity.class);
+        // Redirect to MainActivity to handle routing and skip delays
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra("OPEN_NOTIFICATIONS", true);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         
         PendingIntent pendingIntent;

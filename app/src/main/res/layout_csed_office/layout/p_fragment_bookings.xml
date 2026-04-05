@@ -11,7 +11,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:baselineAligned="false"
         android:orientation="horizontal"
         android:weightSum="2">
 
@@ -25,20 +24,20 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="Total"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
 
             <TextView
                 android:id="@+id/tvTotalBookings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="0"
-                android:textColor="?attr/colorPrimary"
                 android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <LinearLayout
@@ -51,20 +50,20 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="Upcoming"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"/>
 
             <TextView
                 android:id="@+id/tvUpcomingBookings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="0"
-                android:textColor="?attr/colorPrimary"
                 android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
     </LinearLayout>
 

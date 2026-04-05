@@ -22,8 +22,9 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_dashboard"
-            android:scaleType="centerInside"/>
+            android:src="@drawable/ic_space_dashboard"
+            android:scaleType="centerInside"
+            android:contentDescription="@null" />
 
     </com.google.android.material.card.MaterialCardView>
 
@@ -31,13 +32,8 @@
         android:id="@+id/titleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-<<<<<<<< HEAD:appy/src/main/res/layout/activity_main.xml
-        android:text="Campus Space Scheduler"
+        android:text="Campus Sync"
         android:textColor="#ffffff"
-========
-        android:text="Welcome to Campus-Space-Scheduler"
-        android:textColor="?attr/colorOnSurface"
->>>>>>>> venkat:app/src/main/res/layout/a_activity_main.xml
         android:textSize="26sp"
         android:textStyle="bold"
         android:textAlignment="center"

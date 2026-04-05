@@ -2,9 +2,9 @@ package com.example.campus_space_scheduler.booking_user;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.EditText;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,74 +13,141 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campus_space_scheduler.R;
-import com.example.hod.firebase.FirebaseRepository;
-import com.example.hod.utils.NotificationHelper;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
+import com.google.firebase.database.ValueEventListener;
+import com.example.hod.repository.FirebaseRepository;
+
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import com.google.firebase.database.ValueEventListener;
 
 public class BookingFormActivity extends AppCompatActivity {
 
     private static final String TAG = "BookingFormActivity";
-    private String slotStart, date, timeSlot, spaceName, scheduleId, spaceId, spaceType, userRole;
-    private EditText etPurpose, etDescription, etLorUrl;
-    private Button buttonSubmit;
+    private String spaceName, date, timeSlot, userRole, spaceType, scheduleId, slotStart;
+
+    private TextInputEditText etPurpose, etLorUrl, etDescription;
+    private TextInputLayout textInputLayoutLorUrl;
+    private MaterialButton buttonDownloadLorFormat;
+    private MaterialButton buttonSubmit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.t_activity_booking_form);
 
-        // Get data from Intent
-        slotStart = getIntent().getStringExtra("SLOT_START");
+        // Get data from intent
+        spaceName = getIntent().getStringExtra("SPACE_NAME");
         date = getIntent().getStringExtra("DATE");
         timeSlot = getIntent().getStringExtra("TIME_SLOT");
-        spaceName = getIntent().getStringExtra("SPACE_NAME");
-        scheduleId = getIntent().getStringExtra("SCHEDULE_ID");
-        spaceId = getIntent().getStringExtra("SPACE_ID");
-        spaceType = getIntent().getStringExtra("SPACE_TYPE");
         userRole = getIntent().getStringExtra("ROLE");
+        spaceType = getIntent().getStringExtra("SPACE_TYPE");
+        scheduleId = getIntent().getStringExtra("SCHEDULE_ID");
+        slotStart = getIntent().getStringExtra("SLOT_START");
 
-        // UI components
-        TextView tvDetails = findViewById(R.id.textViewBookingDetails);
-        etPurpose = findViewById(R.id.editTextPurpose);
-        etDescription = findViewById(R.id.editTextDescription);
-        etLorUrl = findViewById(R.id.editTextLorUrl);
-        buttonSubmit = findViewById(R.id.buttonSubmitBooking);
+        // Initialize views
+        View btnBack = findViewById(R.id.buttonBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
-        tvDetails.setText(String.format("%s\nDate: %s\nTime: %s", spaceName, date, timeSlot));
+        TextView textViewSpaceName = findViewById(R.id.textViewSpaceName);
+        TextView textViewSelectedSlot = findViewById(R.id.textViewSelectedSlot);
 
-        buttonSubmit.setOnClickListener(v -> submitBooking());
+        etPurpose = findViewById(R.id.etPurpose);
+        etLorUrl = findViewById(R.id.etLorUrl);
+        etDescription = findViewById(R.id.etDescription);
+        textInputLayoutLorUrl = findViewById(R.id.textInputLayoutLorUrl);
+        buttonDownloadLorFormat = findViewById(R.id.buttonDownloadLorFormat);
+
+        buttonSubmit = findViewById(R.id.btnSubmit);
+
+        if (spaceName != null) textViewSpaceName.setText(spaceName);
+        if (date != null && timeSlot != null) textViewSelectedSlot.setText(date + " | " + timeSlot);
+
+        updateUIBasedOnRole(userRole, spaceType);
+        buttonSubmit.setOnClickListener(v -> {
+            if (validateForm(userRole, spaceType)) {
+                checkAvailabilityAndSubmit();
+            }
+        });
     }
 
-    private void submitBooking() {
-        String purpose = etPurpose.getText() != null ? etPurpose.getText().toString().trim() : "";
-        if (purpose.isEmpty()) {
+    private void updateUIBasedOnRole(String role, String spaceType) {
+        if (role == null || spaceType == null) return;
+        
+        // Direct booking for Classrooms - hide LOR requirements regardless of role
+        if (spaceType.equalsIgnoreCase("Classroom")) {
+            textInputLayoutLorUrl.setVisibility(View.GONE);
+            buttonDownloadLorFormat.setVisibility(View.GONE);
+            return;
+        }
+
+        if (role.equalsIgnoreCase("Student") && (spaceType.equalsIgnoreCase("Lab") || spaceType.equalsIgnoreCase("Hall"))) {
+            textInputLayoutLorUrl.setVisibility(View.VISIBLE);
+            buttonDownloadLorFormat.setVisibility(View.VISIBLE);
+        } else if (role.equalsIgnoreCase("Faculty") && (spaceType.equalsIgnoreCase("Lab") || spaceType.equalsIgnoreCase("Hall"))) {
+            textInputLayoutLorUrl.setVisibility(View.VISIBLE);
+            buttonDownloadLorFormat.setVisibility(View.VISIBLE);
+            textInputLayoutLorUrl.setHint("LOR URL (Optional for Faculty)");
+        } else {
+            textInputLayoutLorUrl.setVisibility(View.GONE);
+            buttonDownloadLorFormat.setVisibility(View.GONE);
+        }
+    }
+
+    private boolean validateForm(String role, String spaceType) {
+        if (TextUtils.isEmpty(etPurpose.getText().toString().trim())) {
             etPurpose.setError("Purpose is required");
+            return false;
+        }
+        
+        // Skip LOR validation for Classrooms (Direct booking)
+        if (spaceType != null && spaceType.equalsIgnoreCase("Classroom")) {
+            return true;
+        }
+
+        if ("Student".equalsIgnoreCase(role) && ("Lab".equalsIgnoreCase(spaceType) || "Hall".equalsIgnoreCase(spaceType))) {
+            if (TextUtils.isEmpty(etLorUrl.getText().toString().trim())) {
+                etLorUrl.setError("LOR URL is required");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void checkAvailabilityAndSubmit() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (scheduleId == null || slotStart == null) {
+            Toast.makeText(this, "Missing schedule information", Toast.LENGTH_SHORT).show();
             return;
         }
 
         buttonSubmit.setEnabled(false);
-        checkAvailabilityAndSubmit();
-    }
-
-    private void checkAvailabilityAndSubmit() {
-        DatabaseReference slotRef = FirebaseDatabase.getInstance().getReference("schedules")
-                .child(scheduleId).child("slots");
+        DatabaseReference slotsRef = FirebaseDatabase.getInstance().getReference("schedules").child(scheduleId).child("slots");
 
         boolean isClassroom = spaceType != null && spaceType.equalsIgnoreCase("Classroom");
 
-        slotRef.runTransaction(new Transaction.Handler() {
+        slotsRef.runTransaction(new Transaction.Handler() {
             @NonNull
             @Override
             public Transaction.Result doTransaction(@NonNull MutableData currentData) {
@@ -121,6 +188,7 @@ public class BookingFormActivity extends AppCompatActivity {
                     }
                     Toast.makeText(BookingFormActivity.this, msg, Toast.LENGTH_LONG).show();
                     if (!committed && error == null) {
+                        // Aborted because not available
                         finish();
                     }
                 }
@@ -133,7 +201,7 @@ public class BookingFormActivity extends AppCompatActivity {
         DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         String bookingId = bookingsRef.push().getKey();
 
-        if (bookingId == null || uid == null) return;
+        if (bookingId == null) return;
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
@@ -149,17 +217,16 @@ public class BookingFormActivity extends AppCompatActivity {
         data.put("bookingId", bookingId);
         data.put("bookedBy", uid);
         data.put("bookedTime", reqTime);
-        data.put("purpose", etPurpose.getText() != null ? etPurpose.getText().toString().trim() : "");
-        data.put("description", etDescription.getText() != null ? etDescription.getText().toString().trim() : "");
-        data.put("lorUpload", etLorUrl.getText() != null ? etLorUrl.getText().toString().trim() : "");
+        data.put("purpose", etPurpose.getText().toString().trim());
+        data.put("description", etDescription.getText().toString().trim());
+        data.put("lorUpload", etLorUrl.getText().toString().trim());
         data.put("scheduleId", scheduleId);
         data.put("slotStart", slotStart);
         data.put("date", date);
         data.put("timeSlot", timeSlot);
         data.put("spaceName", spaceName);
-        data.put("spaceId", spaceId);
         
-        // Final Status Logic merging HEAD and venkat
+        // Direct booking for Classrooms
         data.put("status", isClassroom ? "Approved" : "Pending");
         data.put("approvedBy", isClassroom ? "System (Auto)" : "");
         data.put("facultyInchargeApproval", isClassroom);
@@ -173,35 +240,26 @@ public class BookingFormActivity extends AppCompatActivity {
                 String toastMsg = isClassroom ? "Booking Confirmed!" : "Booking Request Sent";
                 Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
                 
-                // 1. Local Notification (HEAD feature)
-                NotificationHelper.showNotification(
-                    this, 
-                    isClassroom ? "Booking Confirmed" : "Booking Submitted", 
-                    isClassroom ? "Your booking for " + spaceName + " is confirmed!" : "Booking request submitted successfully"
-                );
-
-                // 2. Notify Staff Incharge (venkat feature)
+                // Firebase Notification (Receipt to Student)
+                String receiptMsg = isClassroom ? "Your booking for " + spaceName + " is confirmed!" : "Your booking for " + spaceName + " is successfully submitted and pending approval.";
                 FirebaseRepository repo = new FirebaseRepository();
-                if (spaceId != null) {
-                    repo.notifyStaffInchargeForSpace(
-                        spaceId, 
-                        spaceName, 
-                        (isClassroom ? "Auto-confirmed booking: " : "New booking request: ") + spaceName + " on " + date, 
-                        bookingId, 
-                        uid, 
-                        "booking", 
-                        "staff"
-                    );
+                repo.sendNotification(uid, receiptMsg, bookingId, isClassroom ? "Approved" : "Pending", uid, "receipt", uid, r -> {});
+
+                // Firebase Notification (Alert to Staff Incharge)
+                if (!isClassroom) {
+                    String spaceId = scheduleId.split("_")[0];
+                    String staffMsg = "New pending request for " + spaceName + " is awaiting your approval.";
+                    repo.notifyStaffInchargeForSpace(spaceId, spaceName, staffMsg, bookingId, uid, "booking", "staff");
                 }
 
-                // Close and return
+                // Close the form and return to Dashboard
                 Intent intent = new Intent(this, BookingUserActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 intent.putExtra("ROLE", userRole);
                 startActivity(intent);
                 finish();
             } else {
-                // Rollback logic
+                // Rollback slot status to AVAILABLE if booking save fails
                 FirebaseDatabase.getInstance().getReference("schedules").child(scheduleId).child("slots")
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -218,7 +276,12 @@ public class BookingFormActivity extends AppCompatActivity {
                         });
 
                 buttonSubmit.setEnabled(true);
-                Toast.makeText(this, "Failed to save booking.", Toast.LENGTH_LONG).show();
+                String msg = "Failed to save booking.";
+                if (task.getException() != null) {
+                    Log.e(TAG, "Save failed: " + task.getException().getMessage());
+                    msg += " " + task.getException().getMessage();
+                }
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
             }
         });
     }

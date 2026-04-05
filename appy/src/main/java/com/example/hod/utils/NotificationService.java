@@ -25,12 +25,21 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startTime = System.currentTimeMillis();
-        currentUid = FirebaseAuth.getInstance().getUid();
-        Log.d(TAG, "Service Created. UID: " + currentUid);
-        if (currentUid != null) {
-            notificationsRef = FirebaseClient.getInstance().notificationsRef().child(currentUid);
-            startListening();
+        startTime = System.currentTimeMillis() - 60000; // 60s grace period for clock skew
+        try {
+            currentUid = FirebaseAuth.getInstance().getUid();
+            Log.d(TAG, "Service Created. UID: " + currentUid);
+            if (currentUid != null) {
+                FirebaseClient client = FirebaseClient.getInstance();
+                if (client != null) {
+                    notificationsRef = client.notificationsRef().child(currentUid);
+                    startListening();
+                } else {
+                    Log.e(TAG, "FirebaseClient instance is NULL");
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in service onCreate: " + e.getMessage());
         }
     }
 
@@ -71,13 +80,24 @@ public class NotificationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (currentUid == null) {
-            currentUid = FirebaseAuth.getInstance().getUid();
-            if (currentUid != null) {
-                notificationsRef = FirebaseClient.getInstance().notificationsRef().child(currentUid);
-                startListening();
+        String newUid = FirebaseAuth.getInstance().getUid();
+        
+        // If user changed or service restarted without UID, update listener
+        if (newUid != null && !newUid.equals(currentUid)) {
+            Log.d(TAG, "UID changed or refreshed: " + newUid + ". Restarting listener.");
+            if (notificationsRef != null && listener != null) {
+                notificationsRef.removeEventListener(listener);
+                listener = null;
             }
+            currentUid = newUid;
+            notificationsRef = FirebaseClient.getInstance().notificationsRef().child(currentUid);
+            startListening();
+        } else if (currentUid == null && newUid != null) {
+            currentUid = newUid;
+            notificationsRef = FirebaseClient.getInstance().notificationsRef().child(currentUid);
+            startListening();
         }
+        
         return START_STICKY;
     }
 

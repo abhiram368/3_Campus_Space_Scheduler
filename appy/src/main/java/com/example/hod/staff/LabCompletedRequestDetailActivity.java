@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 
 public class LabCompletedRequestDetailActivity extends AppCompatActivity {
 

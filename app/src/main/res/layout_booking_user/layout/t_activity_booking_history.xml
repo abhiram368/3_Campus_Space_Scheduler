@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
-            android:textColor="@color/accent_cyan"
+            android:textColor="@color/primary"
             android:textSize="20sp"
             android:textStyle="bold"
             android:visibility="gone"

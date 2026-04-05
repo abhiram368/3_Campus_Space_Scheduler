@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;

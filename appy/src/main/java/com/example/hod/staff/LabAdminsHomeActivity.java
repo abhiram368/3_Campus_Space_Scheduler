@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.campussync.appy.R;
+import com.example.hod.R;
 import android.widget.TextView;
 
 public class LabAdminsHomeActivity extends AppCompatActivity {

@@ -17,6 +17,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_back"
+            app:navigationIconTint="@color/white"
             app:title="Available Slots"
             app:titleCentered="true"
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
@@ -91,15 +93,6 @@
                 <!-- Slots added dynamically -->
             </GridLayout>
 
-            <LinearLayout
-                android:id="@+id/linearLayoutSlotsContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-                 <!-- For compatibility if code uses it -->
-            </LinearLayout>
-
             <ProgressBar
                 android:id="@+id/progressBarSlots"
                 android:layout_width="wrap_content"
@@ -125,17 +118,5 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <ImageView
-        android:id="@+id/buttonBack"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_margin="4dp"
-        android:padding="12dp"
-        android:src="@drawable/ic_back"
-        android:contentDescription="Back"
-        app:tint="@color/white"
-        app:layout_anchor="@id/toolbar"
-        app:layout_anchorGravity="start|center_vertical" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

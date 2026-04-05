@@ -54,7 +54,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         // Handle Remarks and Forwarded status as requested
         StringBuilder remarksBuilder = new StringBuilder();
         boolean isForwarded = status != null && status.equalsIgnoreCase("Forwarded");
-
+        
         if (isForwarded) {
             remarksBuilder.append("Forwarded by: ").append(booking.getActionBy() != null && !booking.getActionBy().isEmpty() ? booking.getActionBy() : "Authority");
             if (booking.getRemarks() != null && !booking.getRemarks().trim().isEmpty()) {
@@ -92,7 +92,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
                     case "forwarded":
                         // Orange for forwarded as requested
                         holder.textViewStatus.setBackgroundResource(R.drawable.status_pending_bg);
-                        DrawableCompat.setTint(DrawableCompat.wrap(holder.textViewStatus.getBackground().mutate()), Color.parseColor("#FF9800"));
+                        DrawableCompat.setTint(DrawableCompat.wrap(holder.textViewStatus.getBackground().mutate()), Color.parseColor("#FF9800")); 
                         break;
                     case "pending":
                     default:

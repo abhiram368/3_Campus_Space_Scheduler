@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.BlockedUserAdapter;
 import com.example.hod.models.User;
 import com.google.firebase.auth.FirebaseAuth;

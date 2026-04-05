@@ -10,13 +10,17 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.Booking;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
@@ -30,6 +34,7 @@ public class RequestDetailActivity extends AppCompatActivity {
 
     private FirebaseRepository repo;
     private Booking booking;
+    private String currentUserRole; // To store the role for correct status transitions
 
     private TextView tvUsername, tvUserRoll, tvUserRole, tvUserEmail, tvUserPhone, tvLabName, tvDateTime, tvBookedDate,
             tvReason, tvLorLink;
@@ -42,7 +47,6 @@ public class RequestDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_request_detail);
 
         repo = new FirebaseRepository();
-        booking = (Booking) getIntent().getSerializableExtra("booking");
 
         // UI Initialization
         tvUsername = findViewById(R.id.tvUsername);
@@ -56,6 +60,20 @@ public class RequestDetailActivity extends AppCompatActivity {
         tvReason = findViewById(R.id.tvReason);
         tvLorLink = findViewById(R.id.tvLorLink);
 
+        // Fetch current user details to get their role for correct status mapping
+        String currentUid = FirebaseAuth.getInstance().getUid();
+        if (currentUid != null) {
+            repo.getUserDetails(currentUid, result -> {
+                if (result instanceof Result.Success) {
+                    User u = ((Result.Success<User>) result).data;
+                    if (u != null) {
+                        currentUserRole = u.role;
+                        runOnUiThread(this::updateButtonLabelsBasedOnRole);
+                    }
+                }
+            });
+        }
+
         btnApprove = findViewById(R.id.btnApprove);
         btnReject = findViewById(R.id.btnReject);
         btnForward = findViewById(R.id.btnForward);
@@ -64,30 +82,89 @@ public class RequestDetailActivity extends AppCompatActivity {
         llExpiredRequest = findViewById(R.id.llExpiredRequest);
         btnDeleteLateRequest = findViewById(R.id.btnDeleteLateRequest);
 
-        if (booking == null) {
+        // Load booking only ONCE — fix: was being deserialized twice, losing the bookingId
+        booking = (Booking) getIntent().getSerializableExtra("booking");
+        String bookingIdExtra = getIntent().getStringExtra("bookingId");
+
+        // CRITICAL FIX: bookingId is stored as the Firebase node key, NOT as a field.
+        // So it may be null after Serializable deserialization. Use the Intent extra as fallback.
+        if (booking != null && (booking.getBookingId() == null || booking.getBookingId().isEmpty())) {
+            if (bookingIdExtra != null && !bookingIdExtra.isEmpty()) {
+                booking.setBookingId(bookingIdExtra);
+            }
+        }
+
+        if (booking == null && (bookingIdExtra == null || bookingIdExtra.isEmpty())) {
             Toast.makeText(this, "Error: No booking data", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        updateHeader("Request Details", "Pending Approval");
+        if (booking == null) {
+            fetchBookingAndLoad(bookingIdExtra);
+        } else {
+            updateHeader("Request Details", "Pending Approval");
+            loadDynamicData();
+            setupClickListeners();
+            checkExpirationAndAdjustUI();
+        }
+    }
 
-        loadDynamicData();
-        setupClickListeners();
-        checkExpirationAndAdjustUI();
+    private void fetchBookingAndLoad(String bookingId) {
+        FirebaseDatabase.getInstance().getReference("bookings").child(bookingId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        booking = snapshot.getValue(Booking.class);
+                        if (booking != null) {
+                            if (booking.getBookingId() == null) booking.setBookingId(snapshot.getKey());
+                            updateHeader("Request Details", "Pending Approval");
+                            loadDynamicData();
+                            setupClickListeners();
+                            checkExpirationAndAdjustUI();
+                        } else {
+                            Toast.makeText(RequestDetailActivity.this, "Booking parse error", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(RequestDetailActivity.this, "Booking not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    finish();
+                }
+            });
     }
 
     private void checkExpirationAndAdjustUI() {
-        if (isBookingExpired(booking)) {
-            if (bottomActionBar != null)
-                bottomActionBar.setVisibility(View.GONE);
-            if (llExpiredRequest != null)
-                llExpiredRequest.setVisibility(View.VISIBLE);
+        if (booking == null) {
+            bottomActionBar.setVisibility(View.VISIBLE);
+            llExpiredRequest.setVisibility(View.GONE);
+            return;
+        }
+
+        boolean isExpired = (booking != null && booking.isExpired());
+        if (isExpired) {
+            bottomActionBar.setVisibility(View.GONE);
+            llExpiredRequest.setVisibility(View.VISIBLE);
+
+            String status = booking.getStatus();
+            String expiredMessage = "Expired";
+
+            if ("forwarded_to_faculty_incharge".equalsIgnoreCase(status)) {
+                expiredMessage = "Expired (Forwarded to Faculty Incharge)";
+            } else if ("forwarded_to_hod".equalsIgnoreCase(status)) {
+                expiredMessage = "Expired (Forwarded to HOD)";
+            }
+
+            btnDeleteLateRequest.setText(expiredMessage + "\nDelete this request");
         } else {
-            if (bottomActionBar != null)
-                bottomActionBar.setVisibility(View.VISIBLE);
-            if (llExpiredRequest != null)
-                llExpiredRequest.setVisibility(View.GONE);
+            bottomActionBar.setVisibility(View.VISIBLE);
+            llExpiredRequest.setVisibility(View.GONE);
         }
     }
 
@@ -104,7 +181,32 @@ public class RequestDetailActivity extends AppCompatActivity {
             btnBack.setOnClickListener(v -> finish());
     }
 
+    private void updateButtonLabelsBasedOnRole() {
+        if (currentUserRole == null) return;
+        
+        String roleNorm = currentUserRole.toLowerCase().trim();
+        if (roleNorm.contains("staff") || roleNorm.contains("faculty") || roleNorm.contains("admin") || roleNorm.contains("hod")) {
+            if (btnApprove != null) {
+                btnApprove.setText("Approve");
+            }
+        }
+    }
+
     private void loadDynamicData() {
+        if (booking == null) return;
+        
+        // Redirection Guard: If already processed or forwarded, go to Completed Detail
+        String status = booking.getStatus() != null ? booking.getStatus().toLowerCase() : "";
+        if (status.equals("approved") || status.contains("rejected") || status.equals("cancelled")
+                || status.equals("booked") || status.equals("used") || status.contains("forwarded")) {
+            Intent intent = new Intent(this, StaffCompletedRequestDetailActivity.class);
+            intent.putExtra("booking", booking);
+            intent.putExtra("bookingId", booking.getBookingId());
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         // 1. Basic booking info
         tvDateTime.setText(booking.getDate() + " | " + booking.getTimeSlot());
         String bookedAt = booking.getBookedTimeDisplay();
@@ -192,7 +294,7 @@ public class RequestDetailActivity extends AppCompatActivity {
         });
 
         btnApprove.setOnClickListener(v -> {
-            showActionDialog("approved", "approved", "Approve Booking", "Please provide a reason for approval", false);
+            showActionDialog("approved", "Request Approved", "Approve Booking", "Please provide a reason for approval", false);
         });
 
         btnReject.setOnClickListener(v -> {
@@ -206,8 +308,8 @@ public class RequestDetailActivity extends AppCompatActivity {
 
         if (btnDeleteLateRequest != null) {
             btnDeleteLateRequest.setOnClickListener(v -> {
-                showActionDialog("rejected_expired", "Request Deleted", "Reason for Deletion",
-                        "Explain why this request was not processed in time", true);
+                showActionDialog("expired", "Marked as Expired", "Mark as Expired",
+                        "Explain why this request is being marked as expired", true);
             });
         }
     }
@@ -254,29 +356,46 @@ public class RequestDetailActivity extends AppCompatActivity {
     }
 
     private void updateStatus(String statusValue, String toastMsg, String remark) {
-        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                .format(Calendar.getInstance().getTime());
-        java.util.Map<String, Object> updateMap = new java.util.HashMap<>();
-        updateMap.put("status", statusValue);
-        updateMap.put("approvedBy", FirebaseAuth.getInstance().getUid());
-        updateMap.put("decisionTime", currentTime);
-        updateMap.put("remark", remark);
+        String uid = FirebaseAuth.getInstance().getUid();
 
-        FirebaseDatabase.getInstance().getReference("bookings")
-                .child(booking.getBookingId())
-                .updateChildren(updateMap)
-                .addOnSuccessListener(aVoid -> {
-                    if ("rejected".equals(statusValue) || "rejected_expired".equals(statusValue)) {
-                        if (booking.getScheduleId() != null && booking.getTimeSlot() != null) {
-                            repo.updateSlotStatus(booking.getScheduleId(), booking.getTimeSlot(), "AVAILABLE",
-                                    r -> android.util.Log.d("RequestDetail", "Slot synced to AVAILABLE"));
+        // CRITICAL: bookingId might be null if it was not stored as a field in Firebase
+        // (Firebase stores it as the node key). Use the bookingIdExtra from the Intent as fallback.
+        String resolvedBookingId = booking.getBookingId();
+        if (resolvedBookingId == null || resolvedBookingId.isEmpty()) {
+            resolvedBookingId = getIntent().getStringExtra("bookingId");
+        }
+        if (resolvedBookingId == null || resolvedBookingId.isEmpty()) {
+            Toast.makeText(this, "Error: Could not resolve booking ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Map raw statusValue to the approved boolean + role expected by updateApprovalStatus
+        boolean approved = !statusValue.startsWith("rejected") && !statusValue.equalsIgnoreCase("expired");
+        final String finalBookingId = resolvedBookingId;
+
+        repo.updateApprovalStatus(
+                finalBookingId,
+                currentUserRole != null ? currentUserRole : "staff",
+                approved,
+                remark,
+                uid,
+                statusValue,
+                result -> runOnUiThread(() -> {
+                    if (result instanceof com.example.hod.utils.Result.Success) {
+                        // Sync slot to AVAILABLE if rejected or expired
+                        if (!approved) {
+                            if (booking.getScheduleId() != null && booking.getTimeSlot() != null) {
+                                repo.updateSlotStatus(booking.getScheduleId(), booking.getTimeSlot(), "AVAILABLE",
+                                        r -> android.util.Log.d("RequestDetail", "Slot synced to AVAILABLE"));
+                            }
                         }
+                        Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
-                    finish();
                 })
-                .addOnFailureListener(
-                        e -> Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        );
     }
 
     private boolean isBookingExpired(Booking b) {
@@ -299,7 +418,7 @@ public class RequestDetailActivity extends AppCompatActivity {
             if (bookingDate.after(today))
                 return false;
 
-            // Same day: Check time slot end
+            // Same day: Check time slot start
             String timeSlot = b.getTimeSlot();
             if (timeSlot == null)
                 return false;
@@ -309,13 +428,13 @@ public class RequestDetailActivity extends AppCompatActivity {
             if (parts.length < 2)
                 return false;
 
-            String endTimeStr = parts[1];
+            String startTimeStr = parts[0];
             int currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
-            int endMinutes = timeToMinutes(endTimeStr);
+            int startMinutes = timeToMinutes(startTimeStr);
 
-            if (endMinutes == -1)
+            if (startMinutes == -1)
                 return false;
-            return currentMinutes >= endMinutes;
+            return currentMinutes >= startMinutes;
         } catch (Exception e) {
             return false;
         }

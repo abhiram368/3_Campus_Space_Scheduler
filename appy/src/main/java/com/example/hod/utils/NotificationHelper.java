@@ -12,22 +12,28 @@ import androidx.core.app.NotificationCompat;
 import com.example.hod.R;
 
 public class NotificationHelper {
-    private static final String CHANNEL_ID = "booking_notifications_v2";
-    private static final String CHANNEL_NAME = "Real-time Updates";
+    public static final String CHANNEL_ID = "booking_notifications_v2";
+    public static final String CHANNEL_NAME = "Real-time Updates";
+
+    public static void createNotificationChannel(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) {
+                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+                channel.setDescription("Critical notifications for bookings and approvals");
+                channel.enableLights(true);
+                channel.setLightColor(Color.BLUE);
+                channel.setVibrationPattern(new long[]{0, 500, 200, 500});
+                channel.enableVibration(true);
+                channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+    }
 
     public static void showNotification(Context context, String title, String message) {
+        createNotificationChannel(context);
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("Critical notifications for bookings and approvals");
-            channel.enableLights(true);
-            channel.setLightColor(Color.BLUE);
-            channel.setVibrationPattern(new long[]{0, 500, 200, 500});
-            channel.enableVibration(true);
-            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-            notificationManager.createNotificationChannel(channel);
-        }
 
         // Use MainActivity as a dispatcher to handle role-based routing
         Intent intent = new Intent();
@@ -50,6 +56,8 @@ public class NotificationHelper {
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
 
-        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+        if (notificationManager != null) {
+            notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+        }
     }
 }

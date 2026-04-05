@@ -60,8 +60,8 @@
                             android:gravity="start|center_vertical">
 
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_pending"
                                 app:tint="@color/accent_blue"
                                 android:layout_marginBottom="16dp" />
@@ -103,8 +103,8 @@
                             android:gravity="start|center_vertical">
 
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_view"
                                 app:tint="@color/accent_teal"
                                 android:layout_marginBottom="16dp" />
@@ -146,8 +146,8 @@
                             android:gravity="start|center_vertical">
 
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_schedule"
                                 app:tint="#D3B13E"
                                 android:layout_marginBottom="16dp" />
@@ -189,8 +189,8 @@
                             android:gravity="start|center_vertical">
 
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_history"
                                 app:tint="#5FEF68"
                                 android:layout_marginBottom="16dp" />
@@ -281,7 +281,6 @@
         android:background="?attr/colorSurface"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/hod_drawer_menu"
-        app:itemIconTint="@color/primary_blue"
         app:itemTextColor="@color/text_primary" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

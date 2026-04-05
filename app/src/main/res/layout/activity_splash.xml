@@ -9,10 +9,9 @@
         android:id="@+id/ivLogo"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:padding="30dp"
-        android:src="@drawable/ic_space_dashboard"
+        android:padding="28dp"
+        android:src="@mipmap/ic_launcher"
         android:background="@color/white"
-        app:tint="@color/primary_blue"
         app:shapeAppearanceOverlay="@style/CircleImageOverlay"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -20,6 +19,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
@@ -27,5 +27,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivLogo" />
+
+    <TextView
+        android:id="@+id/tvAppName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:text="Campus Sync"
+        android:textColor="@color/primary_blue"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

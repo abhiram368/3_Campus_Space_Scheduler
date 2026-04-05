@@ -28,6 +28,10 @@
             android:id="@+id/nav_help"
             android:icon="@drawable/ic_help_info"
             android:title="Help &amp; About" />
+        <item
+            android:id="@+id/nav_data_reset"
+            android:icon="@drawable/ic_sync"
+            android:title="Data Reset Utility" />
     </group>
 
     <item android:title="">

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,7 +30,7 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(com.example.hod.R.layout.activity_splash);
+        setContentView(R.layout.activity_splash);
         
         checkPermissionsAndProceed();
     }
@@ -69,11 +70,18 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void verifyUserAndRedirect(FirebaseUser user) {
+        Log.d("SplashActivity", "Verifying user with UID: " + user.getUid());
         try {
-            Intent serviceIntent = new Intent(this, NotificationService.class);
-            startService(serviceIntent);
+            // Start Notification Service
+            Intent serviceIntent = new Intent(this, com.example.hod.utils.NotificationService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+            Log.d("SplashActivity", "NotificationService start requested.");
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("SplashActivity", "Failed to start NotificationService: " + e.getMessage());
         }
 
         FirebaseDatabase.getInstance()
@@ -86,14 +94,17 @@ public class SplashActivity extends AppCompatActivity {
                         String name = snapshot.child("name").getValue(String.class);
                         String inchargeToSpace = snapshot.child("inchargeToSpace").getValue(String.class);
                         
+                        Log.d("SplashActivity", "User role found: " + role + ". Redirecting...");
                         redirectToDashboard(role, name, inchargeToSpace);
                     } else {
+                        Log.w("SplashActivity", "User snapshot does not exist in database.");
                         FirebaseAuth.getInstance().signOut();
                         startActivity(new Intent(this, LoginActivity.class));
                         finish();
                     }
                 })
                 .addOnFailureListener(e -> {
+                    Log.e("SplashActivity", "Database connection error: " + e.getMessage());
                     Toast.makeText(this, "Connection error.", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
@@ -102,15 +113,19 @@ public class SplashActivity extends AppCompatActivity {
 
     private void redirectToDashboard(String role, String name, String inchargeToSpace) {
         Intent intent;
-        if ("App admin".equals(role)) {
+        if (role == null || role.isEmpty()) {
+            Log.e("SplashActivity", "User role is NULL or empty. Redirecting to Login.");
+            intent = new Intent(this, LoginActivity.class);
+        } else if ("App admin".equals(role)) {
             intent = new Intent(this, AdminActivity.class);
         } else if ("HoD".equals(role)) {
+            // Need to handle the potential redirect to either RoleSelection or HODDashboard
             intent = new Intent(this, HodDashboardActivity.class);
         } else if ("StaffIncharge".equals(role)) {
             intent = new Intent(this, StaffDashboardActivity.class);
             intent.putExtra("ROLE", role);
             intent.putExtra("labId", inchargeToSpace);
-            intent.putExtra("userName", name);
+            intent.putExtra("userName", name != null ? name : "Staff");
         } else if ("CSED Staff".equals(role)) {
             intent = new Intent(this, CsedOfficeStaffActivity.class);
         } else if ("Hall Incharge".equals(role)) {
@@ -123,7 +138,13 @@ public class SplashActivity extends AppCompatActivity {
             intent = new Intent(this, LoginActivity.class);
         }
         
-        startActivity(intent);
-        finish();
+        try {
+            startActivity(intent);
+            finish();
+        } catch (Exception e) {
+            Log.e("SplashActivity", "Failed to start dashboard activity: " + e.getMessage());
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        }
     }
 }

@@ -241,7 +241,7 @@ public class DashboardFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                if (binding == null) return;
                 binding.tvDatabaseSync.setText("Error");
             }
         };

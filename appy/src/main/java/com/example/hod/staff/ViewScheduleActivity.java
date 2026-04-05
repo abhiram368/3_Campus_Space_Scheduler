@@ -12,11 +12,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.StaffScheduleAdapter;
 import com.example.hod.models.Booking;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
 
 import java.text.SimpleDateFormat;
@@ -79,7 +80,7 @@ public class ViewScheduleActivity extends AppCompatActivity {
         calendarCard    = findViewById(R.id.calendarCard);
 
         View btnUnblockFullDay = findViewById(R.id.btnUnblockFullDay);
-        View btnBlockFullDay = findViewById(R.id.btnBlockFullDay);
+        MaterialButton btnBlockFullDay = findViewById(R.id.btnBlockFullDay);
 
         labId = getIntent().getStringExtra("labId");
         if (labId == null || labId.isEmpty()) {
@@ -114,15 +115,9 @@ public class ViewScheduleActivity extends AppCompatActivity {
                 Toast.makeText(this, "Cannot modify past schedules", Toast.LENGTH_SHORT).show();
                 return;
             }
-            executeBulkUnblockDay();
+            showBulkUnblockDayDialog();
         });
-        btnBlockFullDay.setOnClickListener(v -> {
-            if (isPastDate) {
-                Toast.makeText(this, "Cannot modify past schedules", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            showBulkBlockDayDialog();
-        });
+        btnBlockFullDay.setOnClickListener(v -> showBulkBlockDayDialog());
 
         bulkDayOptions = findViewById(R.id.bulkDayOptions);
 
@@ -164,7 +159,7 @@ public class ViewScheduleActivity extends AppCompatActivity {
         });
         btnBulkUnblock.setOnClickListener(v -> {
             if (isPastDate) return;
-            executeBulkSelectionUnblock();
+            showBulkUnblockDialog();
         });
 
         setupDateChips(calendarView);
@@ -224,121 +219,193 @@ public class ViewScheduleActivity extends AppCompatActivity {
             repo.removeScheduleListener(labId, currentSelectedDate, dayStatusListener);
         }
 
-        dayStatusListener = repo.observeSchedulesForLab(labId, date, result -> runOnUiThread(() -> {
-            if (progressBar != null) progressBar.setVisibility(View.GONE);
-            DataSnapshot snapshot = null;
-            if (result instanceof Result.Success) snapshot = ((Result.Success<DataSnapshot>) result).data;
+        dayStatusListener = repo.observeSchedulesForLab(labId, date, result -> {
+            runOnUiThread(() -> {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                DataSnapshot snapshot = null;
+                if (result instanceof Result.Success) snapshot = ((Result.Success<DataSnapshot>) result).data;
 
-            int availableCount = 0;
-            int blockedCount = 0;
-            boolean anyFound = false;
+                int availableCount = 0;
+                int blockedCount = 0;
+                int bookedCount = 0;
+                int unusedCount = 0;
+                boolean anyFound = snapshot != null && snapshot.exists();
 
-            List<StaffScheduleAdapter.SlotItem> tempSlots = new ArrayList<>();
-            if (snapshot != null && snapshot.exists()) {
-                anyFound = true;
-                for (DataSnapshot s : snapshot.getChildren()) {
-                    String status = s.child("status").getValue(String.class);
-                    String start = s.child("start").getValue(String.class);
-                    String end = s.child("end").getValue(String.class);
-                    if (status == null || (!status.equalsIgnoreCase("BOOKED") && !status.equalsIgnoreCase("BLOCKED"))) {
-                        status = "AVAILABLE";
+                Map<String, StaffScheduleAdapter.SlotItem> deduplicated = new HashMap<>();
+                if (anyFound) {
+                    for (DataSnapshot s : snapshot.getChildren()) {
+                        String rawKey = s.getKey();
+                        if (rawKey == null) continue;
+
+                        String status = s.child("status").getValue(String.class);
+                        if (status == null) {
+                            Object val = s.getValue();
+                            status = (val instanceof Boolean && (Boolean) val) ? "BOOKED" : "AVAILABLE";
+                        }
+                        status = repo.normalizeSlotStatus(status);
+                        
+                        if (!"AVAILABLE".equalsIgnoreCase(status) && 
+                            !"BOOKED".equalsIgnoreCase(status) && 
+                            !"BLOCKED".equalsIgnoreCase(status) &&
+                            !"USED".equalsIgnoreCase(status) &&
+                            !"COMPLETED".equalsIgnoreCase(status)) {
+                            continue;
+                        }
+
+                        boolean isPastSlot = isPastDate || isSlotInPast(date, rawKey);
+                        
+                        if ("AVAILABLE".equalsIgnoreCase(status)) {
+                            if (isPastSlot) unusedCount++;
+                            else availableCount++;
+                        } else if ("BLOCKED".equalsIgnoreCase(status)) {
+                            blockedCount++;
+                        } else if ("BOOKED".equalsIgnoreCase(status) || "USED".equalsIgnoreCase(status) || "COMPLETED".equalsIgnoreCase(status)) {
+                            bookedCount++;
+                        }
+
+                        String formattedKey = repo.formatSlotKey(rawKey);
+                        String start = s.child("start").getValue(String.class);
+                        String end = s.child("end").getValue(String.class);
+
+                        StaffScheduleAdapter.SlotItem item = new StaffScheduleAdapter.SlotItem();
+                        item.timeRange = (start != null && end != null) ? start + " – " + end : formattedKey;
+                        item.status = status;
+                        item.spaceId = labId;
+                        item.date = date;
+                        item.slotKey = rawKey; 
+                        item.startTimeMinutes = repo.parseStartTime(rawKey);
+                        item.adminName = s.child("adminName").getValue(String.class);
+
+                        if (deduplicated.containsKey(formattedKey)) {
+                            StaffScheduleAdapter.SlotItem existing = deduplicated.get(formattedKey);
+                            String currentStat = (status != null) ? status.toUpperCase() : "AVAILABLE";
+                            String existingStat = (existing != null && existing.status != null) ? existing.status.toUpperCase() : "AVAILABLE";
+                            if ("AVAILABLE".equals(existingStat) && !"AVAILABLE".equals(currentStat)) {
+                                deduplicated.put(formattedKey, item);
+                            }
+                        } else {
+                            deduplicated.put(formattedKey, item);
+                        }
+                    }
+                }
+
+                slotList.clear();
+                slotList.addAll(deduplicated.values());
+                
+                for (StaffScheduleAdapter.SlotItem item : slotList) {
+                    String sStat = (item.status != null) ? item.status.toUpperCase() : "";
+                    if ("BOOKED".equals(sStat) || "USED".equals(sStat) || "COMPLETED".equals(sStat) || "APPROVED".equals(sStat)) {
+                        repo.getBookingForSlot(labId, date, item.slotKey, res -> {
+                            if (res instanceof Result.Success) {
+                                Booking b = ((Result.Success<Booking>) res).data;
+                                item.booking = b;
+                                if (b != null && b.getBookedBy() != null) {
+                                    String bBy = b.getBookedBy();
+                                    repo.getUserName(bBy, nameRes -> {
+                                        if (nameRes instanceof Result.Success) {
+                                            String name = ((Result.Success<String>) nameRes).data;
+                                            if (item.booking != null) {
+                                                item.booking.setRequesterName(name);
+                                            }
+                                            runOnUiThread(() -> adapter.notifyDataSetChanged());
+                                        }
+                                    });
+                                }
+                                runOnUiThread(() -> adapter.notifyDataSetChanged());
+                            }
+                        });
+                    }
+                }
+                
+                java.util.Collections.sort(slotList, (a, b) -> {
+                    if (a.startTimeMinutes != b.startTimeMinutes) {
+                        return Integer.compare(a.startTimeMinutes, b.startTimeMinutes);
+                    }
+                    return a.timeRange.compareTo(b.timeRange);
+                });
+                
+                adapter.setPastDate(isPastDate);
+                adapter.notifyDataSetChanged();
+
+                boolean isPickDate = (dateChipGroup != null && dateChipGroup.getCheckedChipId() == R.id.chipPickDate);
+                if (isPickDate) {
+                    if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
+                    if (rvScheduleSlots != null) rvScheduleSlots.setVisibility(View.GONE);
+                } else if (!slotList.isEmpty()) {
+                    if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
+                    if (rvScheduleSlots != null) rvScheduleSlots.setVisibility(View.VISIBLE);
+                } else {
+                    if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.VISIBLE);
+                    if (rvScheduleSlots != null) rvScheduleSlots.setVisibility(View.GONE);
+                }
+
+                String statusText;
+                int color;
+                View btnUnblock = findViewById(R.id.btnUnblockFullDay);
+                View btnBlock = findViewById(R.id.btnBlockFullDay);
+                
+                SimpleDateFormat daySdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String todayStr = daySdf.format(new java.util.Date());
+                boolean isToday = todayStr.equals(date);
+
+                if (!anyFound) {
+                    statusText = "Status: Not Initialized";
+                    color = 0xFF64748B;
+                    if (bulkDayOptions != null) bulkDayOptions.setVisibility(isPastDate ? View.GONE : View.VISIBLE);
+                    if (btnUnblock != null) btnUnblock.setEnabled(false);
+                    if (btnBlock != null) btnBlock.setEnabled(false);
+                } else {
+                    if (bulkDayOptions != null) {
+                        bulkDayOptions.setVisibility(isPastDate ? View.GONE : View.VISIBLE);
                     }
 
-                    boolean isPastSlot = isPastDate || isSlotInPast(date, s.getKey());
+                    if (btnUnblock != null) {
+                        btnUnblock.setVisibility(blockedCount > 0 && !isPastDate ? View.VISIBLE : View.GONE);
+                    }
+                    if (btnBlock != null) {
+                        btnBlock.setVisibility(!isPastDate && availableCount > 0 ? View.VISIBLE : View.GONE);
+                    }
                     
-                    if ("AVAILABLE".equalsIgnoreCase(status)) {
-                        if (!isPastSlot) availableCount++;
-                    } else if ("BLOCKED".equalsIgnoreCase(status)) {
-                        blockedCount++;
-                    }
-
-                    StaffScheduleAdapter.SlotItem item = new StaffScheduleAdapter.SlotItem();
-                    item.timeRange = (start != null && end != null) ? start + " – " + end : s.getKey();
-                    item.status = status;
-                    item.spaceId = labId;
-                    item.date = date;
-                    item.slotKey = s.getKey();
-                    tempSlots.add(item);
-                }
-            }
-
-            slotList.clear();
-            slotList.addAll(tempSlots);
-            adapter.setPastDate(isPastDate);
-            adapter.notifyDataSetChanged();
-
-            boolean isPickDate = (dateChipGroup != null && dateChipGroup.getCheckedChipId() == R.id.chipPickDate);
-            
-            if (isPickDate) {
-                if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
-                if (rvScheduleSlots != null) rvScheduleSlots.setVisibility(View.GONE);
-            } else if (!slotList.isEmpty()) {
-                if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
-                if (rvScheduleSlots != null) rvScheduleSlots.setVisibility(View.VISIBLE);
-            } else {
-                if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.VISIBLE);
-                if (rvScheduleSlots != null) rvScheduleSlots.setVisibility(View.GONE);
-            }
-
-            // Update Summary Text
-            String statusText;
-            int color;
-            View btnUnblock = findViewById(R.id.btnUnblockFullDay);
-            View btnBlock = findViewById(R.id.btnBlockFullDay);
-            
-            if (bulkDayOptions != null) {
-                bulkDayOptions.setVisibility(isPastDate ? View.GONE : View.VISIBLE);
-            }
-
-            if (!anyFound) {
-                statusText = "Status: Not Initialized";
-                color = 0xFF64748B;
-                if (btnUnblock != null) btnUnblock.setEnabled(false);
-                if (btnBlock != null) btnBlock.setEnabled(false);
-            } else {
-
-                boolean isAllBlocked = (anyFound && blockedCount == slotList.size() && slotList.size() > 0);
-                if (btnUnblock != null) {
-                    btnUnblock.setVisibility(isAllBlocked && !isPastDate ? View.VISIBLE : View.GONE);
-                }
-                if (btnBlock != null) {
-                    btnBlock.setVisibility(!isPastDate && availableCount > 0 ? View.VISIBLE : View.GONE);
-                }
-
-                if (availableCount > 0) {
-                    if (isPastDate) {
-                        statusText = "Status: " + availableCount + " Unused Slots";
-                        color = 0xFF64748B;
-                    } else {
+                    if (availableCount > 0) {
                         statusText = "Status: " + availableCount + " Slots Available";
                         color = 0xFF10B981;
-                    }
-                } else if (blockedCount > 0) {
-                    statusText = "Status: FULLY BLOCKED";
-                    color = 0xFFEF4444;
-                } else {
-                    statusText = "Status: No Slots Found";
-                    color = 0xFF64748B;
-                }
-            }
-
-            if (tvDayStatus != null) {
-                tvDayStatus.setText(statusText);
-                tvDayStatus.setTextColor(color);
-            }
-
-            // Fetch Bookings for Booked Slots
-            for (StaffScheduleAdapter.SlotItem item : slotList) {
-                if ("BOOKED".equalsIgnoreCase(item.status)) {
-                    repo.getBookingForSlot(labId, date, item.slotKey, res -> {
-                        if (res instanceof Result.Success) {
-                            item.booking = ((Result.Success<Booking>) res).data;
-                            runOnUiThread(() -> adapter.notifyDataSetChanged());
+                    } else {
+                        if (isToday || isPastDate) {
+                            if (bookedCount > 0 || blockedCount > 0 || unusedCount > 0) {
+                                StringBuilder sb = new StringBuilder("Status: ");
+                                if (unusedCount > 0) sb.append(unusedCount).append(" Unused");
+                                if (bookedCount > 0) {
+                                    if (unusedCount > 0) sb.append(", ");
+                                    sb.append(bookedCount).append(" Booked");
+                                }
+                                if (blockedCount > 0) {
+                                    if (unusedCount > 0 || bookedCount > 0) sb.append(", ");
+                                    sb.append(blockedCount).append(" Blocked");
+                                }
+                                statusText = sb.toString();
+                                color = (bookedCount > 0) ? 0xFF3B82F6 : 0xFF64748B;
+                            } else {
+                                statusText = "Status: No Slots Found";
+                                color = 0xFF64748B;
+                            }
+                        } else {
+                            if (blockedCount == slotList.size()) {
+                                statusText = "Status: FULLY BLOCKED";
+                                color = 0xFFEF4444;
+                            } else {
+                                statusText = "Status: FULLY BOOKED";
+                                color = 0xFF3B82F6;
+                            }
                         }
-                    });
+                    }
                 }
-            }
-        }));
+
+                if (tvDayStatus != null) {
+                    tvDayStatus.setText(statusText);
+                    tvDayStatus.setTextColor(color);
+                }
+            });
+        });
     }
 
     private void showBulkSelectionBlockDialog() {
@@ -394,7 +461,41 @@ public class ViewScheduleActivity extends AppCompatActivity {
         }
     }
 
-    private void executeBulkSelectionUnblock() {
+    private void showBulkUnblockDialog() {
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.layout_cancel_booking_dialog, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        TextView tvSubtitle = dialogView.findViewById(R.id.tv_dialog_subtitle);
+        android.widget.EditText etRemark = dialogView.findViewById(R.id.et_cancel_remark);
+        android.widget.Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        android.widget.Button btnConfirm = dialogView.findViewById(R.id.btn_dialog_confirm);
+
+        if (tvTitle != null) tvTitle.setText("Unblock Selected Slots");
+        if (tvSubtitle != null) tvSubtitle.setText("Are you sure you want to unblock " + adapter.getSelectedSlots().size() + " slots?");
+        if (etRemark != null) etRemark.setVisibility(android.view.View.GONE);
+        if (btnConfirm != null) {
+            btnConfirm.setText("Unblock Slots");
+            btnConfirm.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.status_approved)));
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            executeBulkUnblock();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void executeBulkUnblock() {
         java.util.Set<StaffScheduleAdapter.SlotItem> selected = new java.util.HashSet<>(adapter.getSelectedSlots());
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
@@ -476,72 +577,138 @@ public class ViewScheduleActivity extends AppCompatActivity {
     }
 
     private void showBulkBlockDayDialog() {
-        android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint("Reason for blocking full day");
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.layout_cancel_booking_dialog, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
 
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("Block Entire Day")
-            .setMessage("All slots for " + currentSelectedDate + " will be blocked.")
-            .setView(input)
-            .setPositiveButton("Block All", (dialog, which) -> {
-                String reason = input.getText().toString().trim();
-                executeBulkBlockDay(reason.isEmpty() ? "Lab Closed" : reason);
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        TextView tvSubtitle = dialogView.findViewById(R.id.tv_dialog_subtitle);
+        android.widget.EditText etRemark = dialogView.findViewById(R.id.et_cancel_remark);
+        android.widget.Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        android.widget.Button btnConfirm = dialogView.findViewById(R.id.btn_dialog_confirm);
+
+        if (tvTitle != null) tvTitle.setText("Block Entire Day");
+        if (tvSubtitle != null) tvSubtitle.setText("All " + slotList.size() + " slots for " + currentSelectedDate + " will be blocked.");
+        if (etRemark != null) etRemark.setHint("Reason for blocking full day...");
+        if (btnConfirm != null) {
+            btnConfirm.setText("Block All");
+            btnConfirm.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.status_rejected)));
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            String reason = etRemark.getText().toString().trim();
+            if (reason.isEmpty()) {
+                etRemark.setError("Reason is required to block the entire day");
+            } else {
+                executeBulkBlockDay(reason);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     private void executeBulkBlockDay(String reason) {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
-        repo.initializeBookingSlots(labId, currentSelectedDate, res -> {
-            repo.getSchedulesForLab(labId, currentSelectedDate, slotsRes -> {
-                if (slotsRes instanceof Result.Success) {
-                    DataSnapshot snapshot = ((Result.Success<DataSnapshot>) slotsRes).data;
-                    Map<String, String> slotsToUpdate = new HashMap<>();
-                    int alreadyBlockedCount = 0;
+        
+        // Fix: Fetch EXISTING slots instead of re-initializing from template
+        repo.getSchedulesForLab(labId, currentSelectedDate, slotsRes -> {
+            if (slotsRes instanceof Result.Success) {
+                DataSnapshot snapshot = ((Result.Success<DataSnapshot>) slotsRes).data;
+                Map<String, String> slotsToUpdate = new HashMap<>();
+                int alreadyBlockedCount = 0;
 
-                    if (snapshot.exists()) {
-                        for (DataSnapshot s : snapshot.getChildren()) {
-                            String key = s.getKey();
-                            if (isSlotInPast(currentSelectedDate, key) || isPastDate) continue;
+                if (snapshot.exists()) {
+                    for (DataSnapshot s : snapshot.getChildren()) {
+                        String key = s.getKey();
+                        if (isSlotInPast(currentSelectedDate, key) || isPastDate) continue;
 
-                            String status = s.child("status").getValue(String.class);
-                            if ("BLOCKED".equalsIgnoreCase(status)) {
-                                alreadyBlockedCount++;
-                            } else {
-                                slotsToUpdate.put(key, status);
-                            }
+                        String status = s.child("status").getValue(String.class);
+                        if ("BLOCKED".equalsIgnoreCase(status)) {
+                            alreadyBlockedCount++;
+                        } else {
+                            slotsToUpdate.put(key, status);
                         }
                     }
-
-                    if (slotsToUpdate.isEmpty()) {
-                        runOnUiThread(() -> {
-                            if (progressBar != null) progressBar.setVisibility(View.GONE);
-                            Toast.makeText(this, "All slots are already blocked", Toast.LENGTH_SHORT).show();
-                        });
-                        return;
-                    }
-
-                    final int total = slotsToUpdate.size();
-                    final int[] completed = {0};
-                    final int finalAlreadyBlocked = alreadyBlockedCount;
-
-                    for (String key : slotsToUpdate.keySet()) {
-                        repo.blockSlot(labId, currentSelectedDate, key, reason, r -> {
-                            completed[0]++;
-                            if (completed[0] == total) {
-                                runOnUiThread(() -> {
-                                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-                                    String msg = total + " slots blocked";
-                                    if (finalAlreadyBlocked > 0) msg += ", " + finalAlreadyBlocked + " already blocked";
-                                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-                                });
-                            }
-                        });
-                    }
                 }
-            });
+
+                if (slotsToUpdate.isEmpty()) {
+                    runOnUiThread(() -> {
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        if (snapshot.exists()) {
+                            Toast.makeText(this, "All slots are already blocked", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "No slots initialized for this day. Double-tap the date to add slots.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    return;
+                }
+
+                final int total = slotsToUpdate.size();
+                final int[] completed = {0};
+                final int finalAlreadyBlocked = alreadyBlockedCount;
+
+                for (String key : slotsToUpdate.keySet()) {
+                    repo.blockSlot(labId, currentSelectedDate, key, reason, r -> {
+                        completed[0]++;
+                        if (completed[0] == total) {
+                            runOnUiThread(() -> {
+                                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                                String msg = total + " slots blocked";
+                                if (finalAlreadyBlocked > 0) msg += ", " + finalAlreadyBlocked + " already blocked";
+                                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    });
+                }
+            } else {
+                runOnUiThread(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "Failed to fetch slots", Toast.LENGTH_SHORT).show();
+                });
+            }
         });
+    }
+
+    private void showBulkUnblockDayDialog() {
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.layout_cancel_booking_dialog, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        TextView tvSubtitle = dialogView.findViewById(R.id.tv_dialog_subtitle);
+        android.widget.EditText etRemark = dialogView.findViewById(R.id.et_cancel_remark);
+        android.widget.Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        android.widget.Button btnConfirm = dialogView.findViewById(R.id.btn_dialog_confirm);
+
+        if (tvTitle != null) tvTitle.setText("Unblock Entire Day");
+        if (tvSubtitle != null) tvSubtitle.setText("Are you sure you want to unblock all slots for " + currentSelectedDate + "?");
+        if (etRemark != null) etRemark.setVisibility(android.view.View.GONE);
+        if (btnConfirm != null) {
+            btnConfirm.setText("Unblock All");
+            btnConfirm.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.status_approved)));
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            executeBulkUnblockDay();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void executeBulkUnblockDay() {
@@ -626,6 +793,7 @@ public class ViewScheduleActivity extends AppCompatActivity {
             }
         });
     }
+
 
     @Override
     protected void onDestroy() {

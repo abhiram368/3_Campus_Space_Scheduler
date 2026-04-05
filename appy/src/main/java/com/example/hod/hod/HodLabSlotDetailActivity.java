@@ -8,12 +8,18 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.LiveStatusData;
+import com.example.hod.utils.Result;
+
+import java.util.Map;
 
 public class HodLabSlotDetailActivity extends AppCompatActivity {
 
     private TextView tvStatus, tvCurrentSlot, tvRequester, tvPurpose, tvLabName;
+    private TextView tvBookedByRoll, tvApprovedBy, tvApprovedAt, tvNoDocuments;
+    private View btnViewDocuments, labelApprovalDetails;
+    private com.example.hod.repository.FirebaseRepository repo;
     private LinearLayout bookedDetailsLayout;
     private View pulseView, statusDot;
     private LiveStatusData slotData;
@@ -24,6 +30,8 @@ public class HodLabSlotDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hod_lab_slot_detail);
+
+        repo = new com.example.hod.repository.FirebaseRepository();
 
         // Header Configuration
         View headerView = findViewById(R.id.header_layout);
@@ -37,8 +45,14 @@ public class HodLabSlotDetailActivity extends AppCompatActivity {
         tvStatus = findViewById(R.id.tvStatus);
         tvCurrentSlot = findViewById(R.id.tvCurrentSlot);
         tvRequester = findViewById(R.id.tvBookedByUser);
+        tvBookedByRoll = findViewById(R.id.tvBookedByRoll);
         tvPurpose = findViewById(R.id.tvBookingPurpose);
         tvLabName = findViewById(R.id.tvLabName);
+        tvApprovedBy = findViewById(R.id.tvApprovedBy);
+        tvApprovedAt = findViewById(R.id.tvApprovedAt);
+        tvNoDocuments = findViewById(R.id.tvNoDocuments);
+        btnViewDocuments = findViewById(R.id.btnViewDocuments);
+        labelApprovalDetails = findViewById(R.id.labelApprovalDetails);
         bookedDetailsLayout = findViewById(R.id.bookedDetailsLayout);
         pulseView = findViewById(R.id.pulse_view);
         statusDot = findViewById(R.id.status_dot);
@@ -112,17 +126,84 @@ public class HodLabSlotDetailActivity extends AppCompatActivity {
                 bookedDetailsLayout.setVisibility(View.GONE);
                 break;
             case "BOOKED":
+            case "PENDING":
             case "USED":
             case "COMPLETED":
-                colorPrimary = Color.parseColor("#3B82F6"); // Blue
-                colorBackground = Color.parseColor("#DBEAFE");
+                if ("PENDING".equalsIgnoreCase(status)) {
+                    colorPrimary = Color.parseColor("#F59E0B"); // Gold/Orange
+                    colorBackground = Color.parseColor("#FEF3C7");
+                } else {
+                    colorPrimary = Color.parseColor("#3B82F6"); // Blue
+                    colorBackground = Color.parseColor("#DBEAFE");
+                }
                 bookedDetailsLayout.setVisibility(View.VISIBLE);
                 if (slotData.booking != null) {
-                    tvRequester.setText(slotData.booking.getRequesterName() != null ? slotData.booking.getRequesterName() : slotData.booking.getBookedBy());
-                    tvPurpose.setText(slotData.booking.getPurpose() != null ? slotData.booking.getPurpose() : "N/A");
+                    com.example.hod.models.Booking b = slotData.booking;
+                    
+                    // Resolve Requester Identity
+                    repo.getUserIdentity(b.getBookedBy(), result -> {
+                        if (result instanceof Result.Success) {
+                            Map<String, String> data = ((Result.Success<Map<String, String>>) result).data;
+                            runOnUiThread(() -> {
+                                tvRequester.setText(data.get("name"));
+                                tvBookedByRoll.setText("ID: " + data.get("rollNo"));
+                            });
+                        }
+                    });
+
+                    tvPurpose.setText(b.getPurpose() != null ? b.getPurpose() : "N/A");
+
+                    // Handle Approval Details
+                    if (b.getApprovedBy() != null && !b.getApprovedBy().isEmpty()) {
+                        labelApprovalDetails.setVisibility(View.VISIBLE);
+                        tvApprovedBy.setVisibility(View.VISIBLE);
+                        
+                        repo.getUserIdentity(b.getApprovedBy(), result -> {
+                            if (result instanceof Result.Success) {
+                                Map<String, String> data = ((Result.Success<Map<String, String>>) result).data;
+                                runOnUiThread(() -> {
+                                    String name = data.get("name");
+                                    String role = data.get("role");
+                                    tvApprovedBy.setText("Approved by: " + name + " (" + role + ")");
+                                });
+                            }
+                        });
+
+                        if (b.getDecisionTime() != null) {
+                            tvApprovedAt.setVisibility(View.VISIBLE);
+                            tvApprovedAt.setText("Approved at: " + b.getDecisionTime());
+                        } else {
+                            tvApprovedAt.setVisibility(View.GONE);
+                        }
+                    } else {
+                        labelApprovalDetails.setVisibility(View.GONE);
+                        tvApprovedBy.setVisibility(View.GONE);
+                        tvApprovedAt.setVisibility(View.GONE);
+                    }
+
+                    // Handle documents
+                    if (b.getLorUpload() != null && !b.getLorUpload().isEmpty()) {
+                        btnViewDocuments.setVisibility(View.VISIBLE);
+                        tvNoDocuments.setVisibility(View.GONE);
+                        btnViewDocuments.setOnClickListener(v -> {
+                            android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                            i.setData(android.net.Uri.parse(b.getLorUpload()));
+                            startActivity(i);
+                        });
+                    } else {
+                        btnViewDocuments.setVisibility(View.GONE);
+                        tvNoDocuments.setVisibility(View.VISIBLE);
+                    }
+
                 } else {
                     tvRequester.setText("Unknown User");
+                    tvBookedByRoll.setText("ID: -");
                     tvPurpose.setText("-");
+                    labelApprovalDetails.setVisibility(View.GONE);
+                    tvApprovedBy.setVisibility(View.GONE);
+                    tvApprovedAt.setVisibility(View.GONE);
+                    btnViewDocuments.setVisibility(View.GONE);
+                    tvNoDocuments.setVisibility(View.GONE);
                 }
                 break;
             case "BLOCKED":
@@ -173,10 +254,16 @@ public class HodLabSlotDetailActivity extends AppCompatActivity {
         TextView tvUpdates = findViewById(R.id.tvUpdatesText);
         if (tvUpdates == null) {
             // Find the text view by its text if no ID is present
-            for (int i = 0; i < ((LinearLayout) findViewById(R.id.pulse_view).getParent().getParent()).getChildCount(); i++) {
-                View child = ((LinearLayout) findViewById(R.id.pulse_view).getParent().getParent()).getChildAt(i);
-                if (child instanceof TextView && ((TextView) child).getText().toString().contains("Updates automatically")) {
-                    child.setVisibility(View.GONE);
+            View parent = (View) findViewById(R.id.pulse_view).getParent();
+            if (parent != null) {
+                View grandParent = (View) parent.getParent();
+                if (grandParent instanceof LinearLayout) {
+                    for (int i = 0; i < ((LinearLayout) grandParent).getChildCount(); i++) {
+                        View child = ((LinearLayout) grandParent).getChildAt(i);
+                        if (child instanceof TextView && ((TextView) child).getText().toString().contains("Updates automatically")) {
+                            child.setVisibility(View.GONE);
+                        }
+                    }
                 }
             }
         } else {

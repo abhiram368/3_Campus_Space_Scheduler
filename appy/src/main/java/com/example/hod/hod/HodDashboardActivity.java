@@ -2,6 +2,7 @@ package com.example.hod.hod;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -12,7 +13,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,6 +27,7 @@ public class HodDashboardActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private TextView tvTotalBookings;
+    private ValueEventListener notificationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,11 +56,42 @@ public class HodDashboardActivity extends AppCompatActivity {
         }
 
         setupNavigationDrawer();
+        
         setupDashboardCards();
         fetchLiveInsights();
+
+        // Universal Auto-Expiry Sweep: HOD performs a system-wide cleanup on load
+        new com.example.hod.repository.FirebaseRepository().performAutoExpirySweep(null, result -> {
+            if (result instanceof com.example.hod.utils.Result.Success) {
+                int count = ((com.example.hod.utils.Result.Success<Integer>) result).data;
+                if (count > 0) {
+                    android.util.Log.d("HodDashboard", "Auto-Expiry Sweep: System-wide cleanup of " + count + " requests.");
+                }
+            }
+        });
+
+        // new com.example.hod.repository.FirebaseRepository().cleanupAllSchedules(result -> {
+        //     if (result instanceof com.example.hod.utils.Result.Success) {
+        //         Toast.makeText(this, "Schedule Data Cleaned Up!", Toast.LENGTH_SHORT).show();
+        //     }
+        // });
+
+        // Notification Deep-link Handling
+        if (getIntent().getBooleanExtra("OPEN_NOTIFICATIONS", false)) {
+            startActivity(new Intent(this, HodNotificationsActivity.class));
+        }
     }
 
     private void setupNavigationDrawer() {
+        navigationView.setItemIconTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#3B82F6")));
+        
+        // Remove non-essential utilities from the drawer
+        MenuItem navDataReset = navigationView.getMenu().findItem(R.id.nav_data_reset);
+        if (navDataReset != null) navDataReset.setVisible(false);
+        
+        MenuItem navHistory = navigationView.getMenu().findItem(R.id.nav_history);
+        if (navHistory != null) navHistory.setVisible(false);
+
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_profile) {
@@ -71,16 +104,23 @@ public class HodDashboardActivity extends AppCompatActivity {
             } else if (id == R.id.nav_help) {
                 startActivity(new Intent(this, HodHelpAboutActivity.class));
             } else if (id == R.id.nav_logout) {
-                FirebaseAuth.getInstance().signOut();
-                try {
-                    Intent intent = new Intent();
-                    intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                } catch (Exception e) {
-                    Toast.makeText(this, "Logout failed", Toast.LENGTH_SHORT).show();
-                }
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.dialog_title_logout)
+                    .setMessage(R.string.dialog_msg_logout)
+                    .setPositiveButton(R.string.btn_confirm_logout, (dialog, which) -> {
+                        FirebaseAuth.getInstance().signOut();
+                        try {
+                            Intent intent = new Intent();
+                            intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        } catch (Exception e) {
+                            Toast.makeText(this, R.string.msg_logout_failed, Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(R.string.btn_no, null)
+                    .show();
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -104,8 +144,22 @@ public class HodDashboardActivity extends AppCompatActivity {
         }
 
         // Update Nav Header with real user data
+        // Ensure notification service is running
+        try {
+            Intent serviceIntent = new Intent(this, com.example.hod.utils.NotificationService.class);
+            startService(serviceIntent);
+        } catch (Exception e) {
+            android.util.Log.e("HodDashboard", "Failed to refresh NotificationService: " + e.getMessage());
+        }
+
         View navHeader = navigationView.getHeaderView(0);
         if (navHeader != null) {
+            // Navigate to profile when touching the header
+            navHeader.setOnClickListener(v -> {
+                startActivity(new Intent(this, HodProfileActivity.class));
+                drawerLayout.closeDrawer(GravityCompat.START);
+            });
+
             TextView tvName = navHeader.findViewById(R.id.tvName);
             TextView tvRole = navHeader.findViewById(R.id.tvRole);
             TextView tvInitial = navHeader.findViewById(R.id.tvInitial);
@@ -126,6 +180,53 @@ public class HodDashboardActivity extends AppCompatActivity {
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) {}
                         });
+                
+                observeNotifications(navigationView, uid);
+            }
+        }
+    }
+
+    private void observeNotifications(NavigationView navView, String uid) {
+        notificationListener = FirebaseDatabase.getInstance().getReference("notifications")
+                .child(uid)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        int unreadCount = 0;
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            Boolean read = child.child("read").getValue(Boolean.class);
+                            if (read != null && !read) {
+                                unreadCount++;
+                            }
+                        }
+                        updateNotificationBadge(navView, unreadCount);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
+    private void updateNotificationBadge(@NonNull NavigationView navView, int count) {
+        android.view.MenuItem item = navView.getMenu().findItem(R.id.nav_notifications);
+        if (item == null) return;
+        
+        if (count > 0) {
+            item.setTitle(getString(R.string.label_notifications_unread, count));
+        } else {
+            item.setTitle(R.string.notification_title); // Assuming nav_notifications exists in menu XML or I should add it
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationListener != null) {
+            String uid = FirebaseAuth.getInstance().getUid();
+            if (uid != null) {
+                FirebaseDatabase.getInstance().getReference("notifications")
+                        .child(uid)
+                        .removeEventListener(notificationListener);
             }
         }
     }
@@ -145,9 +246,19 @@ public class HodDashboardActivity extends AppCompatActivity {
 
         findViewById(R.id.btnProfile).setOnClickListener(v ->
                 startActivity(new Intent(this, HodProfileActivity.class)));
-
-        findViewById(R.id.btnBook).setOnClickListener(v ->
-                Toast.makeText(this, "Resource booking flow disabled for HOD", Toast.LENGTH_SHORT).show());
+        findViewById(R.id.btnBook).setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent();
+                // Use full class name for cross-module navigation
+                intent.setClassName(this,
+                        "com.example.campus_space_scheduler.booking_user.BookingUserActivity");
+                intent.putExtra("ROLE", "HOD");
+                startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "Unable to open booking screen",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void fetchLiveInsights() {
@@ -156,14 +267,41 @@ public class HodDashboardActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         long activeCount = 0;
+                        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(new java.util.Date());
+                        
                         for (DataSnapshot s : snapshot.getChildren()) {
                             String stat = s.child("status").getValue(String.class);
-                            if ("APPROVED".equalsIgnoreCase(stat) || "BOOKED".equalsIgnoreCase(stat) || "COMPLETED".equalsIgnoreCase(stat)) {
-                                activeCount++;
+                            String bDate = s.child("date").getValue(String.class);
+                            
+                            if (stat == null) continue;
+                            
+                            boolean isActiveStatus = stat.equalsIgnoreCase("APPROVED") || 
+                                                   stat.equalsIgnoreCase("BOOKED") || 
+                                                   stat.toLowerCase().contains("forwarded");
+                                                   
+                            if (isActiveStatus && bDate != null) {
+                                if (bDate.compareTo(today) > 0) {
+                                    // Future date
+                                    activeCount++;
+                                } else if (bDate.equals(today)) {
+                                    // Today - check if slot is completed
+                                    String nowTime = new java.text.SimpleDateFormat("HHmm", java.util.Locale.getDefault()).format(new java.util.Date());
+                                    String tSlot = s.child("timeSlot").getValue(String.class);
+                                    String sStart = s.child("slotStart").getValue(String.class);
+                                    
+                                    if (tSlot != null && tSlot.contains("-")) {
+                                        String endPart = tSlot.split("-")[1].trim().replace(":", "");
+                                        if (endPart.compareTo(nowTime) > 0) {
+                                            activeCount++;
+                                        }
+                                    } else if (sStart != null && sStart.compareTo(nowTime) > 0) {
+                                        activeCount++;
+                                    }
+                                }
                             }
                         }
                         if (tvTotalBookings != null) {
-                            tvTotalBookings.setText(activeCount + " Active Bookings");
+                            tvTotalBookings.setText(getString(R.string.label_active_bookings_count, (int) activeCount));
                         }
                     }
 

@@ -1,5 +1,6 @@
 package com.example.hod.staff;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -10,8 +11,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.StaffScheduleAdapter;
+import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;
 import com.google.android.material.button.MaterialButton;
@@ -20,7 +22,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class LabSlotDetailActivity extends AppCompatActivity {
 
     private TextView tvDetailTime, tvDetailDate, tvDetailStatus, tvDetailBookedBy, tvDetailPurpose, tvBlockReason;
-    private View bookerSection, blockSection;
+    private View bookerSection, blockSection, slotDetailCard;
     private MaterialButton btnBlockSlot, btnUnblockSlot;
     private ProgressBar progressBar;
     private FirebaseRepository repo;
@@ -68,12 +70,24 @@ public class LabSlotDetailActivity extends AppCompatActivity {
         tvBlockReason    = findViewById(R.id.tvBlockReason);
         bookerSection    = findViewById(R.id.bookerSection);
         blockSection     = findViewById(R.id.blockSection);
+        slotDetailCard   = findViewById(R.id.slotDetailCard);
         btnBlockSlot     = findViewById(R.id.btnBlockSlot);
         btnUnblockSlot   = findViewById(R.id.btnUnblockSlot);
         progressBar      = findViewById(R.id.progressBar);
 
         btnBlockSlot.setOnClickListener(v -> showBlockDialog());
         btnUnblockSlot.setOnClickListener(v -> unblockSlot());
+
+        if (slotDetailCard != null) {
+            slotDetailCard.setOnClickListener(v -> {
+                if ("BOOKED".equalsIgnoreCase(slot.status) && slot.booking != null) {
+                    Intent intent = new Intent(this, StaffCompletedRequestDetailActivity.class);
+                    intent.putExtra("booking", slot.booking);
+                    intent.putExtra("requesterName", slot.booking.getRequesterName());
+                    startActivity(intent);
+                }
+            });
+        }
     }
 
     private void displaySlotData() {
@@ -98,9 +112,28 @@ public class LabSlotDetailActivity extends AppCompatActivity {
             isPast = selected.before(today);
         } catch (Exception ignored) {}
 
-        if ("BOOKED".equalsIgnoreCase(slot.status) && slot.booking != null) {
+        if (("BOOKED".equalsIgnoreCase(slot.status) || "PENDING".equalsIgnoreCase(slot.status)) && slot.booking != null) {
             bookerSection.setVisibility(View.VISIBLE);
-            tvDetailBookedBy.setText("Booked by: " + (slot.booking.getRequesterName() != null ? slot.booking.getRequesterName() : slot.booking.getBookedBy()));
+            
+            String name = slot.booking.getRequesterName();
+            if (name == null || name.isEmpty() || name.equals(slot.booking.getBookedBy())) {
+                // Fallback: try to resolve from DB if it looks like a UID
+                tvDetailBookedBy.setText("Booked by: " + slot.booking.getBookedBy());
+                repo.getUserDetails(slot.booking.getBookedBy(), res -> {
+                    if (res instanceof Result.Success) {
+                        User u = ((Result.Success<User>) res).data;
+                        if (u != null && u.name != null) {
+                            runOnUiThread(() -> {
+                                slot.booking.setRequesterName(u.name);
+                                tvDetailBookedBy.setText("Booked by: " + u.name);
+                            });
+                        }
+                    }
+                });
+            } else {
+                tvDetailBookedBy.setText("Booked by: " + name);
+            }
+
             tvDetailPurpose.setText("Purpose: " + (slot.booking.getPurpose() != null ? slot.booking.getPurpose() : "N/A"));
         } else {
             bookerSection.setVisibility(View.GONE);
@@ -152,10 +185,9 @@ public class LabSlotDetailActivity extends AppCompatActivity {
         if (status == null) return;
         int background;
         switch (status.toUpperCase()) {
-            case "AVAILABLE": background = R.drawable.badge_green; break;
-            case "BOOKED":    background = R.drawable.badge_blue; break;
-            case "BLOCKED":   background = R.drawable.badge_red; break;
-            default:          background = R.drawable.badge_orange; break;
+            case "PENDING":   background = R.drawable.badge_orange; break;
+            case "AVAILABLE": 
+            default:          background = R.drawable.badge_green; break;
         }
         tvDetailStatus.setBackgroundResource(background);
     }
@@ -216,16 +248,46 @@ public class LabSlotDetailActivity extends AppCompatActivity {
     }
 
     private boolean isCurrentSlotInPast(String slotKey) {
-        if (slotKey == null || slotKey.length() != 4) return false;
+        if (slotKey == null) return false;
         try {
-            int slotHour = Integer.parseInt(slotKey.substring(0, 2));
-            int slotMin  = Integer.parseInt(slotKey.substring(2, 4));
+            // First: Check if the date is actually 'Today'
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+            java.util.Calendar today = java.util.Calendar.getInstance();
+            java.util.Calendar slotDate = java.util.Calendar.getInstance();
+            slotDate.setTime(sdf.parse(slot.date));
+
+            // Normalize calendars for date-only comparison
+            today.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            today.set(java.util.Calendar.MINUTE, 0);
+            today.set(java.util.Calendar.SECOND, 0);
+            today.set(java.util.Calendar.MILLISECOND, 0);
+            
+            slotDate.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            slotDate.set(java.util.Calendar.MINUTE, 0);
+            slotDate.set(java.util.Calendar.SECOND, 0);
+            slotDate.set(java.util.Calendar.MILLISECOND, 0);
+
+            if (slotDate.after(today)) {
+                // Feature date — never 'in the past'
+                return false;
+            } else if (slotDate.before(today)) {
+                // Past date — handled by 'isPast' boolean, but for completeness return true
+                return true;
+            }
+
+            // It's TODAY: Proceed with time-of-day comparison
+            String digits = slotKey.replaceAll("[^0-9]", "");
+            if (digits.length() < 4) return false;
+
+            int slotHour = Integer.parseInt(digits.substring(0, 2));
+            int slotMin  = Integer.parseInt(digits.substring(2, 4));
             java.util.Calendar now = java.util.Calendar.getInstance();
             int nowHour = now.get(java.util.Calendar.HOUR_OF_DAY);
             int nowMin  = now.get(java.util.Calendar.MINUTE);
             int slotTotal = slotHour * 60 + slotMin;
             int nowTotal  = nowHour  * 60 + nowMin;
-            // Slot ends 30 mins after start
+            
+            // Slot is considered 'finished' or 'past' 30 mins after its start time
             return (slotTotal + 30) <= nowTotal;
         } catch (Exception e) {
             return false;

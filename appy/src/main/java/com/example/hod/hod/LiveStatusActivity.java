@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.LiveStatusAdapter;
 import com.example.hod.models.LiveStatusData;
 import com.example.hod.models.Space;
@@ -157,12 +157,18 @@ public class LiveStatusActivity extends AppCompatActivity {
         int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
         int minute = cal.get(java.util.Calendar.MINUTE);
         
-        int normalizedMin = (minute >= 30) ? 30 : 0;
-        String currentSlotKey = String.format(Locale.getDefault(), "%02d%02d", hour, normalizedMin);
+        String currentNormalized = repo.normalizeSlotKey(String.format(Locale.getDefault(), "%02d:%02d", hour, minute));
         
-        LiveStatusData matchedData = dailySlots.get(currentSlotKey);
+        LiveStatusData matchedData = dailySlots.get(currentNormalized);
+        if (matchedData == null) {
+            // Try one more time with exact 30-min boundary if fuzzy match failed
+            int normalizedMin = (minute >= 30) ? 30 : 0;
+            String boundaryKey = String.format(Locale.getDefault(), "%02d:%02d", hour, normalizedMin);
+            matchedData = dailySlots.get(boundaryKey);
+        }
+
         if (matchedData != null && matchedData.slotKey == null) {
-             matchedData.slotKey = currentSlotKey; // ensure key is attached for adapter
+             matchedData.slotKey = currentNormalized; 
         }
         return matchedData;
     }

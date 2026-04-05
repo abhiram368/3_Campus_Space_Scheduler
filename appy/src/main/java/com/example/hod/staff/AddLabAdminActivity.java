@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;
@@ -222,6 +222,10 @@ public class AddLabAdminActivity extends AppCompatActivity {
             return;
         }
 
+        // Show progress on button
+        btnAddAsAdmin.setEnabled(false);
+        btnAddAsAdmin.setText("GENERATING SCHEDULE...");
+
         try {
             FirebaseRepository repo = new FirebaseRepository();
             repo.updateToLabAdmin(selectedUser.uid, labId, result -> {
@@ -229,9 +233,11 @@ public class AddLabAdminActivity extends AppCompatActivity {
                     try {
                         if (result instanceof Result.Success) {
                             android.util.Log.d("AddAdmin", "Update successful");
-                            Toast.makeText(this, "Lab Admin Added Successfully", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Lab Admin Added & Schedule Generated", Toast.LENGTH_LONG).show();
                             finish();
                         } else {
+                            btnAddAsAdmin.setEnabled(true);
+                            btnAddAsAdmin.setText("Add as Lab Admin");
                             Exception e = ((Result.Error<?>) result).exception;
                             String msg = e != null ? e.getMessage() : "Unknown error";
                             android.util.Log.e("AddAdmin", "Update failed: " + msg);
@@ -243,6 +249,8 @@ public class AddLabAdminActivity extends AppCompatActivity {
                 });
             });
         } catch (Exception e) {
+            btnAddAsAdmin.setEnabled(true);
+            btnAddAsAdmin.setText("Add as Lab Admin");
             android.util.Log.e("AddAdmin", "Error initiating admin update", e);
         }
     }
