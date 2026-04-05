@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Circular Background -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M50,50m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0" />
+
+    <!-- Logo Grid -->
+    <group
+        android:translateX="14"
+        android:translateY="14"
+        android:scaleX="3"
+        android:scaleY="3">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M3,13h8L11,3L3,3L3,13zM3,21h8L11,15L3,15L3,21zM13,21h8L21,11L13,11L13,21zM13,3L13,9h8L21,3h-8z" />
+    </group>
+</vector>

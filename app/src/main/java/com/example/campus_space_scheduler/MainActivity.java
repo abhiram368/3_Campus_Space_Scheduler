@@ -13,7 +13,10 @@ import com.example.campus_space_scheduler.app_admin.AdminActivity;
 import com.example.campus_space_scheduler.booking_user.BookingUserActivity;
 import com.example.campus_space_scheduler.csed_office.CsedOfficeStaffActivity;
 import com.example.hod.hod.HodDashboardActivity;
+import com.example.hod.hod.HodNotificationsActivity;
 import com.example.hod.staff.StaffDashboardActivity;
+import com.example.hod.staff.NotificationsActivity;
+import com.example.hod.utils.NotificationService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
@@ -37,7 +40,26 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        handleIntent(getIntent());
         checkUserSession();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // Update the intent for this activity
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null && intent.getBooleanExtra("OPEN_NOTIFICATIONS", false)) {
+            // We need the user role to redirect. If we don't have it yet, 
+            // the fetchUserRoleAndRedirect will catch it via getIntent().
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                fetchUserRoleAndRedirect(user.getUid());
+            }
+        }
     }
 
     private void checkUserSession() {
@@ -46,6 +68,13 @@ public class MainActivity extends AppCompatActivity {
         if (currentUser == null) {
             navigateTo(LoginActivity.class);
         } else {
+            // Start the background notification listener service
+            try {
+                Intent serviceIntent = new Intent(this, NotificationService.class);
+                startService(serviceIntent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             fetchUserRoleAndRedirect(currentUser.getUid());
         }
     }
@@ -68,10 +97,14 @@ public class MainActivity extends AppCompatActivity {
                         String name = snapshot.child("name").getValue(String.class);
                         String inchargeToSpace = snapshot.child("inchargeToSpace").getValue(String.class);
 
+                        // If opened from a notification click, redirect directly
+                        if (getIntent().getBooleanExtra("OPEN_NOTIFICATIONS", false)) {
+                            redirecttoNotifications(role, inchargeToSpace, name);
+                            return;
+                        }
 
-
-                        nameText.setText(name);
-                        roleText.setText(role);
+                        if (nameText != null) nameText.setText(name);
+                        if (roleText != null) roleText.setText(role);
 
                         // delay so user sees welcome screen
                         new Handler().postDelayed(() -> {
@@ -122,6 +155,24 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void redirecttoNotifications(String role, String labId, String name) {
+        Intent intent;
+        if ("HoD".equalsIgnoreCase(role)) {
+            intent = new Intent(this, HodNotificationsActivity.class);
+        } else if ("StaffIncharge".equalsIgnoreCase(role)) {
+            intent = new Intent(this, NotificationsActivity.class);
+            intent.putExtra("labId", labId);
+            intent.putExtra("userName", name);
+        } else {
+            // Default to Staff Notifications which handles any UID
+            intent = new Intent(this, NotificationsActivity.class);
+            intent.putExtra("labId", labId);
+            intent.putExtra("userName", name);
+        }
+        startActivity(intent);
+        finish();
     }
 
     private void navigateTo(Class<?> destinationClass) {

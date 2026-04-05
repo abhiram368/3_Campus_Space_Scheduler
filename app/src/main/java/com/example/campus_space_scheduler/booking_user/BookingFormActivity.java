@@ -5,6 +5,10 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+<<<<<<< HEAD
+=======
+import android.widget.ImageView;
+>>>>>>> venkat
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,7 +17,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.campus_space_scheduler.R;
+<<<<<<< HEAD
 import com.google.android.material.appbar.MaterialToolbar;
+=======
+import com.example.hod.repository.FirebaseRepository;
+>>>>>>> venkat
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -36,7 +44,11 @@ import java.util.Map;
 public class BookingFormActivity extends AppCompatActivity {
 
     private static final String TAG = "BookingFormActivity";
+<<<<<<< HEAD
     private String spaceName, date, timeSlot, userRole, spaceType, scheduleId, slotStart;
+=======
+    private String spaceName, date, timeSlot, userRole, spaceType, scheduleId, slotStart, spaceId;
+>>>>>>> venkat
 
     private TextInputEditText etPurpose, etLorUrl, etDescription;
     private TextInputLayout textInputLayoutLorUrl;
@@ -56,9 +68,16 @@ public class BookingFormActivity extends AppCompatActivity {
         spaceType = getIntent().getStringExtra("SPACE_TYPE");
         scheduleId = getIntent().getStringExtra("SCHEDULE_ID");
         slotStart = getIntent().getStringExtra("SLOT_START");
+<<<<<<< HEAD
 
         // Initialize views
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
+=======
+        spaceId = getIntent().getStringExtra("SPACE_ID");
+
+        // Initialize views
+        ImageView buttonBack = findViewById(R.id.buttonBack);
+>>>>>>> venkat
         TextView textViewSpaceName = findViewById(R.id.textViewSpaceName);
         TextView textViewSelectedSlot = findViewById(R.id.textViewSelectedSlot);
 
@@ -71,6 +90,7 @@ public class BookingFormActivity extends AppCompatActivity {
         buttonSubmit = findViewById(R.id.btnSubmit);
 
         if (spaceName != null) textViewSpaceName.setText(spaceName);
+<<<<<<< HEAD
         if (date != null && timeSlot != null) textViewSelectedSlot.setText(date + " | " + timeSlot);
 
         updateUIBasedOnRole(userRole, spaceType);
@@ -78,6 +98,16 @@ public class BookingFormActivity extends AppCompatActivity {
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> finish());
         }
+=======
+        if (date != null && timeSlot != null) {
+            String selectedSlot = date + " | " + timeSlot;
+            textViewSelectedSlot.setText(selectedSlot);
+        }
+
+        updateUIBasedOnRole(userRole, spaceType);
+
+        buttonBack.setOnClickListener(v -> finish());
+>>>>>>> venkat
         buttonSubmit.setOnClickListener(v -> {
             if (validateForm(userRole, spaceType)) {
                 checkAvailabilityAndSubmit();
@@ -87,6 +117,7 @@ public class BookingFormActivity extends AppCompatActivity {
 
     private void updateUIBasedOnRole(String role, String spaceType) {
         if (role == null || spaceType == null) return;
+<<<<<<< HEAD
         
         // Direct booking for Classrooms - hide LOR requirements regardless of role
         if (spaceType.equalsIgnoreCase("Classroom")) {
@@ -95,6 +126,8 @@ public class BookingFormActivity extends AppCompatActivity {
             return;
         }
 
+=======
+>>>>>>> venkat
         if (role.equalsIgnoreCase("Student") && (spaceType.equalsIgnoreCase("Lab") || spaceType.equalsIgnoreCase("Hall"))) {
             textInputLayoutLorUrl.setVisibility(View.VISIBLE);
             buttonDownloadLorFormat.setVisibility(View.VISIBLE);
@@ -109,6 +142,7 @@ public class BookingFormActivity extends AppCompatActivity {
     }
 
     private boolean validateForm(String role, String spaceType) {
+<<<<<<< HEAD
         if (TextUtils.isEmpty(etPurpose.getText().toString().trim())) {
             etPurpose.setError("Purpose is required");
             return false;
@@ -121,6 +155,14 @@ public class BookingFormActivity extends AppCompatActivity {
 
         if ("Student".equalsIgnoreCase(role) && ("Lab".equalsIgnoreCase(spaceType) || "Hall".equalsIgnoreCase(spaceType))) {
             if (TextUtils.isEmpty(etLorUrl.getText().toString().trim())) {
+=======
+        if (etPurpose.getText() == null || TextUtils.isEmpty(etPurpose.getText().toString().trim())) {
+            etPurpose.setError("Purpose is required");
+            return false;
+        }
+        if ("Student".equalsIgnoreCase(role) && ("Lab".equalsIgnoreCase(spaceType) || "Hall".equalsIgnoreCase(spaceType))) {
+            if (etLorUrl.getText() == null || TextUtils.isEmpty(etLorUrl.getText().toString().trim())) {
+>>>>>>> venkat
                 etLorUrl.setError("LOR URL is required");
                 return false;
             }
@@ -143,8 +185,11 @@ public class BookingFormActivity extends AppCompatActivity {
         buttonSubmit.setEnabled(false);
         DatabaseReference slotsRef = FirebaseDatabase.getInstance().getReference("schedules").child(scheduleId).child("slots");
 
+<<<<<<< HEAD
         boolean isClassroom = spaceType != null && spaceType.equalsIgnoreCase("Classroom");
 
+=======
+>>>>>>> venkat
         slotsRef.runTransaction(new Transaction.Handler() {
             @NonNull
             @Override
@@ -155,9 +200,13 @@ public class BookingFormActivity extends AppCompatActivity {
                     if (start != null && start.replace(":", "").equals(slotStart)) {
                         String status = slot.child("status").getValue(String.class);
                         if ("AVAILABLE".equalsIgnoreCase(status)) {
+<<<<<<< HEAD
                             // If classroom, mark as BOOKED immediately (direct booking)
                             // Otherwise, mark as Pending for approval
                             slot.child("status").setValue(isClassroom ? "BOOKED" : "Pending");
+=======
+                            slot.child("status").setValue("Pending");
+>>>>>>> venkat
                             found = true;
                             break;
                         } else {
@@ -199,7 +248,11 @@ public class BookingFormActivity extends AppCompatActivity {
         DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         String bookingId = bookingsRef.push().getKey();
 
+<<<<<<< HEAD
         if (bookingId == null) return;
+=======
+        if (bookingId == null || uid == null) return;
+>>>>>>> venkat
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
@@ -209,20 +262,30 @@ public class BookingFormActivity extends AppCompatActivity {
         reqTime.put("date", sdfDate.format(now));
         reqTime.put("time", sdfTime.format(now));
 
+<<<<<<< HEAD
         boolean isClassroom = spaceType != null && spaceType.equalsIgnoreCase("Classroom");
 
+=======
+>>>>>>> venkat
         Map<String, Object> data = new HashMap<>();
         data.put("bookingId", bookingId);
         data.put("bookedBy", uid);
         data.put("bookedTime", reqTime);
+<<<<<<< HEAD
         data.put("purpose", etPurpose.getText().toString().trim());
         data.put("description", etDescription.getText().toString().trim());
         data.put("lorUpload", etLorUrl.getText().toString().trim());
+=======
+        data.put("purpose", etPurpose.getText() != null ? etPurpose.getText().toString().trim() : "");
+        data.put("description", etDescription.getText() != null ? etDescription.getText().toString().trim() : "");
+        data.put("lorUpload", etLorUrl.getText() != null ? etLorUrl.getText().toString().trim() : "");
+>>>>>>> venkat
         data.put("scheduleId", scheduleId);
         data.put("slotStart", slotStart);
         data.put("date", date);
         data.put("timeSlot", timeSlot);
         data.put("spaceName", spaceName);
+<<<<<<< HEAD
         
         // Direct booking for Classrooms
         data.put("status", isClassroom ? "Approved" : "Pending");
@@ -247,6 +310,29 @@ public class BookingFormActivity extends AppCompatActivity {
 
                 // Close the form and return to Dashboard
                 Intent intent = new Intent(this, BookingUserActivity.class);
+=======
+        data.put("spaceId", spaceId);
+        data.put("status", "Pending");
+        data.put("approvedBy", ""); // Default empty for new requests
+
+        data.put("facultyInchargeApproval", false);
+        data.put("hodApproval", false);
+
+        bookingsRef.child(bookingId).setValue(data).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Booking Request Sent", Toast.LENGTH_SHORT).show();
+                // Notify Staff Incharge
+                FirebaseRepository repo = new FirebaseRepository();
+                Log.d("BookingForm", "Booking successful. Notifying staff. SpaceID: " + spaceId + ", SpaceName: " + spaceName);
+                if (spaceId != null) {
+                    repo.notifyStaffInchargeForSpace(spaceId, spaceName, "New booking request for " + spaceName + " on " + date, bookingId, uid, "booking", "staff");
+                } else {
+                    Log.e("BookingForm", "Cannot notify staff: spaceId is NULL");
+                }
+
+                // Close the form and the slots page to return to Dashboard
+                Intent intent = new Intent(this, BookingFormActivity.class);
+>>>>>>> venkat
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 intent.putExtra("ROLE", userRole);
                 startActivity(intent);

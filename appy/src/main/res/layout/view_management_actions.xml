@@ -19,8 +19,8 @@
             android:text="Upload CSV File"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
-            android:drawableStart="@drawable/ic_upload"
             android:drawablePadding="16dp"
+            app:drawableStartCompat="@drawable/ic_upload"
             app:drawableTint="?attr/colorPrimary" />
     </com.google.android.material.card.MaterialCardView>
 
@@ -38,9 +38,8 @@
             android:text="Add Single Entry"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
-            android:drawableStart="@drawable/ic_add"
             android:drawablePadding="16dp"
-            app:drawableTint="?attr/colorPrimary" />
+            app:drawableStartCompat="@drawable/ic_add" app:drawableTint="?attr/colorPrimary" />
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Edit Details (Search ID/Mail) -->
@@ -56,8 +55,8 @@
             android:text="Edit Details (Search ID/Mail)"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
-            android:drawableStart="@drawable/ic_search"
             android:drawablePadding="16dp"
+            app:drawableStartCompat="@drawable/ic_search"
             app:drawableTint="?attr/colorPrimary" />
     </com.google.android.material.card.MaterialCardView>
 

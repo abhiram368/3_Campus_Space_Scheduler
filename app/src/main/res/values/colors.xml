@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+    <color name="white">#ffffff</color>
 
     <!-- Refined Blue Glass Theme (Reference: Prakthis style) -->
-
     <color name="glass_content_bg">#F8FAFC</color> <!-- Off-white for content area -->
-
 
     <color name="text_primary">#0F172A</color> <!-- Dark Slate -->
     <color name="text_secondary">#64748B</color> <!-- Slate Grey -->
 
-
     <color name="status_available">#10B981</color>
     <color name="status_booked">#EF4444</color>
-
-    <!-- Gold Gradient -->
 
     <!-- Glass Fill and Stroke (used in some drawables) -->
     <color name="glass_fill">#CCFFFFFF</color>
@@ -47,7 +43,6 @@
     <color name="blue_700">#1d4ed8</color>
     <color name="blue_900">#1e3a8a</color>
 
-    <color name="white">#ffffff</color>
     <color name="slate_50">#f8fafc</color>
     <color name="slate_400">#9ca3af</color>
     <color name="slate_500">#64748b</color>
@@ -65,6 +60,7 @@
     <color name="primary_brand_container_light">#E0E7FF</color>
     <color name="primary_brand_container_dark">#1E293B</color>
     <color name="slate_200">#E2E8F0</color>
+    <color name="accent_cyan">#7ED9F5</color>
 
     <color name="brand_blue">#135BEC</color>
     <color name="brand_blue_dim">#4D135BEC</color>
@@ -77,21 +73,15 @@
     <color name="background_dark">#0F1621</color>
     <color name="surface_dark">#1A222F</color>
     <color name="primary_blue">#1D61E7</color>
-    <color name="accent_cyan">#7ED9F5</color>
 
     <!-- Original colors (kept for compatibility) -->
     <color name="blue">#1D61E7</color>
     <color name="purple_logo">#6A1B9A</color>
     <color name="purple_logo_light">#9C27B0</color>
 
-    <!-- Venkat -->
     <!-- Professional Design Language Colors -->
-
     <color name="background_light">#F8FAFC</color>
     <color name="card_white">#FFFFFF</color>
-
-
-
 
     <!-- Status Colors -->
     <color name="status_approved">#16A34A</color>

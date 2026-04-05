@@ -11,7 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.LiveStatusData;
 import com.example.hod.models.Space;
 import com.example.hod.repository.FirebaseRepository;
@@ -32,7 +32,6 @@ public class LabLiveStatusActivity extends AppCompatActivity {
     private String labId;
     private FirebaseRepository repo;
     
-    // Deep-Dive Refactoring Fields
     private java.util.Map<String, LiveStatusData> dailySlots = new java.util.HashMap<>();
     private com.google.firebase.database.ValueEventListener liveStatusListener;
     private String listenerDate = ""; // Track which date the listener is attached to
@@ -77,7 +76,6 @@ public class LabLiveStatusActivity extends AppCompatActivity {
     private final Runnable refreshRunnable = new Runnable() {
         @Override
         public void run() {
-            // Re-trigger the logic to check current time against slots
             startListeningForStatus();
             refreshHandler.postDelayed(this, 30000); // Check every 30 seconds
         }
@@ -110,11 +108,9 @@ public class LabLiveStatusActivity extends AppCompatActivity {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String currentDate = dateFormat.format(calendar.getTime());
 
-        // 1. Midnight Transition / initialization
         if (!currentDate.equals(listenerDate)) {
             Log.d("LiveStatus", "Date changed or first load. Re-attaching listener for: " + currentDate);
             
-            // Remove old listener if it exists (using the date it was attached to!)
             if (liveStatusListener != null && !listenerDate.isEmpty()) {
                 repo.removeLiveStatusListener(labId, listenerDate, (com.google.firebase.database.ValueEventListener) liveStatusListener);
             }
@@ -123,13 +119,12 @@ public class LabLiveStatusActivity extends AppCompatActivity {
             liveStatusListener = (com.google.firebase.database.ValueEventListener) repo.getLiveSlotStatus(labId, currentDate, result -> {
                 if (result instanceof Result.Success) {
                     dailySlots = ((Result.Success<java.util.Map<String, LiveStatusData>>) result).data;
-                    updateUI(); // Immediate update when DB changes
+                    updateUI();
                 } else if (result instanceof Result.Error) {
                     Log.e("LiveStatus", "Error fetching slots: " + ((Result.Error<?>) result).exception.getMessage());
                 }
             });
         } else {
-            // Same day, just ensure UI is fresh (the listener will handle DB changes)
             updateUI();
         }
     }
@@ -145,30 +140,13 @@ public class LabLiveStatusActivity extends AppCompatActivity {
         int minute = cal.get(java.util.Calendar.MINUTE);
         
         int normalizedMin = (minute < 30) ? 0 : 30;
-        String currentSlotKey = String.format(Locale.getDefault(), "%02d%02d", hour, normalizedMin);
+        String currentSlotKey = String.format(Locale.getDefault(), "%02d:%02d - %02d:%02d", hour, normalizedMin, (normalizedMin == 0 ? hour : hour + 1), (normalizedMin == 0 ? 30 : 0));
         
         LiveStatusData matchedData = dailySlots.get(currentSlotKey);
         
-        int nextMin = (normalizedMin == 0) ? 30 : 0;
-        int nextHour = (normalizedMin == 0) ? hour : hour + 1;
-        String nextSlotKey = String.format(Locale.getDefault(), "%02d%02d", nextHour, nextMin);
-        LiveStatusData nextData = dailySlots.get(nextSlotKey);
-
         if (matchedData == null) {
             tvStatus.setText("CLOSED (OFF HOURS)");
-            tvStatus.setTextColor(Color.parseColor("#9CA3AF")); // Gray
-            
-            if (nextData != null) {
-                // Formatting next slot for UI
-                int nEndMin = (nextMin == 0) ? 30 : 0;
-                int nEndHour = (nextMin == 0) ? nextHour : nextHour + 1;
-                String nextDisplay = String.format(Locale.getDefault(), "%02d:%02d - %02d:%02d", nextHour, nextMin, nEndHour, nEndMin);
-                tvCurrentSlot.setText("Next Slot: " + nextDisplay);
-            } else {
-                String currentTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(cal.getTime());
-                tvCurrentSlot.setText("No active slot for " + currentTime);
-            }
-            
+            tvStatus.setTextColor(Color.parseColor("#9CA3AF")); 
             bookedDetailsLayout.setVisibility(View.GONE);
             return;
         }
@@ -177,7 +155,7 @@ public class LabLiveStatusActivity extends AppCompatActivity {
         
         if ("BOOKED".equals(status) || "OCCUPIED".equals(status)) {
             tvStatus.setText("OCCUPIED");
-            tvStatus.setTextColor(Color.parseColor("#EF4444")); // Red
+            tvStatus.setTextColor(Color.parseColor("#EF4444"));
             bookedDetailsLayout.setVisibility(View.VISIBLE);
             
             if (matchedData.booking != null) {
@@ -200,24 +178,20 @@ public class LabLiveStatusActivity extends AppCompatActivity {
             }
         } else if ("BLOCKED".equals(status)) {
             tvStatus.setText("BLOCKED");
-            tvStatus.setTextColor(Color.parseColor("#F59E0B")); // Orange
+            tvStatus.setTextColor(Color.parseColor("#F59E0B"));
             bookedDetailsLayout.setVisibility(View.GONE);
         } else {
-            // AVAILABLE or REJECTED
             tvStatus.setText("FREE");
-            tvStatus.setTextColor(Color.parseColor("#10B981")); // Emerald
+            tvStatus.setTextColor(Color.parseColor("#10B981"));
             bookedDetailsLayout.setVisibility(View.GONE);
         }
 
-        int endMin = (normalizedMin == 0) ? 30 : 0;
-        int endHour = (normalizedMin == 0) ? hour : hour + 1;
-        String displaySlot = String.format(Locale.getDefault(), "%02d:%02d - %02d:%02d", hour, normalizedMin, endHour, endMin);
-        tvCurrentSlot.setText(displaySlot);
+        tvCurrentSlot.setText(currentSlotKey);
     }
 
     private void showEmptyState() {
         tvStatus.setText("No Schedule");
-        tvStatus.setTextColor(Color.parseColor("#9CA3AF")); // Gray
+        tvStatus.setTextColor(Color.parseColor("#9CA3AF"));
         tvCurrentSlot.setText("No slots found for today");
         bookedDetailsLayout.setVisibility(View.GONE);
     }

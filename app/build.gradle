@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.campus_space_scheduler'
+    namespace = 'com.example.campus_space_scheduler'
     compileSdk 34
 
     defaultConfig {
@@ -20,9 +20,9 @@ android {
     sourceSets {
         main {
             res.srcDirs = [
+                    'src/main/res',
                     'src/main/res/layout_app_admin',
                     'src/main/res/layout_approval_user',
-                    'src/main/res',
                     'src/main/res/layout_csed_office',
                     'src/main/res/layout_booking_user'
             ]
@@ -41,7 +41,7 @@ android {
     }
 
     buildFeatures {
-        viewBinding true
+        viewBinding = true
     }
 }
 

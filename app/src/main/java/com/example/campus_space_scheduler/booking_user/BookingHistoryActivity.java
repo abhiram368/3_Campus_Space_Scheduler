@@ -15,7 +15,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.campus_space_scheduler.R;
+<<<<<<< HEAD
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+=======
+>>>>>>> venkat
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -34,7 +37,10 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
     private List<Booking> historyList;
     private ProgressBar progressBar;
     private TextView emptyTextView;
+<<<<<<< HEAD
     private DatabaseReference bookingsRef;
+=======
+>>>>>>> venkat
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +53,14 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
             buttonBack.setOnClickListener(v -> finish());
         }
 
+<<<<<<< HEAD
         ImageView buttonClearHistory = findViewById(R.id.buttonClearHistory);
         if (buttonClearHistory != null) {
             buttonClearHistory.setOnClickListener(v -> showClearHistoryConfirmation());
         }
 
+=======
+>>>>>>> venkat
         recyclerViewHistory = findViewById(R.id.recyclerViewHistory);
         progressBar = findViewById(R.id.progressBar);
         emptyTextView = findViewById(R.id.emptyTextView);
@@ -62,6 +71,7 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
         recyclerViewHistory.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewHistory.setAdapter(adapter);
 
+<<<<<<< HEAD
         bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         fetchUserBookings();
     }
@@ -108,6 +118,11 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
                 });
     }
 
+=======
+        fetchUserBookings();
+    }
+
+>>>>>>> venkat
     private void fetchUserBookings() {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
@@ -117,6 +132,10 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
 
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
+<<<<<<< HEAD
+=======
+        DatabaseReference bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
+>>>>>>> venkat
         bookingsRef.orderByChild("bookedBy").equalTo(currentUserId)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -134,6 +153,10 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
                                 }
 
                                 fetchScheduleDetails(booking);
+<<<<<<< HEAD
+=======
+                                fetchUserDetails(booking);
+>>>>>>> venkat
                                 historyList.add(booking);
                             }
                         }
@@ -160,6 +183,28 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
         }
     }
 
+<<<<<<< HEAD
+=======
+    private void fetchUserDetails(Booking booking) {
+        if (booking.getBookedBy() == null) return;
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(booking.getBookedBy());
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String name = snapshot.child("name").getValue(String.class);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Error fetching user name: " + error.getMessage());
+            }
+        });
+    }
+
+>>>>>>> venkat
     private void fetchScheduleDetails(Booking booking) {
         if (booking.getScheduleId() == null) return;
 

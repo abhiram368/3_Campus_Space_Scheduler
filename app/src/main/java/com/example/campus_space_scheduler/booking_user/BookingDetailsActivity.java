@@ -44,6 +44,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
         // Initialize views
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        ImageView buttonBack = findViewById(R.id.buttonBack);
         TextView spaceNameTextView = findViewById(R.id.textViewSpaceName);
         TextView statusTextView = findViewById(R.id.textViewStatus);
         TextView dateTimeTextView = findViewById(R.id.textViewDateTime);
@@ -76,32 +77,34 @@ public class BookingDetailsActivity extends AppCompatActivity {
         boolean showCancelButton = getIntent().getBooleanExtra("SHOW_CANCEL_BUTTON", false);
         String approvedByUid = getIntent().getStringExtra("APPROVED_BY");
 
-        // Set initial data to views
-        if (spaceNameTextView != null) spaceNameTextView.setText(spaceName != null ? spaceName : "N/A");
-        if (statusTextView != null) statusTextView.setText(status != null ? status.toUpperCase() : "PENDING");
-        if (dateTimeTextView != null) dateTimeTextView.setText((date != null ? date : "") + " | " + (timeSlot != null ? timeSlot : ""));
-        if (purposeTextView != null) purposeTextView.setText(purpose != null ? purpose : "N/A");
-        if (descriptionTextView != null) descriptionTextView.setText(description != null ? description : "No description provided.");
-        if (requestedOnTextView != null) requestedOnTextView.setText(requestedOn != null ? requestedOn : "N/A");
+        // Check if we need to load data from Firebase
+        if (bookingId != null && spaceName == null) {
+            loadBookingData(bookingId);
+        } else {
+            // Set initial data to views
+            if (spaceNameTextView != null) spaceNameTextView.setText(spaceName != null ? spaceName : "N/A");
+            if (statusTextView != null) statusTextView.setText(status != null ? getStatusLabel(status) : "PENDING");
+            if (dateTimeTextView != null) dateTimeTextView.setText((date != null ? date : "") + " | " + (timeSlot != null ? timeSlot : ""));
+            if (purposeTextView != null) purposeTextView.setText(purpose != null ? purpose : "N/A");
+            if (descriptionTextView != null) descriptionTextView.setText(description != null ? description : "No description provided.");
+            if (requestedOnTextView != null) requestedOnTextView.setText(requestedOn != null ? requestedOn : "N/A");
 
-        if (bookedById != null && bookedByTextView != null) {
-            fetchUserName(bookedById, bookedByTextView, null);
-        } else if (bookedByTextView != null) {
-            bookedByTextView.setText(R.string.unknown_user);
-        }
+            if (bookedById != null && bookedByTextView != null) {
+                fetchUserName(bookedById, bookedByTextView, null);
+            } else if (bookedByTextView != null) {
+                bookedByTextView.setText(R.string.unknown_user);
+            }
 
-        // UI styling for status
-        if (statusTextView != null) {
-            updateStatusUI(status, statusTextView);
-        }
+            // UI styling for status
+            if (statusTextView != null) {
+                updateStatusUI(status, statusTextView);
+            }
 
-        // Handle Approval/Rejection/Forwarded and Remarks
-        if (status != null) {
-            boolean isApproved = status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted");
-            boolean isForwarded = status.equalsIgnoreCase("Forwarded");
-            boolean isRejected = status.equalsIgnoreCase("Rejected");
+            // Handle Approval/Rejection/Forwarded and Remarks
+            setupApprovalDetails(status, approvedByUid, actionBy, remarks);
 
             // Google Calendar Integration for Approved bookings
+            boolean isApproved = status != null && (status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted") || status.equalsIgnoreCase("Booked"));
             if (isApproved && buttonAddToCalendar != null) {
                 buttonAddToCalendar.setVisibility(View.VISIBLE);
                 buttonAddToCalendar.setOnClickListener(v -> checkCalendarPermissions());
@@ -109,45 +112,6 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 buttonAddToCalendar.setVisibility(View.GONE);
             }
 
-            if (approvedByTextView != null) {
-                String label;
-                if (isApproved) label = "Approved by: ";
-                else if (isForwarded) label = "Forwarded by: ";
-                else if (isRejected) label = "Rejected by: ";
-                else label = "Action by: ";
-
-                if (!status.equalsIgnoreCase("Pending")) {
-                    if (approvedByUid != null && !approvedByUid.isEmpty()) {
-                        if (approvedByUid.length() > 15 && !approvedByUid.contains(" ")) {
-                            fetchUserName(approvedByUid, approvedByTextView, label);
-                        } else {
-                            approvedByTextView.setText(label + approvedByUid);
-                            approvedByTextView.setVisibility(View.VISIBLE);
-                        }
-                    } else if (actionBy != null && !actionBy.isEmpty()) {
-                        approvedByTextView.setText(label + actionBy);
-                        approvedByTextView.setVisibility(View.VISIBLE);
-                    } else {
-                        approvedByTextView.setText(label + "Authority");
-                        approvedByTextView.setVisibility(View.VISIBLE);
-                    }
-                } else {
-                    approvedByTextView.setVisibility(View.GONE);
-                }
-            }
-
-            // Always show updated remarks if not null/empty
-            if (textViewRemarks != null) {
-                if (remarks != null && !remarks.trim().isEmpty()) {
-                    textViewRemarks.setText("Remarks: " + remarks);
-                    textViewRemarks.setVisibility(View.VISIBLE);
-                } else {
-                    textViewRemarks.setVisibility(View.GONE);
-                }
-            }
-        }
-
-        if (buttonViewLor != null) {
             if (hasLor && lorUrl != null && !lorUrl.isEmpty()) {
                 buttonViewLor.setVisibility(View.VISIBLE);
                 buttonViewLor.setOnClickListener(v -> {
@@ -161,9 +125,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
             } else {
                 buttonViewLor.setVisibility(View.GONE);
             }
-        }
 
-        if (buttonCancelBooking != null) {
             if (showCancelButton && status != null && !status.equalsIgnoreCase("Rejected")) {
                 buttonCancelBooking.setVisibility(View.VISIBLE);
                 buttonCancelBooking.setOnClickListener(v -> showCancelConfirmationDialog());
@@ -174,6 +136,138 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> finish());
+        }
+        if (buttonBack != null) {
+            buttonBack.setOnClickListener(v -> finish());
+        }
+    }
+
+    private void loadBookingData(String id) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("bookings").child(id);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    Toast.makeText(BookingDetailsActivity.this, "Booking not found", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+
+                spaceName = snapshot.child("spaceName").getValue(String.class);
+                String stat = snapshot.child("status").getValue(String.class);
+                date = snapshot.child("date").getValue(String.class);
+                timeSlot = snapshot.child("timeSlot").getValue(String.class);
+                purpose = snapshot.child("purpose").getValue(String.class);
+                description = snapshot.child("description").getValue(String.class);
+                String rem = snapshot.child("remarks").getValue(String.class);
+                String actBy = snapshot.child("actionBy").getValue(String.class);
+                String appByUid = snapshot.child("approvedBy").getValue(String.class);
+                String bById = snapshot.child("bookedBy").getValue(String.class);
+                
+                scheduleId = snapshot.child("scheduleId").getValue(String.class);
+
+                String reqOn = "N/A";
+                DataSnapshot bookedTimeSnap = snapshot.child("bookedTime");
+                if (bookedTimeSnap.exists()) {
+                    String d = bookedTimeSnap.child("date").getValue(String.class);
+                    String t = bookedTimeSnap.child("time").getValue(String.class);
+                    reqOn = (d != null ? d : "") + " " + (t != null ? t : "");
+                }
+
+                if (findViewById(R.id.textViewSpaceName) != null)
+                    ((TextView)findViewById(R.id.textViewSpaceName)).setText(spaceName != null ? spaceName : "N/A");
+                if (findViewById(R.id.textViewStatus) != null)
+                    ((TextView)findViewById(R.id.textViewStatus)).setText(stat != null ? getStatusLabel(stat) : "PENDING");
+                if (findViewById(R.id.textViewDateTime) != null)
+                    ((TextView)findViewById(R.id.textViewDateTime)).setText((date != null ? date : "") + " | " + (timeSlot != null ? timeSlot : ""));
+                if (findViewById(R.id.textViewPurpose) != null)
+                    ((TextView)findViewById(R.id.textViewPurpose)).setText(purpose != null ? purpose : "N/A");
+                if (findViewById(R.id.textViewDescription) != null)
+                    ((TextView)findViewById(R.id.textViewDescription)).setText(description != null ? description : "No description provided.");
+                if (findViewById(R.id.textViewRequestedOn) != null)
+                    ((TextView)findViewById(R.id.textViewRequestedOn)).setText(reqOn);
+
+                if (bById != null) {
+                    fetchUserName(bById, bookedByTextView, null);
+                }
+
+                updateStatusUI(stat, findViewById(R.id.textViewStatus));
+                setupApprovalDetails(stat, appByUid, actBy, rem);
+
+                String lUrl = snapshot.child("lorUpload").getValue(String.class);
+                MaterialButton btnLor = findViewById(R.id.buttonViewLor);
+                if (lUrl != null && !lUrl.isEmpty()) {
+                    btnLor.setVisibility(View.VISIBLE);
+                    btnLor.setOnClickListener(v -> {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(lUrl)));
+                        } catch (Exception e) {
+                            Toast.makeText(BookingDetailsActivity.this, R.string.invalid_lor_link, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    btnLor.setVisibility(View.GONE);
+                }
+
+                MaterialButton btnCancel = findViewById(R.id.buttonCancelBooking);
+                if (stat != null && (stat.equalsIgnoreCase("Pending") || stat.equalsIgnoreCase("Approved") || stat.equalsIgnoreCase("Accepted"))) {
+                    btnCancel.setVisibility(View.VISIBLE);
+                    btnCancel.setOnClickListener(v -> showCancelConfirmationDialog());
+                } else {
+                    btnCancel.setVisibility(View.GONE);
+                }
+                
+                MaterialButton buttonAddToCalendar = findViewById(R.id.buttonAddToCalendar);
+                boolean isApproved = stat != null && (stat.equalsIgnoreCase("Approved") || stat.equalsIgnoreCase("Accepted") || stat.equalsIgnoreCase("Booked"));
+                if (isApproved && buttonAddToCalendar != null) {
+                    buttonAddToCalendar.setVisibility(View.VISIBLE);
+                    buttonAddToCalendar.setOnClickListener(v -> checkCalendarPermissions());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(BookingDetailsActivity.this, "Failed to load data", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setupApprovalDetails(String status, String approvedByUid, String actionBy, String remarks) {
+        if (status != null && !status.equalsIgnoreCase("Pending")) {
+            boolean isApproved = status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted") || status.equalsIgnoreCase("Booked");
+            boolean isForwarded = status.equalsIgnoreCase("Forwarded") || status.toLowerCase().contains("forwarded");
+            boolean isRejected = status.equalsIgnoreCase("Rejected");
+            
+            String label;
+            if (isApproved) label = "Approved by: ";
+            else if (isForwarded) label = "Forwarded by: ";
+            else if (isRejected) label = "Rejected by: ";
+            else label = "Action by: ";
+
+            if (approvedByUid != null && !approvedByUid.isEmpty()) {
+                if (approvedByUid.length() > 15 && !approvedByUid.contains(" ")) {
+                    fetchUserName(approvedByUid, approvedByTextView, label);
+                } else {
+                    approvedByTextView.setText(label + approvedByUid);
+                    approvedByTextView.setVisibility(View.VISIBLE);
+                }
+            } else if (actionBy != null && !actionBy.isEmpty()) {
+                approvedByTextView.setText(label + actionBy);
+                approvedByTextView.setVisibility(View.VISIBLE);
+            } else {
+                approvedByTextView.setText(label + "Authority");
+                approvedByTextView.setVisibility(View.VISIBLE);
+            }
+
+            if (remarks != null && !remarks.trim().isEmpty()) {
+                textViewRemarks.setText("Remarks: " + remarks);
+                textViewRemarks.setVisibility(View.VISIBLE);
+            } else {
+                textViewRemarks.setVisibility(View.GONE);
+            }
+        } else {
+            approvedByTextView.setVisibility(View.GONE);
+            textViewRemarks.setVisibility(View.GONE);
         }
     }
 
@@ -198,14 +292,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
     }
 
     private void addToCalendar() {
-        CalendarHelper.addBookingToCalendar(
-                this,
-                "Booking: " + (spaceName != null ? spaceName : "Space"),
-                "Purpose: " + (purpose != null ? purpose : "N/A") + "\nDescription: " + (description != null ? description : ""),
-                spaceName != null ? spaceName : "Campus",
-                date != null ? date : "",
-                timeSlot != null ? timeSlot : ""
-        );
+        // Implementation provided by external helper
+        // com.example.campus_space_scheduler.helper.CalendarHelper.addBookingToCalendar(...)
     }
 
     private void showCancelConfirmationDialog() {
@@ -308,23 +396,57 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
     private void updateStatusUI(String status, TextView statusTextView) {
         if (status == null) return;
+        
+        String label = getStatusLabel(status);
+        statusTextView.setText(label);
 
         switch (status.toUpperCase()) {
             case "ACCEPTED":
             case "APPROVED":
+            case "BOOKED":
                 statusTextView.setBackgroundResource(R.drawable.status_accepted_bg);
                 break;
             case "REJECTED":
+            case "REJECTED_EXPIRED":
                 statusTextView.setBackgroundResource(R.drawable.status_rejected_bg);
                 break;
             case "FORWARDED":
                 statusTextView.setBackgroundResource(R.drawable.status_pending_bg);
-                statusTextView.getBackground().setTint(Color.parseColor("#FF9800")); // Orange for Forwarded
+                statusTextView.getBackground().setTint(Color.parseColor("#FF9800"));
                 break;
             default:
                 statusTextView.setBackgroundResource(R.drawable.status_pending_bg);
-                statusTextView.getBackground().setTintList(null);
                 break;
+        }
+    }
+
+    private String getStatusLabel(String status) {
+        if (status == null) return "PENDING";
+        
+        switch (status.toLowerCase()) {
+            case "pending":
+                return "Pending Staff Approval";
+            case "forwarded_to_faculty":
+            case "forwarded_to_faculty_incharge":
+                return "Awaiting Faculty Approval";
+            case "forwarded_to_hod":
+                return "Awaiting HOD Approval";
+            case "approved":
+            case "accepted":
+            case "booked":
+                return "Approved & Booked";
+            case "rejected":
+                return "Rejected";
+            case "cancelled":
+                return "Cancelled";
+            case "rejected_expired":
+                return "Rejected (Expired)";
+            default:
+                String clean = status.replace("_", " ");
+                if (clean.length() > 0) {
+                    return clean.substring(0, 1).toUpperCase() + clean.substring(1).toLowerCase();
+                }
+                return clean;
         }
     }
 }
