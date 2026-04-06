@@ -43,7 +43,6 @@
         <activity android:name=".app_admin.UserTableActivity" />
         <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".SignUpActivity" />
-        <activity android:name=".booking_user.BookingUserActivity" />
         <activity android:name=".OtherUserActivity" />
         <activity android:name=".EditScheduleActivity" />
         <activity android:name=".ViewScheduleActivity" />
@@ -55,20 +54,56 @@
         <activity android:name=".DayScheduleActivity" />
         <activity android:name=".csed_office.CsedOfficeStaffActivity" />
 
-        <!-- Teja -->
-        <activity android:name=".booking_user.BookingDetailsActivity" />
-        <activity android:name=".booking_user.CancelRequestActivity" />
-        <activity android:name=".booking_user.BookingHistoryActivity" />
+        <activity android:name=".booking_user.BookingUserActivity"
+            android:exported="true"/>
+        <activity android:name=".booking_user.BookingDetailsActivity"
+            android:exported="true"/>
+        <activity android:name=".booking_user.CancelRequestActivity"
+            android:exported="true"  />
+        <activity android:name=".booking_user.BookingHistoryActivity"
+            android:exported="true"/>
         <activity android:name=".booking_user.AvailableTimeSlotsActivity"
             android:exported="true" />
-        <activity android:name=".booking_user.ProfileActivity" />
-        <activity android:name=".booking_user.BookingFormActivity" />
-        
-        <!-- Background Services -->
+        <activity android:name=".booking_user.ProfileActivity"
+            android:exported="true"/>
+        <activity android:name=".booking_user.BookingFormActivity"
+            android:exported="true"/>
+
         <service android:name="com.example.hod.utils.NotificationService"
             android:enabled="true"
             android:exported="false" />
 
+        <activity android:name=".lab_admin_incharge.LabAdminDashboardActivity" />
+        <activity android:name=".lab_admin_incharge.LabAdminBookingDetailsActivity" />
+        <activity android:name=".lab_admin_incharge.PendingRequestsActivity" />
+        <activity android:name=".lab_admin_incharge.LiveStatusActivity" />
+        <activity android:name=".lab_admin_incharge.BookingDetailsActivity" />
+        <activity android:name=".lab_admin_incharge.ApprovalHistoryActivity" />
+        <activity android:name=".lab_admin_incharge.CapturePhotoActivity" />
+        <activity android:name=".lab_admin_incharge.FacultyApprovalHistoryActivity" />
+        <activity android:name=".lab_admin_incharge.FacultyBookingDetailsActivity" />
+        <activity android:name=".lab_admin_incharge.FacultyPendingRequestsActivity" />
+        <activity android:name=".lab_admin_incharge.FacultyLiveStatusActivity" />
+        <activity android:name=".lab_admin_incharge.FacultyDashboardActivity" />
+        <activity android:name=".lab_admin_incharge.FacultySelectionActivity" />
+        <activity android:name=".lab_admin_incharge.FacultyViewScheduleActivity" />
+        <activity android:name=".lab_admin_incharge.HallInchargeActivity" />
+        <activity android:name=".lab_admin_incharge.LabAdminSelectionActivity" />
+        <activity android:name=".lab_admin_incharge.LabDetailsActivity" />
+        <activity android:name=".lab_admin_incharge.LoginActivity" />
+        <activity android:name=".lab_admin_incharge.MainActivity" />
+        <activity android:name=".lab_admin_incharge.ReportIssueActivity" />
+        <activity android:name=".lab_admin_incharge.ViewScheduleActivity" />
+        <activity android:name=".lab_admin_incharge.ProfileActivity" />
+        <activity android:name=".lab_admin_incharge.NotificationsActivity" />
+
+        <service
+            android:name=".lab_admin_incharge.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

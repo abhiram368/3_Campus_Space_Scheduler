@@ -131,4 +131,11 @@
     <color name="action_bar_bg">#FFFFFF</color>
     <color name="gold">#D7C02D</color>
 
+    <!-- Lab Admin Module Colors -->
+    <color name="card_bg">#1AFFFFFF</color>
+    <color name="blue_icon">#1D61E7</color>
+    <color name="yellow_icon">#FBBF24</color>
+    <color name="purple_icon">#6A1B9A</color>
+    <color name="green_icon">#10B981</color>
+    <color name="bg_dark">#0F1621</color>
 </resources>

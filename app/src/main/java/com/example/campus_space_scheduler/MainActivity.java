@@ -12,6 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.campus_space_scheduler.app_admin.AdminActivity;
 import com.example.campus_space_scheduler.booking_user.BookingUserActivity;
 import com.example.campus_space_scheduler.csed_office.CsedOfficeStaffActivity;
+import com.example.campus_space_scheduler.lab_admin_incharge.FacultyDashboardActivity;
+import com.example.campus_space_scheduler.lab_admin_incharge.HallInchargeActivity;
+import com.example.campus_space_scheduler.lab_admin_incharge.LabAdminDashboardActivity;
 import com.example.hod.hod.HodDashboardActivity;
 import com.example.hod.staff.StaffDashboardActivity;
 import com.google.firebase.auth.FirebaseAuth;
@@ -94,17 +97,25 @@ public class MainActivity extends AppCompatActivity {
                             } else if ("HoD".equals(role)) {
                                 navigateTo(HodDashboardActivity.class);
 
-                            } else if ("Faculty Incharge".equals(role)) {
-                                navigateTo(BookingUserActivity.class);
+                            } else if ("Faculty Incharge".equalsIgnoreCase(role)) {
+                                String labName = snapshot.child("facultyInchargeTo").getValue(String.class);
+                                Intent intent = new Intent(MainActivity.this, FacultyDashboardActivity.class);
+                                intent.putExtra("labName", labName);
+                                startActivity(intent);
+                                finish();
 
-                            } else if ("Lab admin".equals(role)) {
-                                navigateTo(BookingUserActivity.class);
+                            } else if ("Lab admin".equalsIgnoreCase(role)) {
+                                String labName = snapshot.child("labAdminTo").getValue(String.class);
+                                Intent intent = new Intent(MainActivity.this, LabAdminDashboardActivity.class);
+                                intent.putExtra("labName", labName);
+                                startActivity(intent);
+                                finish();
 
                             } else if ("CSED Staff".equals(role)) {
                                 navigateTo(CsedOfficeStaffActivity.class);
 
-                            } else if ("Hall Incharge".equals(role)) {
-                                navigateTo(OtherUserActivity.class);
+                            } else if ("Hall Incharge".equalsIgnoreCase(role)) {
+                                navigateTo(HallInchargeActivity.class);
 
                             } else if ("StaffIncharge".equals(role)) {
                                 Intent intent = new Intent(MainActivity.this, StaffDashboardActivity.class);

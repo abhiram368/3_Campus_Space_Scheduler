@@ -28,7 +28,6 @@ import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.example.hod.repository.FirebaseRepository;
 
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -89,7 +88,7 @@ public class BookingFormActivity extends AppCompatActivity {
 
     private void updateUIBasedOnRole(String role, String spaceType) {
         if (role == null || spaceType == null) return;
-        
+
         // Direct booking for Classrooms - hide LOR requirements regardless of role
         if (spaceType.equalsIgnoreCase("Classroom")) {
             textInputLayoutLorUrl.setVisibility(View.GONE);
@@ -115,7 +114,7 @@ public class BookingFormActivity extends AppCompatActivity {
             etPurpose.setError("Purpose is required");
             return false;
         }
-        
+
         // Skip LOR validation for Classrooms (Direct booking)
         if (spaceType != null && spaceType.equalsIgnoreCase("Classroom")) {
             return true;
@@ -225,32 +224,40 @@ public class BookingFormActivity extends AppCompatActivity {
         data.put("date", date);
         data.put("timeSlot", timeSlot);
         data.put("spaceName", spaceName);
-        
+        data.put("remark", "");
+        data.put("actionBy", "");
+
         // Direct booking for Classrooms
         data.put("status", isClassroom ? "Approved" : "Pending");
         data.put("approvedBy", isClassroom ? "System (Auto)" : "");
         data.put("facultyInchargeApproval", isClassroom);
         data.put("hodApproval", isClassroom);
         if (isClassroom) {
-            data.put("remarks", "Directly booked (First Come First Serve)");
+            data.put("remark", "Directly booked (First Come First Serve)");
         }
 
         bookingsRef.child(bookingId).setValue(data).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String toastMsg = isClassroom ? "Booking Confirmed!" : "Booking Request Sent";
                 Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
-                
-                // Firebase Notification (Receipt to Student)
+
+                // 1. Firebase Database Notifications (In-App Inbox routing)
                 String receiptMsg = isClassroom ? "Your booking for " + spaceName + " is confirmed!" : "Your booking for " + spaceName + " is successfully submitted and pending approval.";
                 FirebaseRepository repo = new FirebaseRepository();
                 repo.sendNotification(uid, receiptMsg, bookingId, isClassroom ? "Approved" : "Pending", uid, "receipt", uid, r -> {});
 
-                // Firebase Notification (Alert to Staff Incharge)
                 if (!isClassroom) {
                     String spaceId = scheduleId.split("_")[0];
                     String staffMsg = "New pending request for " + spaceName + " is awaiting your approval.";
                     repo.notifyStaffInchargeForSpace(spaceId, spaceName, staffMsg, bookingId, uid, "booking", "staff");
                 }
+
+                // 2. Local Android Push Notification (Immediate feedback)
+                String title = isClassroom ? "Booking Confirmed" : "Booking Submitted";
+                String body = isClassroom ?
+                        "Your booking for " + spaceName + " is confirmed!" :
+                        "Your booking request for " + spaceName + " has been successfully submitted.";
+                NotificationHelper.showNotification(this, title, body, bookingId);
 
                 // Close the form and return to Dashboard
                 Intent intent = new Intent(this, BookingUserActivity.class);

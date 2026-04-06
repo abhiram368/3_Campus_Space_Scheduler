@@ -15,6 +15,7 @@ playServicesAuthVersion = "21.0.0"
 firebaseFirestore = "26.1.2"
 appium = "9.2.2"
 selenium = "4.19.1"
+firebaseMessaging = "25.0.1"
 
 [libraries]
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
@@ -30,6 +31,7 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database" 
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-auth-v2100 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
 appium = { group = "io.appium", name = "java-client", version.ref = "appium" }
