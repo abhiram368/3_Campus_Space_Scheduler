@@ -20,16 +20,31 @@
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="@drawable/ic_menu" />
 
-        <ImageView
-            android:id="@+id/btnNotifications"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+        <FrameLayout
+            android:id="@+id/btnNotificationsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_notifications"
+            android:padding="4dp"
             app:layout_constraintBottom_toBottomOf="@id/toolbar"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/toolbar"
-            app:tint="@color/white" />
+            app:layout_constraintTop_toTopOf="@id/toolbar">
+
+            <ImageView
+                android:id="@+id/btnNotifications"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_notifications"
+                app:tint="@color/white" />
+
+            <View
+                android:id="@+id/notificationBadge"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/bg_circle_red_light"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/header"

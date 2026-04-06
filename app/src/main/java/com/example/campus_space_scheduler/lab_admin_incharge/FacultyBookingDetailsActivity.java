@@ -21,7 +21,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class FacultyBookingDetailsActivity extends AppCompatActivity {
@@ -68,9 +72,9 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
             loadBookingDetails();
         }
 
-        btnApprove.setOnClickListener(v -> updateBooking("approved", "approved", null));
-        btnForward.setOnClickListener(v -> updateBooking("forwarded_to_hod", "forwarded_to_hod", null));
-        btnReject.setOnClickListener(v -> showRejectDialog());
+        btnApprove.setOnClickListener(v -> updateBooking("Approved", true, null));
+        btnForward.setOnClickListener(v -> updateBooking("forwarded_to_hod", true, null));
+        btnReject.setOnClickListener(v -> showRemarksDialog("Rejected", true));
         btnViewLor.setOnClickListener(v -> viewLor());
         btnCancelApprovedBooking.setOnClickListener(v -> handleCancellation());
     }
@@ -80,8 +84,9 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
+                    String dateStr = String.valueOf(snapshot.child("date").getValue());
                     tvSpaceName.setText(String.valueOf(snapshot.child("spaceName").getValue()));
-                    tvDate.setText(String.valueOf(snapshot.child("date").getValue()));
+                    tvDate.setText(dateStr);
                     tvTime.setText(String.valueOf(snapshot.child("timeSlot").getValue()));
                     tvPurpose.setText(String.valueOf(snapshot.child("purpose").getValue()));
                     tvDescription.setText(String.valueOf(snapshot.child("description").getValue()));
@@ -91,18 +96,22 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
 
                     String currentStatus = String.valueOf(snapshot.child("status").getValue());
 
-                    if ("approved".equalsIgnoreCase(currentStatus)) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    String todayStr = sdf.format(new Date());
+                    boolean isOutdated = dateStr != null && dateStr.compareTo(todayStr) < 0;
+
+                    if ("Approved".equalsIgnoreCase(currentStatus)) {
                         footerButtons.setVisibility(View.GONE);
-                        btnCancelApprovedBooking.setVisibility(View.VISIBLE);
+                        btnCancelApprovedBooking.setVisibility(isOutdated ? View.GONE : View.VISIBLE);
                         tvLabelStatus.setVisibility(View.VISIBLE);
                         tvStatus.setVisibility(View.VISIBLE);
                         tvStatus.setText("APPROVED");
-                    } else if ("rejected".equalsIgnoreCase(currentStatus) || "cancelled".equalsIgnoreCase(currentStatus)) {
+                    } else if ("Rejected".equalsIgnoreCase(currentStatus) || "Cancelled".equalsIgnoreCase(currentStatus) || "forwarded_to_hod".equalsIgnoreCase(currentStatus)) {
                         footerButtons.setVisibility(View.GONE);
                         btnCancelApprovedBooking.setVisibility(View.GONE);
                         tvLabelStatus.setVisibility(View.VISIBLE);
                         tvStatus.setVisibility(View.VISIBLE);
-                        tvStatus.setText(currentStatus.toUpperCase());
+                        tvStatus.setText(currentStatus.toUpperCase().replace("_", " "));
                     } else {
                         footerButtons.setVisibility(View.VISIBLE);
                         btnCancelApprovedBooking.setVisibility(View.GONE);
@@ -110,8 +119,9 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
                         tvStatus.setVisibility(View.GONE);
                     }
 
-                    if (snapshot.hasChild("facultyRemarks")) {
-                        String remarks = String.valueOf(snapshot.child("facultyRemarks").getValue());
+                    // Checking "remarks" field as per database structure
+                    if (snapshot.hasChild("remarks")) {
+                        String remarks = String.valueOf(snapshot.child("remarks").getValue());
                         if (remarks != null && !remarks.isEmpty() && !remarks.equals("null")) {
                             tvLabelRemarks.setVisibility(View.VISIBLE);
                             tvRemarks.setVisibility(View.VISIBLE);
@@ -145,14 +155,7 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
     }
 
     private void handleCancellation() {
-        new AlertDialog.Builder(this)
-            .setTitle("Cancel Booking")
-            .setMessage("Are you sure you want to cancel this approved booking?")
-            .setPositiveButton("Yes, Cancel", (dialog, which) -> {
-                updateBooking("cancelled", "cancelled", "Cancelled by Faculty Incharge");
-            })
-            .setNegativeButton("No", null)
-            .show();
+        showRemarksDialog("Cancelled", true);
     }
 
     private void loadUserName(String userId) {
@@ -173,21 +176,21 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
         });
     }
 
-    private void showRejectDialog() {
+    private void showRemarksDialog(String status, Object approvalValue) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Reject Booking");
-        builder.setMessage("Please enter the reason for rejection:");
+        builder.setTitle(status + " Booking");
+        builder.setMessage("Please enter the remarks for " + status.toLowerCase() + ":");
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
 
-        builder.setPositiveButton("Reject", (dialog, which) -> {
-            String reason = input.getText().toString();
-            if (reason.isEmpty()) {
-                Toast.makeText(this, "Reason is required to reject", Toast.LENGTH_SHORT).show();
+        builder.setPositiveButton("Confirm", (dialog, which) -> {
+            String remarks = input.getText().toString();
+            if (remarks.isEmpty()) {
+                Toast.makeText(this, "Remarks are required", Toast.LENGTH_SHORT).show();
             } else {
-                updateBooking("rejected", "rejected", reason);
+                updateBooking(status, approvalValue, remarks);
             }
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -204,23 +207,23 @@ public class FacultyBookingDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void updateBooking(String status, String facultyInchargeApproval, String remarks) {
+    private void updateBooking(String status, Object facultyInchargeApproval, String remarks) {
         String approverUid = FirebaseAuth.getInstance().getUid();
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("status", status);
         updates.put("facultyInchargeApproval", facultyInchargeApproval);
-        updates.put("approvedBy", approverUid); // Store the current user's UID as approver
+        updates.put("approvedBy", approverUid);
 
         if (remarks != null) {
-            updates.put("facultyRemarks", remarks);
+            updates.put("remarks", remarks);
         }
 
         bookingsRef.child(bookingId).updateChildren(updates)
             .addOnSuccessListener(aVoid -> {
-                if ("approved".equalsIgnoreCase(status)) {
+                if ("Approved".equalsIgnoreCase(status)) {
                     updateScheduleStatus("BLOCKED");
-                } else if ("rejected".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
+                } else if ("Rejected".equalsIgnoreCase(status) || "Cancelled".equalsIgnoreCase(status)) {
                     updateScheduleStatus("AVAILABLE");
                 } else {
                     Toast.makeText(this, "Booking updated", Toast.LENGTH_SHORT).show();

@@ -54,13 +54,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchUserRoleAndRedirect(String uid) {
-
         mDatabase.child("users").child(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
-
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                         if (!snapshot.exists()) {
                             mAuth.signOut();
                             navigateTo(LoginActivity.class);
@@ -71,10 +68,8 @@ public class MainActivity extends AppCompatActivity {
                         String name = snapshot.child("name").getValue(String.class);
                         String inchargeToSpace = snapshot.child("inchargeToSpace").getValue(String.class);
 
-
-
-                        nameText.setText(name);
-                        roleText.setText(role);
+                        if (name != null) nameText.setText(name);
+                        if (role != null) roleText.setText(role);
 
                         // delay so user sees welcome screen
                         new Handler().postDelayed(() -> {
@@ -92,26 +87,26 @@ public class MainActivity extends AppCompatActivity {
                                 navigateTo(HodDashboardActivity.class);
 
                             } else if ("Faculty Incharge".equalsIgnoreCase(role)) {
-                                String labName = snapshot.child("facultyInchargeTo").getValue(String.class);
-                                Intent intent = new Intent(MainActivity.this, FacultyDashboardActivity.class);
-                                intent.putExtra("labName", labName);
-                                startActivity(intent);
-                                finish();
-
+                                if (inchargeToSpace != null) {
+                                    resolveSpaceIdAndNavigate(inchargeToSpace, FacultyDashboardActivity.class);
+                                } else {
+                                    navigateTo(FacultyDashboardActivity.class, "labName", "Unknown Lab");
+                                }
                             } else if ("Lab admin".equalsIgnoreCase(role)) {
-                                String labName = snapshot.child("labAdminTo").getValue(String.class);
-                                Intent intent = new Intent(MainActivity.this, LabAdminDashboardActivity.class);
-                                intent.putExtra("labName", labName);
-                                startActivity(intent);
-                                finish();
-
-                            } else if ("CSED Staff".equals(role)) {
-                                navigateTo(CsedOfficeStaffActivity.class);
-
+                                if (inchargeToSpace != null) {
+                                    resolveSpaceIdAndNavigate(inchargeToSpace, LabAdminDashboardActivity.class);
+                                } else {
+                                    navigateTo(LabAdminDashboardActivity.class, "labName", "Unknown Lab");
+                                }
                             } else if ("Hall Incharge".equalsIgnoreCase(role)) {
-                                navigateTo(HallInchargeActivity.class);
-
-                            } else if ("StaffIncharge".equals(role)) {
+                                if (inchargeToSpace != null) {
+                                    resolveSpaceIdAndNavigate(inchargeToSpace, HallInchargeActivity.class);
+                                } else {
+                                    navigateTo(HallInchargeActivity.class);
+                                }
+                            } else if ("CSED Staff".equalsIgnoreCase(role)) {
+                                navigateTo(CsedOfficeStaffActivity.class);
+                            } else if ("StaffIncharge".equalsIgnoreCase(role)) {
                                 Intent intent = new Intent(MainActivity.this, StaffDashboardActivity.class);
                                 intent.putExtra("ROLE", role);
                                 intent.putExtra("labId", inchargeToSpace);
@@ -128,15 +123,45 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(MainActivity.this,
-                                "Database Error: " + error.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void resolveSpaceIdAndNavigate(String spaceId, Class<?> targetActivity) {
+        mDatabase.child("spaces").child(spaceId).child("roomName")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String roomName = snapshot.getValue(String.class);
+                        Intent intent = new Intent(MainActivity.this, targetActivity);
+                        // Pass resolved roomName (e.g. "SSL") or fallback to "Unknown Lab"
+                        intent.putExtra("labName", roomName != null ? roomName : "Unknown Lab");
+                        // Also passing the spaceId just in case activities need the direct ID
+                        intent.putExtra("spaceId", spaceId);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Intent intent = new Intent(MainActivity.this, targetActivity);
+                        intent.putExtra("labName", "Unknown Lab");
+                        startActivity(intent);
+                        finish();
                     }
                 });
     }
 
     private void navigateTo(Class<?> destinationClass) {
         Intent intent = new Intent(MainActivity.this, destinationClass);
+        startActivity(intent);
+        finish();
+    }
+
+    private void navigateTo(Class<?> destinationClass, String extraKey, String extraValue) {
+        Intent intent = new Intent(MainActivity.this, destinationClass);
+        intent.putExtra(extraKey, extraValue);
         startActivity(intent);
         finish();
     }
