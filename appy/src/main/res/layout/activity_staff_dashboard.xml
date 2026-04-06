@@ -16,7 +16,6 @@
         android:layout_gravity="start"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/drawer_menu"
-        app:itemIconTint="@color/primary_blue"
         app:itemTextColor="@color/text_primary"
         app:itemTextAppearance="@style/NavMenuItemText"
         app:itemVerticalPadding="12dp"

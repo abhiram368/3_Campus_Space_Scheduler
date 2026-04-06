@@ -40,5 +40,12 @@
         <activity android:name="com.example.hod.staff.DailySlotsActivity" />
         <activity android:name="com.example.hod.staff.HelpActivity" />
         <activity android:name="com.example.hod.staff.NotificationsActivity" />
+        <activity android:name="com.example.hod.staff.LabDataRecoveryActivity" />
+        <activity android:name="com.example.hod.staff.DataUtilityActivity" />
+        
+        <service 
+            android:name="com.example.hod.utils.NotificationService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 </manifest>

@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import com.campussync.appy.R;
+import com.example.hod.R;
 
 public class HelpActivity extends AppCompatActivity {
 

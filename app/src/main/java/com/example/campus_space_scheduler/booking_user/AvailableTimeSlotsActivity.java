@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.campus_space_scheduler.R;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,6 +30,7 @@ import java.util.Locale;
 public class AvailableTimeSlotsActivity extends AppCompatActivity {
 
     private String spaceId, spaceName, date, role, spaceType;
+    private final java.util.Set<String> addedTimeSlots = new java.util.HashSet<>();
     private GridLayout gridLayoutSlots;
     private ProgressBar progressBar;
     private TextView noSlotsTextView;
@@ -45,7 +47,7 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         role = getIntent().getStringExtra("ROLE");
         spaceType = getIntent().getStringExtra("SPACE_TYPE");
 
-        ImageView buttonBack = findViewById(R.id.buttonBack);
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
         TextView spaceNameTextView = findViewById(R.id.textViewSpaceName);
         TextView dateTextView = findViewById(R.id.textViewDate);
         gridLayoutSlots = findViewById(R.id.gridLayoutSlots);
@@ -55,8 +57,8 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         if (spaceNameTextView != null) spaceNameTextView.setText(spaceName);
         if (dateTextView != null) dateTextView.setText(date);
 
-        if (buttonBack != null) {
-            buttonBack.setOnClickListener(v -> finish());
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
         }
 
         schedulesRef = FirebaseDatabase.getInstance().getReference("schedules");
@@ -68,31 +70,46 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         if (noSlotsTextView != null) noSlotsTextView.setVisibility(View.GONE);
         if (gridLayoutSlots != null) gridLayoutSlots.removeAllViews();
+        addedTimeSlots.clear();
 
+        // Layer 1: Standard search by spaceId
         schedulesRef.orderByChild("spaceId").equalTo(spaceId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    schedulesRef.orderByChild("spaceID").equalTo(spaceId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot2) {
-                            handleScheduleSnapshot(snapshot2);
-                        }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            if (progressBar != null) progressBar.setVisibility(View.GONE);
-                        }
-                    });
-                } else {
-                    handleScheduleSnapshot(snapshot);
-                }
+                handleScheduleSnapshot(snapshot);
+                
+                // Layer 2: Legacy search by spaceID (Handles case-sensitivity for SSL)
+                schedulesRef.orderByChild("spaceID").equalTo(spaceId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot2) {
+                        handleScheduleSnapshot(snapshot2);
+                        
+                        // Layer 3: Direct key fetch (Handles manual SSL_date nodes)
+                        String directKey = spaceId + "_" + date;
+                        schedulesRef.child(directKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot3) {
+                                if (snapshot3.exists()) {
+                                    processSlots(snapshot3.child("slots"), snapshot3.getKey());
+                                }
+                                finalizeSearchUI();
+                            }
+                            @Override public void onCancelled(@NonNull DatabaseError error) { finalizeSearchUI(); }
+                        });
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) { finalizeSearchUI(); }
+                });
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                if (progressBar != null) progressBar.setVisibility(View.GONE);
-            }
+            @Override public void onCancelled(@NonNull DatabaseError error) { finalizeSearchUI(); }
         });
+    }
+
+    private void finalizeSearchUI() {
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        if (addedTimeSlots.isEmpty() && noSlotsTextView != null) {
+            noSlotsTextView.setVisibility(View.VISIBLE);
+            noSlotsTextView.setText("No available slots found for " + date);
+        }
     }
 
     private void handleScheduleSnapshot(DataSnapshot snapshot) {
@@ -104,7 +121,7 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
             if (date != null && date.equals(scheduleDate)) {
                 foundSchedule = true;
                 processSlots(scheduleSnapshot.child("slots"), scheduleSnapshot.getKey());
-                break;
+                // Remove break to allow merging multiple schedule nodes for the same date
             }
         }
 
@@ -119,24 +136,66 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         String currentTimeStr = new SimpleDateFormat("HHmm", Locale.getDefault()).format(new Date());
         int currentIntTime = Integer.parseInt(currentTimeStr);
 
-        boolean hasAvailableSlots = false;
+        boolean hasAvailableSlots = !addedTimeSlots.isEmpty();
 
         for (DataSnapshot slotSnapshot : slotsSnapshot.getChildren()) {
-            String status = slotSnapshot.child("status").getValue(String.class);
+            String slotKey = slotSnapshot.getKey();
+            Object statusVal = slotSnapshot.child("status").getValue();
+            String status = "AVAILABLE";
+
+            if (statusVal instanceof Boolean) {
+                status = (Boolean) statusVal ? "BOOKED" : "AVAILABLE";
+            } else if (statusVal instanceof String) {
+                status = (String) statusVal;
+            } else if (statusVal == null) {
+                Object mainVal = slotSnapshot.getValue();
+                if (mainVal instanceof Boolean) {
+                    status = (Boolean) mainVal ? "BOOKED" : "AVAILABLE";
+                }
+            }
+
             String startStr = slotSnapshot.child("start").getValue(String.class);
             String endStr = slotSnapshot.child("end").getValue(String.class);
 
-            if (status != null && status.equalsIgnoreCase("AVAILABLE") && startStr != null && endStr != null) {
-                int startTime = Integer.parseInt(startStr.replace(":", ""));
+            // Fallback: Parse start/end from key (e.g., "09:00 - 10:00" or "0900")
+            if ((startStr == null || endStr == null) && slotKey != null) {
+                if (slotKey.contains("-")) {
+                    String[] parts = slotKey.split("-");
+                    if (parts.length >= 2) {
+                        startStr = parts[0].trim();
+                        endStr = parts[1].trim();
+                    }
+                } else if (slotKey.length() == 4) { // e.g., "0900"
+                    startStr = slotKey.substring(0, 2) + ":" + slotKey.substring(2);
+                }
+            }
+
+            if (status != null && status.equalsIgnoreCase("AVAILABLE") && startStr != null) {
+                String finalStart = normalizeTime(startStr);
+                String finalEnd = endStr != null ? normalizeTime(endStr) : "";
+                String displayLabel = finalStart + " - " + finalEnd;
+                
+                int startTime;
+                try {
+                    startTime = Integer.parseInt(finalStart.replace(":", "").trim());
+                } catch (Exception e) {
+                    continue; 
+                }
 
                 if (date != null && date.equals(todayDate)) {
                     if (startTime >= currentIntTime) {
-                        addSlotButton(startStr, endStr, scheduleId);
-                        hasAvailableSlots = true;
+                        if (!addedTimeSlots.contains(displayLabel)) {
+                            addSlotButton(finalStart, finalEnd, scheduleId);
+                            addedTimeSlots.add(displayLabel);
+                            hasAvailableSlots = true;
+                        }
                     }
                 } else {
-                    addSlotButton(startStr, endStr, scheduleId);
-                    hasAvailableSlots = true;
+                    if (!addedTimeSlots.contains(displayLabel)) {
+                        addSlotButton(finalStart, finalEnd, scheduleId);
+                        addedTimeSlots.add(displayLabel);
+                        hasAvailableSlots = true;
+                    }
                 }
             }
         }
@@ -144,6 +203,18 @@ public class AvailableTimeSlotsActivity extends AppCompatActivity {
         if (!hasAvailableSlots && noSlotsTextView != null) {
             noSlotsTextView.setVisibility(View.VISIBLE);
             noSlotsTextView.setText("No available slots for the selected time.");
+        }
+    }
+
+    private String normalizeTime(String time) {
+        if (time == null || !time.contains(":")) return time;
+        try {
+            String[] parts = time.split(":");
+            int h = Integer.parseInt(parts[0].trim());
+            int m = Integer.parseInt(parts[1].trim());
+            return String.format(Locale.getDefault(), "%02d:%02d", h, m);
+        } catch (Exception e) {
+            return time;
         }
     }
 

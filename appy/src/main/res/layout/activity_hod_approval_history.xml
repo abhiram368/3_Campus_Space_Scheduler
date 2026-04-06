@@ -60,9 +60,42 @@
         android:layout_height="0dp"
         android:padding="8dp"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/selection_actions"
         app:layout_constraintTop_toBottomOf="@+id/filterTabLayout"
         tools:listitem="@layout/list_item_request" />
+
+    <!-- Selection Actions Bar -->
+    <LinearLayout
+        android:id="@+id/selection_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#F3F4F6"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_all"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Select All"
+            android:textColor="@color/primary_blue" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete_selected"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Delete Selected"
+            app:backgroundTint="#FEE2E2"
+            app:rippleColor="#FCA5A5"
+            android:textColor="#B91C1C" />
+
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"

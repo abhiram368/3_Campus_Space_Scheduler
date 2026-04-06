@@ -35,12 +35,12 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
     private static final String TAG = "BookingDetailsActivity";
     private static final int CALENDAR_PERMISSION_REQUEST_CODE = 101;
-    
-    private TextView spaceNameTextView, statusTextView, dateTimeTextView, purposeTextView, 
-            descriptionTextView, requestedOnTextView, bookedByTextView, 
+
+    private TextView spaceNameTextView, statusTextView, dateTimeTextView, purposeTextView,
+            descriptionTextView, requestedOnTextView, bookedByTextView,
             approvedByTextView, textViewRemarks;
     private MaterialButton buttonViewLor, buttonCancelBooking, buttonAddToCalendar;
-    
+
     private String bookingId, scheduleId, timeSlot, slotStart, spaceName, date, purpose, description, spaceType;
     private DatabaseReference bookingRef;
     private ValueEventListener bookingListener;
@@ -67,6 +67,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
         // Get initial data from intent
         bookingId = getIntent().getStringExtra("BOOKING_ID");
+        if (bookingId == null) {
+            bookingId = getIntent().getStringExtra("bookingId");
+        }
         scheduleId = getIntent().getStringExtra("SCHEDULE_ID");
         slotStart = getIntent().getStringExtra("SLOT_START");
         spaceName = getIntent().getStringExtra("SPACE_NAME");
@@ -113,7 +116,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     String approvedByUid = booking.getApprovedBy();
                     String lorUrl = booking.getLorUpload();
                     boolean hasLor = lorUrl != null && !lorUrl.isEmpty();
-                    
+
                     // Update variables used for calendar
                     spaceName = booking.getSpaceName();
                     date = booking.getDate();
@@ -122,9 +125,9 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     description = booking.getDescription();
                     spaceType = booking.getSpaceType();
 
-                    updateUI(spaceName, status, date, timeSlot, purpose, description, 
+                    updateUI(spaceName, status, date, timeSlot, purpose, description,
                             null, // requestedOn handled by intent initially
-                            booking.getBookedBy(), approvedByUid, actionBy, remark, hasLor, lorUrl, 
+                            booking.getBookedBy(), approvedByUid, actionBy, remark, hasLor, lorUrl,
                             getIntent().getBooleanExtra("SHOW_CANCEL_BUTTON", false), spaceType);
                 }
             }
@@ -137,12 +140,12 @@ public class BookingDetailsActivity extends AppCompatActivity {
         bookingRef.addValueEventListener(bookingListener);
     }
 
-    private void updateUI(String spaceName, String status, String date, String timeSlot, 
-                          String purpose, String description, String requestedOn, 
-                          String bookedById, String approvedByUid, String actionBy, 
+    private void updateUI(String spaceName, String status, String date, String timeSlot,
+                          String purpose, String description, String requestedOn,
+                          String bookedById, String approvedByUid, String actionBy,
                           String remark, boolean hasLor, String lorUrl, boolean showCancelButton,
                           String spaceType) {
-        
+
         if (spaceNameTextView != null) spaceNameTextView.setText(spaceName != null ? spaceName : "N/A");
         if (statusTextView != null) {
             statusTextView.setText(status != null ? status.toUpperCase() : "PENDING");
@@ -151,9 +154,15 @@ public class BookingDetailsActivity extends AppCompatActivity {
         if (dateTimeTextView != null) dateTimeTextView.setText((date != null ? date : "") + " | " + (timeSlot != null ? timeSlot : ""));
         if (purposeTextView != null) purposeTextView.setText(purpose != null ? purpose : "N/A");
         if (descriptionTextView != null) descriptionTextView.setText(description != null ? description : "No description provided.");
-        
+
         if (requestedOn != null && requestedOnTextView != null) {
             requestedOnTextView.setText(requestedOn);
+        }
+
+        // If data is missing (common with notifications), fetch it from Firebase
+        if (bookingId != null && (spaceName == null || spaceName.isEmpty() || spaceName.equalsIgnoreCase("N/A"))) {
+            Log.d(TAG, "Triggering full booking fetch for ID: " + bookingId);
+            fetchFullBookingDetails(bookingId);
         }
 
         if (bookedById != null && bookedByTextView != null) {
@@ -161,8 +170,8 @@ public class BookingDetailsActivity extends AppCompatActivity {
         }
 
         // Determine if it's a Classroom (direct booking)
-        boolean isClassroom = (spaceType != null && spaceType.equalsIgnoreCase("Classroom")) || 
-                             (remark != null && remark.contains("Directly booked"));
+        boolean isClassroom = (spaceType != null && spaceType.equalsIgnoreCase("Classroom")) ||
+                (remark != null && remark.contains("Directly booked"));
 
         // Handle Status logic
         if (status != null) {
@@ -235,11 +244,11 @@ public class BookingDetailsActivity extends AppCompatActivity {
 
         if (buttonCancelBooking != null) {
             // Allow cancel only if showCancelButton is true AND (not a classroom OR it's coming from CancelRequestActivity)
-            // Wait, you said "add cancel request option... only for classroom". 
+            // Wait, you said "add cancel request option... only for classroom".
             // Actually, based on your previous messages, you want Classrooms to be cancellable ONLY from the Cancel screen.
-            
+
             boolean isFromCancelScreen = getIntent().getBooleanExtra("SHOW_CANCEL_BUTTON", false);
-            
+
             boolean canCancel = false;
             if (isFromCancelScreen) {
                 // If it's from the Cancel screen, we allow cancellation for EVERYTHING (including classrooms)
@@ -257,6 +266,48 @@ public class BookingDetailsActivity extends AppCompatActivity {
                 buttonCancelBooking.setVisibility(View.GONE);
             }
         }
+    }
+
+    private void fetchFullBookingDetails(String id) {
+        DatabaseReference bookingRef = FirebaseDatabase.getInstance().getReference("bookings").child(id);
+        bookingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    bookingId = snapshot.child("bookingId").getValue(String.class);
+                    scheduleId = snapshot.child("scheduleId").getValue(String.class);
+                    slotStart = snapshot.child("slotStart").getValue(String.class);
+                    spaceName = snapshot.child("spaceName").getValue(String.class);
+                    date = snapshot.child("date").getValue(String.class);
+                    timeSlot = snapshot.child("timeSlot").getValue(String.class);
+                    purpose = snapshot.child("purpose").getValue(String.class);
+                    description = snapshot.child("description").getValue(String.class);
+                    String status = snapshot.child("status").getValue(String.class);
+                    String remarks = snapshot.child("remarks").getValue(String.class);
+                    if (remarks == null) {
+                        remarks = snapshot.child("remark").getValue(String.class);
+                    }
+                    String actionBy = snapshot.child("actionBy").getValue(String.class);
+                    String bookedById = snapshot.child("bookedBy").getValue(String.class);
+                    String approvedByUid = snapshot.child("approvedBy").getValue(String.class);
+                    String lorUrl = snapshot.child("lorUpload").getValue(String.class);
+                    boolean hasLor = (lorUrl != null && !lorUrl.isEmpty());
+
+                    // Requested Time
+                    String requestedDate = snapshot.child("bookedTime").child("date").getValue(String.class);
+                    String requestedTime = snapshot.child("bookedTime").child("time").getValue(String.class);
+                    String requestedOn = (requestedDate != null ? requestedDate : "") + " " + (requestedTime != null ? requestedTime : "");
+
+                    // Update UI components
+                    updateUI(spaceName, status, date, timeSlot, purpose, description, requestedOn, bookedById, approvedByUid, remarks, actionBy, hasLor, lorUrl, getIntent().getBooleanExtra("SHOW_CANCEL_BUTTON", false), spaceType);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Error fetching booking details: " + error.getMessage());
+            }
+        });
     }
 
     private void checkCalendarPermissions() {
@@ -316,7 +367,7 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     String name = snapshot.child("name").getValue(String.class);
                     if (name == null) name = snapshot.child("displayName").getValue(String.class);
                     if (name == null) name = snapshot.child("full_name").getValue(String.class);
-                    
+
                     if (name != null) displayName = name;
                     else displayName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "User";
                 }
@@ -375,13 +426,13 @@ public class BookingDetailsActivity extends AppCompatActivity {
                     }
 
                     Toast.makeText(BookingDetailsActivity.this, R.string.booking_cancelled_successfully, Toast.LENGTH_SHORT).show();
-                    
+
                     // Show notification for the user who cancelled
                     NotificationHelper.showNotification(
-                        BookingDetailsActivity.this, 
-                        "Booking Cancelled", 
-                        "Your booking for " + spaceName + " has been successfully cancelled.",
-                        bookingId
+                            BookingDetailsActivity.this,
+                            "Booking Cancelled",
+                            "Your booking for " + spaceName + " has been successfully cancelled.",
+                            bookingId
                     );
 
                     finish();

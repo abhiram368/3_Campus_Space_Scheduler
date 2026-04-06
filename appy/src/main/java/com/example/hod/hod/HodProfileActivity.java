@@ -9,7 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.firebase.FirebaseClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -113,17 +113,24 @@ public class HodProfileActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        FirebaseDatabase.getInstance().goOffline();
-        FirebaseAuth.getInstance().signOut();
-        try {
-            Intent intent = new Intent();
-            intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        } catch (Exception e) {
-            Toast.makeText(this, "Logout failed", Toast.LENGTH_SHORT).show();
-        }
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("Logout")
+            .setMessage("Do you really want to logout?")
+            .setPositiveButton("Confirm Logout", (dialog, which) -> {
+                FirebaseDatabase.getInstance().goOffline();
+                FirebaseAuth.getInstance().signOut();
+                try {
+                    Intent intent = new Intent();
+                    intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                } catch (Exception e) {
+                    Toast.makeText(this, "Logout failed", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("No", null)
+            .show();
     }
 
     private void toggleEditMode(boolean enable) {

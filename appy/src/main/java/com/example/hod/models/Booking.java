@@ -1,27 +1,14 @@
 package com.example.hod.models;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 /**
  * Matches the Firebase Realtime Database bookings/{bookingId} schema exactly.
- *
- * bookings/{bookingId}
- *   bookedBy                   – uid of requester
- *   bookedTime/date            – date string when booking was made
- *   bookedTime/time            – time string when booking was made
- *   bookingId                  – same as the node key
- *   date                       – date of the booking/event
- *   description
- *   facultyInchargeApproval    – boolean
- *   hodApproval                – boolean
- *   lorUpload                  – download URL
- *   purpose
- *   scheduleId
- *   slotStart                  – e.g. "09:00"
- *   spaceName                  – human-readable room name
- *   status                     – pending | approved | rejected | forwarded_to_*
- *   timeSlot                   – display string, e.g. "9:00 AM – 10:00 AM"
  */
 public class Booking implements Serializable {
 
@@ -46,24 +33,22 @@ public class Booking implements Serializable {
     // Extra runtime fields (not stored in DB – set by the repository after fetching)
     private String remark;       // stored in DB on some flows
     private String approvedBy;
-   // UID of the person who made the final decision
     private String requesterName; // resolved from users/{bookedBy}/name at runtime
+    private String requesterRole; // resolved from users/{bookedBy}/role at runtime
+    private String decisionTime; // stored in bookings/{bookingId}/decisionTime
 
     public Booking() {}
 
-    // ── bookingId ────────────────────────────────────────────────────────────
+    // ── Getters and Setters ──────────────────────────────────────────────────
     public String getBookingId() { return bookingId; }
     public void setBookingId(String bookingId) { this.bookingId = bookingId; }
 
-    // ── bookedBy ─────────────────────────────────────────────────────────────
     public String getBookedBy() { return bookedBy; }
     public void setBookedBy(String bookedBy) { this.bookedBy = bookedBy; }
 
-    // ── bookedTime (nested) ───────────────────────────────────────────────────
     public Map<String, String> getBookedTime() { return bookedTime; }
     public void setBookedTime(Map<String, String> bookedTime) { this.bookedTime = bookedTime; }
 
-    /** Convenience: returns "date time" string or null. */
     public String getBookedTimeDisplay() {
         if (bookedTime == null) return null;
         String d = bookedTime.get("date");
@@ -72,63 +57,46 @@ public class Booking implements Serializable {
         return d != null ? d : t;
     }
 
-    // ── date ─────────────────────────────────────────────────────────────────
     public String getDate() { return date; }
     public void setDate(String date) { this.date = date; }
 
-    // ── description ──────────────────────────────────────────────────────────
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    // ── facultyInchargeApproval ───────────────────────────────────────────────
     public boolean isFacultyInchargeApproval() { return facultyInchargeApproval; }
     public void setFacultyInchargeApproval(boolean facultyInchargeApproval) {
         this.facultyInchargeApproval = facultyInchargeApproval;
     }
 
-    // ── hodApproval ───────────────────────────────────────────────────────────
     public boolean isHodApproval() { return hodApproval; }
     public void setHodApproval(boolean hodApproval) { this.hodApproval = hodApproval; }
 
-    // ── lorUpload ─────────────────────────────────────────────────────────────
     public String getLorUpload() { return lorUpload; }
     public void setLorUpload(String lorUpload) { this.lorUpload = lorUpload; }
 
-    // ── purpose ───────────────────────────────────────────────────────────────
     public String getPurpose() { return purpose; }
     public void setPurpose(String purpose) { this.purpose = purpose; }
 
-    // ── scheduleId ────────────────────────────────────────────────────────────
     public String getScheduleId() { return scheduleId; }
     public void setScheduleId(String scheduleId) { this.scheduleId = scheduleId; }
 
-    // ── slotStart ─────────────────────────────────────────────────────────────
     public String getSlotStart() { return slotStart; }
     public void setSlotStart(String slotStart) { this.slotStart = slotStart; }
 
-    // ── spaceName ─────────────────────────────────────────────────────────────
     public String getSpaceName() { return spaceName; }
     public void setSpaceName(String spaceName) { this.spaceName = spaceName; }
 
-    // ── status ────────────────────────────────────────────────────────────────
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    // ── timeSlot ──────────────────────────────────────────────────────────────
     public String getTimeSlot() { return timeSlot; }
     public void setTimeSlot(String timeSlot) { this.timeSlot = timeSlot; }
 
-    // ── remark (optional, written by approvers) ───────────────────────────────
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
 
-    // ── decisionBy (UID of the person who made the decision) ───────────────
     public String getApprovedBy() { return approvedBy; }
     public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
-
-    // ── requesterName (runtime, not persisted) ────────────────────────────────
-    private String requesterRole; // resolved from users/{bookedBy}/role at runtime
-    private String decisionTime; // stored in bookings/{bookingId}/decisionTime
 
     public String getRequesterRole() { return requesterRole; }
     public void setRequesterRole(String requesterRole) { this.requesterRole = requesterRole; }
@@ -139,17 +107,78 @@ public class Booking implements Serializable {
     public String getRequesterName() { return requesterName; }
     public void setRequesterName(String requesterName) { this.requesterName = requesterName; }
 
-    // ── Legacy / compatibility helpers ────────────────────────────────────────
+    // ── Business Logic ────────────────────────────────────────────────────────
+
+    public boolean isExpired() {
+        if (date == null || date.isEmpty()) return false;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date bookingDate = sdf.parse(date);
+            Date now = new Date();
+            
+            // Normalize today's date (strip time for pure date comparison)
+            Date todayOnly = sdf.parse(sdf.format(now));
+            
+            if (bookingDate == null) return false;
+            
+            // 1. If date is in the absolute past
+            if (bookingDate.before(todayOnly)) return true;
+            
+            // 2. If date is today, check if the specific time slot has passed
+            if (bookingDate.equals(todayOnly)) {
+                if (timeSlot != null && timeSlot.contains("-")) {
+                    String[] parts = timeSlot.split("-");
+                    if (parts.length > 1) {
+                        String startTimeStr = parts[0].trim();
+                        
+                        // Parse current time vs start time in minutes from midnight
+                        java.util.Calendar cal = java.util.Calendar.getInstance();
+                        int currentMinutes = cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE);
+                        int startMinutes = getMinutesFromTime(startTimeStr);
+                        
+                        // If current clock time is past the slot START time, it's considered expired 
+                        // for pending/authority approval purposes.
+                        return startMinutes != -1 && currentMinutes >= startMinutes;
+                    }
+                }
+            }
+            
+            return false;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
 
     /**
-     * No "staffApproval" field in the DB schema.
-     * Staff forwards to faculty; consider staff-approved when status is NOT "pending".
+     * Helper to convert times like "2:30 PM", "14:30", or "10:00" to minutes since midnight.
      */
+    private int getMinutesFromTime(String timeStr) {
+        if (timeStr == null || timeStr.isEmpty()) return -1;
+        try {
+            String upper = timeStr.toUpperCase().trim();
+            boolean isPM = upper.contains("PM");
+            boolean isAM = upper.contains("AM");
+            
+            String clean = upper.replaceAll("[^0-9:]", "");
+            String[] parts = clean.split(":");
+            if (parts.length == 0) return -1;
+            
+            int hours = Integer.parseInt(parts[0]);
+            int minutes = (parts.length > 1) ? Integer.parseInt(parts[1]) : 0;
+            
+            if (isPM && hours < 12) hours += 12;
+            if (isAM && hours == 12) hours = 0;
+            
+            return hours * 60 + minutes;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     public boolean isStaffApproval() {
         return status != null && !status.equalsIgnoreCase("pending");
     }
 
-    // Convenience: human-readable display name for a booking list item
     public String getDisplayTitle() {
         if (spaceName != null && !spaceName.isEmpty()) return spaceName;
         if (purpose != null && !purpose.isEmpty()) return purpose;

@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.StaffScheduleAdapter;
 import com.example.hod.models.Booking;
 import com.example.hod.repository.FirebaseRepository;
@@ -167,28 +167,67 @@ public class DailySlotsActivity extends AppCompatActivity {
             DataSnapshot snapshot = null;
             if (result instanceof Result.Success) snapshot = ((Result.Success<DataSnapshot>) result).data;
 
-            List<StaffScheduleAdapter.SlotItem> tempSlots = new ArrayList<>();
+            java.util.Map<String, StaffScheduleAdapter.SlotItem> deduplicated = new java.util.LinkedHashMap<>();
             if (snapshot != null && snapshot.exists()) {
                 for (DataSnapshot slotSnap : snapshot.getChildren()) {
-                    String slotKey = slotSnap.getKey();
+                    String rawKey = slotSnap.getKey();
+                    String formattedKey = repo.formatSlotKey(rawKey);
+                    
                     String status = slotSnap.child("status").getValue(String.class);
+                    if (status == null) {
+                        // Handle legacy boolean format
+                        Object val = slotSnap.getValue();
+                        if (val instanceof Boolean) {
+                            status = ((Boolean) val) ? "BOOKED" : "AVAILABLE";
+                        } else {
+                            status = "AVAILABLE";
+                        }
+                    } else if ("PENDING".equalsIgnoreCase(status.trim())) {
+                        status = "BOOKED";
+                    }
+
                     String start = slotSnap.child("start").getValue(String.class);
                     String end = slotSnap.child("end").getValue(String.class);
+                    
                     if (status == null || (!status.equalsIgnoreCase("BOOKED") && !status.equalsIgnoreCase("BLOCKED"))) {
                         status = "AVAILABLE";
                     }
 
                     StaffScheduleAdapter.SlotItem item = new StaffScheduleAdapter.SlotItem();
-                    item.timeRange = (start != null && end != null) ? start + " – " + end : slotKey;
+                    item.timeRange = (start != null && end != null) ? start + " – " + end : formattedKey;
                     item.status = status;
                     item.spaceId = labId;
                     item.date = date;
-                    item.slotKey = slotKey;
-                    tempSlots.add(item);
+                    item.slotKey = rawKey;
+                    item.startTimeMinutes = repo.parseStartTime(rawKey);
+                    item.adminName = slotSnap.child("adminName").getValue(String.class);
+
+                    // Deduplication logic: prioritize entries with bookings or blocks
+                    if (deduplicated.containsKey(formattedKey)) {
+                        StaffScheduleAdapter.SlotItem existing = deduplicated.get(formattedKey);
+                        String currentStat = (status != null) ? status.toUpperCase() : "AVAILABLE";
+                        String existingStat = (existing != null && existing.status != null) ? existing.status.toUpperCase() : "AVAILABLE";
+
+                        if ("AVAILABLE".equals(existingStat) && !"AVAILABLE".equals(currentStat)) {
+                            deduplicated.put(formattedKey, item);
+                        }
+                    } else {
+                        deduplicated.put(formattedKey, item);
+                    }
                 }
             }
+            
             slotList.clear();
-            slotList.addAll(tempSlots);
+            slotList.addAll(deduplicated.values());
+            
+            // Re-sort the deduplicated list using numeric startTimeMinutes
+            java.util.Collections.sort(slotList, (a, b) -> {
+                if (a.startTimeMinutes != b.startTimeMinutes) {
+                    return Integer.compare(a.startTimeMinutes, b.startTimeMinutes);
+                }
+                return a.timeRange.compareTo(b.timeRange);
+            });
+            
             adapter.notifyDataSetChanged();
 
             if (slotList.isEmpty()) {
@@ -203,7 +242,16 @@ public class DailySlotsActivity extends AppCompatActivity {
                 if ("BOOKED".equalsIgnoreCase(item.status)) {
                     repo.getBookingForSlot(labId, date, item.slotKey, res -> {
                         if (res instanceof Result.Success) {
-                            item.booking = ((Result.Success<Booking>) res).data;
+                            Booking b = ((Result.Success<Booking>) res).data;
+                            item.booking = b;
+                            if (b != null && b.getBookedBy() != null) {
+                                repo.getUserName(b.getBookedBy(), nameRes -> {
+                                    if (nameRes instanceof Result.Success) {
+                                        b.setRequesterName(((Result.Success<String>) nameRes).data);
+                                        runOnUiThread(() -> adapter.notifyDataSetChanged());
+                                    }
+                                });
+                            }
                             runOnUiThread(() -> adapter.notifyDataSetChanged());
                         }
                     });
@@ -212,24 +260,44 @@ public class DailySlotsActivity extends AppCompatActivity {
         }));
     }
 
+
     private void showBulkBlockDialog() {
-        android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint("Reason (e.g., Maintenance)");
-        
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("Block Selected Slots")
-            .setMessage("Enter a reason for blocking " + adapter.getSelectedSlots().size() + " slots.")
-            .setView(input)
-            .setPositiveButton("Block All", (dialog, which) -> {
-                String reason = input.getText().toString().trim();
-                if (reason.isEmpty()) {
-                    Toast.makeText(this, "Reason is required", Toast.LENGTH_SHORT).show();
-                } else {
-                    executeBulkBlock(reason);
-                }
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.layout_cancel_booking_dialog, null);
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        TextView tvTitle = dialogView.findViewById(R.id.tv_dialog_title);
+        TextView tvSubtitle = dialogView.findViewById(R.id.tv_dialog_subtitle);
+        android.widget.EditText etRemark = dialogView.findViewById(R.id.et_cancel_remark);
+        android.widget.Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        android.widget.Button btnConfirm = dialogView.findViewById(R.id.btn_dialog_confirm);
+
+        if (tvTitle != null) tvTitle.setText("Block Selected Slots");
+        if (tvSubtitle != null) tvSubtitle.setText("Please provide a reason for blocking " + adapter.getSelectedSlots().size() + " slots.");
+        if (etRemark != null) etRemark.setHint("Enter reason here...");
+        if (btnConfirm != null) {
+            btnConfirm.setText("Block Slots");
+            btnConfirm.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.status_rejected)));
+        }
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            String reason = etRemark.getText().toString().trim();
+            if (reason.isEmpty()) {
+                etRemark.setError("Reason is required to block slots");
+            } else {
+                executeBulkBlock(reason);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
     private void executeBulkBlock(String reason) {

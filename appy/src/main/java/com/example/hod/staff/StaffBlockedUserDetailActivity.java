@@ -11,8 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.User;
+import com.example.hod.repository.FirebaseRepository;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -127,6 +128,10 @@ public class StaffBlockedUserDetailActivity extends AppCompatActivity {
         userRef.child("blockedBy").removeValue().addOnCompleteListener(task -> {
             progressBar.setVisibility(View.GONE);
             if (task.isSuccessful()) {
+                // Send notification to user
+                FirebaseRepository repo = new FirebaseRepository();
+                repo.sendNotification(userId, "Your account has been unblocked by the Staff Incharge. You can now make bookings.", null, "Active", userId, "approval", "student", r -> {});
+
                 Toast.makeText(this, "User unblocked successfully", Toast.LENGTH_SHORT).show();
                 finish(); // Return to the list
             } else {

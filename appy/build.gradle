@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.campussync.appy'
+    namespace 'com.example.hod'
     compileSdk 34
 
     defaultConfig {

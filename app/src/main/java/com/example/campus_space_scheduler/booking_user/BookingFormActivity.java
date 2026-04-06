@@ -26,6 +26,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.example.hod.repository.FirebaseRepository;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -58,7 +59,11 @@ public class BookingFormActivity extends AppCompatActivity {
         slotStart = getIntent().getStringExtra("SLOT_START");
 
         // Initialize views
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        View btnBack = findViewById(R.id.buttonBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
+
         TextView textViewSpaceName = findViewById(R.id.textViewSpaceName);
         TextView textViewSelectedSlot = findViewById(R.id.textViewSelectedSlot);
 
@@ -74,10 +79,6 @@ public class BookingFormActivity extends AppCompatActivity {
         if (date != null && timeSlot != null) textViewSelectedSlot.setText(date + " | " + timeSlot);
 
         updateUIBasedOnRole(userRole, spaceType);
-
-        if (toolbar != null) {
-            toolbar.setNavigationOnClickListener(v -> finish());
-        }
         buttonSubmit.setOnClickListener(v -> {
             if (validateForm(userRole, spaceType)) {
                 checkAvailabilityAndSubmit();
@@ -87,7 +88,7 @@ public class BookingFormActivity extends AppCompatActivity {
 
     private void updateUIBasedOnRole(String role, String spaceType) {
         if (role == null || spaceType == null) return;
-        
+
         // Direct booking for Classrooms - hide LOR requirements regardless of role
         if (spaceType.equalsIgnoreCase("Classroom")) {
             textInputLayoutLorUrl.setVisibility(View.GONE);
@@ -113,7 +114,7 @@ public class BookingFormActivity extends AppCompatActivity {
             etPurpose.setError("Purpose is required");
             return false;
         }
-        
+
         // Skip LOR validation for Classrooms (Direct booking)
         if (spaceType != null && spaceType.equalsIgnoreCase("Classroom")) {
             return true;
@@ -225,6 +226,7 @@ public class BookingFormActivity extends AppCompatActivity {
         data.put("spaceName", spaceName);
         data.put("remark", "");
         data.put("actionBy", "");
+
         // Direct booking for Classrooms
         data.put("status", isClassroom ? "Approved" : "Pending");
         data.put("approvedBy", isClassroom ? "System (Auto)" : "");
@@ -238,13 +240,23 @@ public class BookingFormActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String toastMsg = isClassroom ? "Booking Confirmed!" : "Booking Request Sent";
                 Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
-                
-                // Show notification with more details and bookingId
+
+                // 1. Firebase Database Notifications (In-App Inbox routing)
+                String receiptMsg = isClassroom ? "Your booking for " + spaceName + " is confirmed!" : "Your booking for " + spaceName + " is successfully submitted and pending approval.";
+                FirebaseRepository repo = new FirebaseRepository();
+                repo.sendNotification(uid, receiptMsg, bookingId, isClassroom ? "Approved" : "Pending", uid, "receipt", uid, r -> {});
+
+                if (!isClassroom) {
+                    String spaceId = scheduleId.split("_")[0];
+                    String staffMsg = "New pending request for " + spaceName + " is awaiting your approval.";
+                    repo.notifyStaffInchargeForSpace(spaceId, spaceName, staffMsg, bookingId, uid, "booking", "staff");
+                }
+
+                // 2. Local Android Push Notification (Immediate feedback)
                 String title = isClassroom ? "Booking Confirmed" : "Booking Submitted";
-                String body = isClassroom ? 
-                    "Your booking for " + spaceName + " is confirmed!" : 
-                    "Your booking request for " + spaceName + " has been successfully submitted.";
-                
+                String body = isClassroom ?
+                        "Your booking for " + spaceName + " is confirmed!" :
+                        "Your booking request for " + spaceName + " has been successfully submitted.";
                 NotificationHelper.showNotification(this, title, body, bookingId);
 
                 // Close the form and return to Dashboard

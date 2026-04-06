@@ -1,15 +1,43 @@
-local/
+# Gradle
+.gradle/
+build/
+app/build/
+appy/build/
+appium-tests/build/
+
+# Android
+*.apk
+*.ap_
+*.class
+bin/
+gen/
+
 # Firebase configuration file
 app/google-services.json
 
-# Keystore files
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+captures/
+.externalNativeBuild
+.cxx
+
+# Local configuration
+local.properties
+local.properties.DS_Store
+
+# Mac
+.DS_Store
+
+# Temp
+tmp/
+
+# Keystore
 *.jks
 *.keystore
 
-# Local properties (contains SDK paths)
-local.properties
-
-/build
-/app/build
-/appy/build
-.gradle
+# Other
+bfg-1.15.0.jar

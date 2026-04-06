@@ -3,7 +3,7 @@ package com.example.hod.staff;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 
 public class LorViewerActivity extends AppCompatActivity {
 

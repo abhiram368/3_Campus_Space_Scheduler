@@ -12,10 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
-
+import com.example.hod.R;
 import com.example.hod.models.Booking;
-import com.example.hod.staff.StaffCompletedRequestDetailActivity;
 
 import java.util.List;
 
@@ -32,6 +30,8 @@ public class StaffScheduleAdapter extends RecyclerView.Adapter<StaffScheduleAdap
         public String spaceId;
         public String date;
         public Booking booking;   // populated for BOOKED slots
+        public String adminName; // Assigned Lab Admin for this slot
+        public int startTimeMinutes; // Added for sorting and comparison
     }
 
     public interface SelectionListener {
@@ -89,11 +89,13 @@ public class StaffScheduleAdapter extends RecyclerView.Adapter<StaffScheduleAdap
             h.cbSelected.setVisibility(View.GONE);
         }
 
-        // Booker Info
+        // Participant/Booker/Admin Info
         String upper = slot.status != null ? slot.status.toUpperCase() : "";
         if ("BOOKED".equals(upper) && slot.booking != null) {
             String bookedBy = slot.booking.getBookedBy();
             h.tvBookerInfo.setText("Booked by: " + (slot.booking.getRequesterName() != null ? slot.booking.getRequesterName() : bookedBy));
+        } else if ("AVAILABLE".equals(upper) && slot.adminName != null && !slot.adminName.isEmpty()) {
+            h.tvBookerInfo.setText("Admin: " + slot.adminName);
         } else {
             h.tvBookerInfo.setText("");
         }

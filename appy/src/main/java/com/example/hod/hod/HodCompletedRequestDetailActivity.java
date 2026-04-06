@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.Booking;
 import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
@@ -35,6 +36,7 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
 
     private TextView tvRequester, tvRequesterEmail, tvRequesterPhone, tvRequesterRole, tvPurpose, tvSlotUsage, tvBookingDate, tvRemarkContent, tvBlockStatus, tvFinalStatus, tvDecisionBy, tvDecisionTime;
     private Button btnViewDocuments, btnCancelBooking, btnBlockStudent, btnUnblockStudent, btnReApprove;
+    private ProgressBar progressBar;
     private Booking booking;
     private FirebaseRepository repository;
     private DatabaseReference userRef;
@@ -63,16 +65,63 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
         btnBlockStudent = findViewById(R.id.btnBlockStudent);
         btnUnblockStudent = findViewById(R.id.btnUnblockStudent);
         btnReApprove = findViewById(R.id.btnReApprove);
+        progressBar = findViewById(R.id.progressBar);
 
         repository = new FirebaseRepository();
         booking = (Booking) getIntent().getSerializableExtra("booking");
+        String bookingIdExtra = getIntent().getStringExtra("bookingId");
 
-        if (booking == null) {
-            Toast.makeText(this, R.string.error_booking_data_missing, Toast.LENGTH_SHORT).show();
+        if (booking == null && (bookingIdExtra == null || bookingIdExtra.isEmpty())) {
+            Toast.makeText(this, "Error: No booking data", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        if (booking == null) {
+            fetchBookingAndLoad(bookingIdExtra);
+        } else {
+            loadDynamicData();
+        }
+    }
+
+    private void fetchBookingAndLoad(String bookingId) {
+        setLoading(true);
+        FirebaseDatabase.getInstance().getReference("bookings").child(bookingId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    setLoading(false);
+                    if (snapshot.exists()) {
+                        booking = snapshot.getValue(Booking.class);
+                        if (booking != null) {
+                            if (booking.getBookingId() == null) booking.setBookingId(snapshot.getKey());
+                            loadDynamicData();
+                        } else {
+                            Toast.makeText(HodCompletedRequestDetailActivity.this, "Booking parse error", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(HodCompletedRequestDetailActivity.this, "Booking not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    setLoading(false);
+                    finish();
+                }
+            });
+    }
+
+    private void setLoading(boolean loading) {
+        if (progressBar != null)
+            progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+
+        findViewById(android.R.id.content)
+                .setEnabled(!loading);
+    }
+    private void loadDynamicData() {
         updateHeader(getString(R.string.request_detail_title), getString(R.string.completed_booking_subtitle));
         populateDetails();
         loadRequesterAndBlockStatus();
@@ -125,19 +174,20 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
         
         // Colors and Button Visibility
         String lowerStatus = status.toLowerCase();
-        if (lowerStatus.contains("rejected") || lowerStatus.equals("cancelled") || lowerStatus.contains("expired")) {
+        if (lowerStatus.contains("rejected") || lowerStatus.contains("cancelled")) {
             tvFinalStatus.setTextColor(Color.parseColor("#EF4444")); // Red
             btnCancelBooking.setVisibility(View.GONE);
-            if (lowerStatus.contains("rejected") && !isBookingExpired(booking)) {
-                btnReApprove.setVisibility(View.VISIBLE);
-            } else {
-                btnReApprove.setVisibility(View.GONE);
-            }
-        } else if (lowerStatus.equals("approved") || lowerStatus.equals("booked")) {
+            btnReApprove.setVisibility(View.VISIBLE);
+        } else if (lowerStatus.contains("expired")) {
+            tvFinalStatus.setTextColor(Color.parseColor("#EF4444")); // Red
+            btnCancelBooking.setVisibility(View.GONE);
+            btnReApprove.setVisibility(View.GONE);
+        } else if (lowerStatus.equals("approved") || lowerStatus.equals("booked") || lowerStatus.equals("used")) {
             tvFinalStatus.setTextColor(Color.parseColor("#10B981")); // Green
             btnCancelBooking.setVisibility(View.VISIBLE);
             btnReApprove.setVisibility(View.GONE);
         } else {
+            // Forwarded or other transition states
             tvFinalStatus.setTextColor(Color.parseColor("#F59E0B")); // Amber
             btnCancelBooking.setVisibility(View.GONE);
             btnReApprove.setVisibility(View.GONE);
@@ -310,6 +360,12 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
 
                     // Sync slot status to AVAILABLE
                     repository.updateSlotStatus(booking.getScheduleId(), booking.getTimeSlot(), "AVAILABLE", r -> {});
+                    
+                    // Send notification to user
+                    if (booking.getBookedBy() != null) {
+                        String msg = "Your booking for " + booking.getSpaceName() + " has been cancelled by the HOD.";
+                        repository.sendNotification(booking.getBookedBy(), msg, booking.getBookingId(), "Cancelled", booking.getBookedBy(), r -> {});
+                    }
                 });
     }
 
@@ -390,6 +446,11 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
         if (currentStaffUid != null) {
             userRef.child("blockedBy").setValue(currentStaffUid);
         }
+
+        if (booking != null && booking.getBookedBy() != null) {
+            repository.sendNotification(booking.getBookedBy(), "Your account has been blocked. Reason: " + reason, null, "blocked", booking.getBookedBy(), r -> {});
+        }
+
         updateBlockUI(true);
         Toast.makeText(this, R.string.msg_student_blocked, Toast.LENGTH_SHORT).show();
     }
@@ -400,6 +461,11 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
         userRef.child("blockReason").removeValue();
         userRef.child("blockedBy").removeValue();
         updateBlockUI(false);
+        
+        if (booking != null && booking.getBookedBy() != null) {
+            repository.sendNotification(booking.getBookedBy(), "Your account has been unblocked by the HOD.", null, "Active", booking.getBookedBy(), "approval", "student", r -> {});
+        }
+        
         Toast.makeText(this, R.string.msg_student_unblocked, Toast.LENGTH_SHORT).show();
     }
 
@@ -510,6 +576,12 @@ public class HodCompletedRequestDetailActivity extends AppCompatActivity {
 
                     // Sync slot status to BOOKED
                     repository.updateSlotStatus(booking.getScheduleId(), booking.getTimeSlot(), "BOOKED", r -> {});
+                    
+                    // Send notification to user
+                    if (booking.getBookedBy() != null) {
+                        String msg = "Your booking for " + booking.getSpaceName() + " has been re-approved by the HOD.";
+                        repository.sendNotification(booking.getBookedBy(), msg, booking.getBookingId(), "approved", booking.getBookedBy(), r -> {});
+                    }
                 });
     }
 

@@ -9,8 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
-
+import com.example.hod.R;
 import com.example.hod.models.Space;
 
 import java.util.List;

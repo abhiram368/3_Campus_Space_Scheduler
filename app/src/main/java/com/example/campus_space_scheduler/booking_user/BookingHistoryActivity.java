@@ -63,10 +63,10 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
         recyclerViewHistory.setAdapter(adapter);
 
         bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
-        
+
         setupTabLayout();
         fetchUserBookings();
-        
+
         // Auto-delete rejected_expired bookings for this user
         deleteExpiredBookings();
     }
@@ -101,7 +101,7 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
 
     private void setupTabLayout() {
         if (tabLayoutFilter == null) return;
-        
+
         tabLayoutFilter.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -180,12 +180,12 @@ public class BookingHistoryActivity extends AppCompatActivity implements Booking
                                 fullList.add(booking);
                             }
                         }
-                        
+
                         // Sort by recent first (reverse order as they come from Firebase)
                         Collections.reverse(fullList);
 
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
-                        
+
                         // Refresh the view with current tab filter
                         if (tabLayoutFilter != null) {
                             int selectedTabPos = tabLayoutFilter.getSelectedTabPosition();

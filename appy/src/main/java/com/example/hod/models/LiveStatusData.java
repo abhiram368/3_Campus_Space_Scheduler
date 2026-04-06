@@ -11,6 +11,7 @@ public class LiveStatusData implements Serializable {
     public String spaceName;
     public String startTime;  // Added for better formatting
     public String endTime;    // Added for better formatting
+    public int startTimeMinutes; // For sorting and comparison
 
     public LiveStatusData() {}
 

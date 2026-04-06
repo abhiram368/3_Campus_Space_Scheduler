@@ -212,6 +212,8 @@
                 android:layout_weight="1"
                 android:layout_height="56dp"
                 android:text="Approve"
+                android:maxLines="1"
+                android:ellipsize="end"
                 app:backgroundTint="@color/status_available"
                 android:layout_marginEnd="6dp"/>
 
@@ -222,6 +224,8 @@
                 android:layout_weight="1"
                 android:layout_height="56dp"
                 android:text="Reject"
+                android:maxLines="1"
+                android:ellipsize="end"
                 app:backgroundTint="@color/status_rejected"
                 android:layout_marginStart="6dp"/>
         </LinearLayout>
@@ -232,6 +236,8 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:text="View Documents"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:layout_marginTop="12dp"
             app:backgroundTint="@color/primary_blue"/>
 

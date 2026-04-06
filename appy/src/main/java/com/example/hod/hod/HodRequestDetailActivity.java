@@ -10,16 +10,20 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.Booking;
 import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -60,30 +64,98 @@ public class HodRequestDetailActivity extends AppCompatActivity {
 
         repository = new FirebaseRepository();
         booking = (Booking) getIntent().getSerializableExtra("booking");
+        String bookingIdExtra = getIntent().getStringExtra("bookingId");
 
-        if (booking == null) {
+        if (booking == null && (bookingIdExtra == null || bookingIdExtra.isEmpty())) {
             Toast.makeText(this, "Error: No booking data", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        updateHeader(getString(R.string.request_detail_title), getString(R.string.pending_hod_approval_subtitle));
-        loadDynamicData();
-        setupClickListeners();
-        checkExpirationAndAdjustUI();
+        if (booking == null) {
+            fetchBookingAndLoad(bookingIdExtra);
+        } else {
+            updateHeader(getString(R.string.request_detail_title), getString(R.string.pending_hod_approval_subtitle));
+            loadDynamicData();
+            setupClickListeners();
+            checkExpirationAndAdjustUI();
+        }
+    }
+
+    private void fetchBookingAndLoad(String bookingId) {
+        setLoading(true);
+        FirebaseDatabase.getInstance().getReference("bookings").child(bookingId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    setLoading(false);
+                    if (snapshot.exists()) {
+                        // Extracting safeParseBooking or direct parse
+                        booking = snapshot.getValue(Booking.class); // Assuming Booking class is Firebase-compatible
+                        if (booking != null) {
+                            if (booking.getBookingId() == null) booking.setBookingId(snapshot.getKey());
+                            updateHeader(getString(R.string.request_detail_title), getString(R.string.pending_hod_approval_subtitle));
+                            loadDynamicData();
+                            setupClickListeners();
+                            checkExpirationAndAdjustUI();
+                        } else {
+                            Toast.makeText(HodRequestDetailActivity.this, "Booking parse error", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(HodRequestDetailActivity.this, "Booking not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    setLoading(false);
+                    Toast.makeText(HodRequestDetailActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
     }
 
     private void checkExpirationAndAdjustUI() {
-        if (isBookingExpired(booking)) {
-            if (bottomActionBar != null) bottomActionBar.setVisibility(View.GONE);
-            if (llExpiredRequest != null) llExpiredRequest.setVisibility(View.VISIBLE);
+        boolean isExpired = (booking != null && booking.isExpired());
+
+        if (isExpired) {
+            bottomActionBar.setVisibility(View.GONE);
+            llExpiredRequest.setVisibility(View.VISIBLE);
+            
+            String status = booking.getStatus();
+            String expiredMessage = "Expired";
+            
+            if ("forwarded_to_hod".equalsIgnoreCase(status)) {
+                expiredMessage = "Expired (Forwarded to HOD)";
+            }
+            
+            btnDeleteLateRequest.setText(expiredMessage + "\nDelete this request");
+
+            // Update status in Firebase
+            if (booking.getBookingId() != null) {
+                repository.updateApprovalStatus(booking.getBookingId(), "hod", false, "Request Expired", FirebaseAuth.getInstance().getUid(), "expired", result -> {});
+            }
         } else {
-            if (bottomActionBar != null) bottomActionBar.setVisibility(View.VISIBLE);
-            if (llExpiredRequest != null) llExpiredRequest.setVisibility(View.GONE);
+            bottomActionBar.setVisibility(View.VISIBLE);
+            llExpiredRequest.setVisibility(View.GONE);
         }
     }
 
     private void loadDynamicData() {
+        if (booking == null) return;
+
+        // Redirection Guard: If already processed, go to Completed Detail
+        String status = booking.getStatus() != null ? booking.getStatus().toLowerCase() : "";
+        if (status.equals("approved") || status.contains("rejected") || status.equals("cancelled") || status.equals("booked") || status.equals("used")) {
+            Intent intent = new Intent(this, HodCompletedRequestDetailActivity.class);
+            intent.putExtra("booking", booking);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         tvLabName.setText(booking.getSpaceName() != null ? booking.getSpaceName() : "Unknown Lab");
         tvSlotDisplay.setText(booking.getDate() + " | " + booking.getTimeSlot());
         tvReason.setText(booking.getPurpose() != null ? booking.getPurpose() : "No reason provided");
@@ -130,7 +202,8 @@ public class HodRequestDetailActivity extends AppCompatActivity {
 
         if (btnDeleteLateRequest != null) {
             btnDeleteLateRequest.setOnClickListener(v -> {
-                showActionDialog(false, "Delete Request", "Reason for Deletion", true);
+                showActionDialog(false, "Mark as Expired", 
+                    "Please provide a mandatory remark explaining why this late request is being marked as expired", true);
             });
         }
     }
@@ -182,13 +255,15 @@ public class HodRequestDetailActivity extends AppCompatActivity {
 
     private void updateApproval(boolean approved, String remark) {
         setLoading(true);
-        repository.updateApprovalStatus(booking.getBookingId(), "hod", approved, remark, FirebaseAuth.getInstance().getUid(), result -> runOnUiThread(() -> {
+        // Use "expired" status if it's a late request action
+        String forcedStatus = null;
+        if (!approved && isBookingExpired(booking)) {
+            forcedStatus = "expired";
+        }
+
+        repository.updateApprovalStatus(booking.getBookingId(), "hod", approved, remark, FirebaseAuth.getInstance().getUid(), forcedStatus, result -> runOnUiThread(() -> {
             setLoading(false);
             if (result instanceof Result.Success) {
-                if (!approved && isBookingExpired(booking)) {
-                    // Logic for deleting/expiring late request if needed
-                    FirebaseDatabase.getInstance().getReference("bookings").child(booking.getBookingId()).child("status").setValue("rejected_expired");
-                }
                 Toast.makeText(this, approved ? "Request Approved" : "Request Updated", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
@@ -258,4 +333,3 @@ public class HodRequestDetailActivity extends AppCompatActivity {
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
     }
 }
-

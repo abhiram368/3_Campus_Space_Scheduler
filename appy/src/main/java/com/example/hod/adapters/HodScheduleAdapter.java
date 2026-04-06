@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.Booking;
 import com.example.hod.models.LiveStatusData;
 
@@ -21,6 +21,7 @@ public class HodScheduleAdapter extends RecyclerView.Adapter<HodScheduleAdapter.
     private Context context;
     private List<LiveStatusData> list;
     private String spaceName;
+    private boolean isPastDate = false;
 
     public HodScheduleAdapter(Context context, List<LiveStatusData> list, String spaceName) {
         this.context = context;
@@ -28,10 +29,13 @@ public class HodScheduleAdapter extends RecyclerView.Adapter<HodScheduleAdapter.
         this.spaceName = spaceName;
     }
 
+    public void setPastDate(boolean pastDate) {
+        this.isPastDate = pastDate;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Reusing the admin slot item layout exactly as requested
         View view = LayoutInflater.from(context).inflate(R.layout.item_admin_slot, parent, false);
         return new ViewHolder(view);
     }
@@ -51,24 +55,29 @@ public class HodScheduleAdapter extends RecyclerView.Adapter<HodScheduleAdapter.
         String statusText = data.status != null ? data.status : "AVAILABLE";
         holder.tvStatus.setText(statusText);
 
-        // Status coloring
-        if ("AVAILABLE".equalsIgnoreCase(statusText)) {
-            holder.tvStatus.setTextColor(context.getResources().getColor(R.color.status_available));
-            holder.tvDetails.setText("Open for bookings");
-        } else if ("BOOKED".equalsIgnoreCase(statusText)) {
-            holder.tvStatus.setTextColor(context.getResources().getColor(R.color.status_booked));
-            if (data.booking != null) {
-                String name = data.booking.getRequesterName() != null ? data.booking.getRequesterName() : data.booking.getBookedBy();
-                holder.tvDetails.setText("Req: " + name + " | Purpose: " + data.booking.getPurpose());
-            } else {
-                holder.tvDetails.setText("Loading details...");
-            }
-        } else if ("BLOCKED".equalsIgnoreCase(statusText)) {
-            holder.tvStatus.setTextColor(Color.parseColor("#EF4444"));
-            holder.tvDetails.setText("Blocked by Staff/Admin");
+        if (isPastDate) {
+            holder.tvStatus.setTextColor(Color.GRAY);
+            holder.tvDetails.setText("Past Date");
         } else {
-            holder.tvStatus.setTextColor(Color.WHITE);
-            holder.tvDetails.setText("-");
+            // Status coloring
+            if ("AVAILABLE".equalsIgnoreCase(statusText)) {
+                holder.tvStatus.setTextColor(context.getResources().getColor(R.color.status_available));
+                holder.tvDetails.setText("Open for bookings");
+            } else if ("BOOKED".equalsIgnoreCase(statusText)) {
+                holder.tvStatus.setTextColor(context.getResources().getColor(R.color.status_booked));
+                if (data.booking != null) {
+                    String name = data.booking.getRequesterName() != null ? data.booking.getRequesterName() : data.booking.getBookedBy();
+                    holder.tvDetails.setText("Req: " + name + " | Purpose: " + data.booking.getPurpose());
+                } else {
+                    holder.tvDetails.setText("Loading details...");
+                }
+            } else if ("BLOCKED".equalsIgnoreCase(statusText)) {
+                holder.tvStatus.setTextColor(Color.parseColor("#EF4444"));
+                holder.tvDetails.setText("Blocked by Staff/Admin");
+            } else {
+                holder.tvStatus.setTextColor(Color.WHITE);
+                holder.tvDetails.setText("-");
+            }
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -87,7 +96,6 @@ public class HodScheduleAdapter extends RecyclerView.Adapter<HodScheduleAdapter.
 
     private String formatTime(String time) {
         if (time == null) return "";
-        // If time is "1400", change to "14:00"
         if (time.length() == 4 && !time.contains(":")) {
             return time.substring(0, 2) + ":" + time.substring(2);
         }
@@ -99,7 +107,6 @@ public class HodScheduleAdapter extends RecyclerView.Adapter<HodScheduleAdapter.
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Mapping from item_admin_slot.xml
             tvSlotTime = itemView.findViewById(R.id.tvSlotTime);
             tvStatus = itemView.findViewById(R.id.tvAdminName);
             tvDetails = itemView.findViewById(R.id.tvAdminRoll);
