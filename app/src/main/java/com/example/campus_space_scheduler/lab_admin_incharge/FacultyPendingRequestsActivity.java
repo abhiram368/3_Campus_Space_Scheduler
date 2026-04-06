@@ -5,19 +5,25 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.campus_space_scheduler.R;
 import com.example.campus_space_scheduler.databinding.ActivityFacultyPendingRequestsBinding;
 import com.example.campus_space_scheduler.lab_admin_incharge.adapters.PendingRequestsAdapter;
 import com.example.campus_space_scheduler.lab_admin_incharge.models.Booking;
+import com.example.campus_space_scheduler.lab_admin_incharge.utils.InchargeNotificationHelper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FacultyPendingRequestsActivity extends BaseInchargeActivity {
 
@@ -26,6 +32,7 @@ public class FacultyPendingRequestsActivity extends BaseInchargeActivity {
     private List<Booking> bookingList;
     private DatabaseReference databaseReference;
     private String labName;
+    private Set<String> notifiedBookings = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +62,7 @@ public class FacultyPendingRequestsActivity extends BaseInchargeActivity {
         
         databaseReference = FirebaseDatabase.getInstance().getReference("bookings");
         fetchRequests();
+        setupNotificationListener();
     }
 
     private void fetchRequests() {
@@ -67,8 +75,7 @@ public class FacultyPendingRequestsActivity extends BaseInchargeActivity {
                     String spaceName = getStringValue(dataSnapshot, "spaceName");
                     String status = getStringValue(dataSnapshot, "status");
 
-                    // Filter by lab name and the specific status for Faculty Incharge
-                    if ("forwarded_to_faculty_incharge".equalsIgnoreCase(status) && spaceName.contains(labName)) {
+                    if ("forwarded_to_faculty_incharge".equalsIgnoreCase(status) && (labName == null || spaceName.contains(labName))) {
                         Booking booking = new Booking();
                         booking.setBookingId(dataSnapshot.getKey());
                         booking.setSpaceName(spaceName);
@@ -93,6 +100,62 @@ public class FacultyPendingRequestsActivity extends BaseInchargeActivity {
                 Toast.makeText(FacultyPendingRequestsActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void setupNotificationListener() {
+        databaseReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                checkAndNotify(snapshot);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                checkAndNotify(snapshot);
+            }
+
+            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void checkAndNotify(DataSnapshot snapshot) {
+        String status = getStringValue(snapshot, "status");
+        String spaceName = getStringValue(snapshot, "spaceName");
+        String bookingId = snapshot.getKey();
+
+        if ("forwarded_to_faculty_incharge".equalsIgnoreCase(status) && (labName == null || spaceName.contains(labName)) && !notifiedBookings.contains(bookingId)) {
+            notifiedBookings.add(bookingId);
+            
+            String userId = getStringValue(snapshot, "bookedBy");
+            fetchUserNameAndNotify(userId, spaceName, bookingId);
+        }
+    }
+
+    private void fetchUserNameAndNotify(String userId, String spaceName, String bookingId) {
+        FirebaseDatabase.getInstance().getReference("users").child(userId).child("name")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String userName = snapshot.exists() ? String.valueOf(snapshot.getValue()) : "A user";
+                        String currentUid = FirebaseAuth.getInstance().getUid();
+                        
+                        if (currentUid != null) {
+                            InchargeNotificationHelper.sendAndSaveNotification(
+                                    FacultyPendingRequestsActivity.this,
+                                    currentUid,
+                                    "New Forwarded Request",
+                                    "A request from " + userName + " for " + spaceName + " has been forwarded to you.",
+                                    "forwarded_request",
+                                    bookingId
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 
     private String getStringValue(DataSnapshot snapshot, String key) {

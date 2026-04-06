@@ -16,6 +16,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,21 +62,30 @@ public class ApprovalHistoryActivity extends BaseInchargeActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 historyList.clear();
+
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     String spaceName = getStringValue(dataSnapshot, "spaceName").trim();
-                    Object approvalStatus = dataSnapshot.child("hallInchargeApproval").getValue();
+                    String status = getStringValue(dataSnapshot, "status");
+                    String dateStr = getStringValue(dataSnapshot, "date");
 
-                    if (approvalStatus != null && allowedSpaces.contains(spaceName)) {
-                        Booking booking = new Booking();
-                        booking.setBookingId(dataSnapshot.getKey());
-                        booking.setSpaceName(spaceName);
-                        booking.setStatus(String.valueOf(approvalStatus));
-                        booking.setPurpose(getStringValue(dataSnapshot, "purpose"));
-                        booking.setDate(getStringValue(dataSnapshot, "date"));
-                        booking.setTimeSlot(getStringValue(dataSnapshot, "timeSlot"));
-                        booking.setBookedBy(getStringValue(dataSnapshot, "bookedBy"));
-                        
-                        historyList.add(booking);
+                    // Hall Incharge History Condition: Approved, Rejected, or forwarded_to_hod
+                    if (allowedSpaces.contains(spaceName)) {
+                        if ("approved".equalsIgnoreCase(status) || 
+                            "rejected".equalsIgnoreCase(status) || 
+                            "forwarded_to_hod".equalsIgnoreCase(status) ||
+                            "cancelled".equalsIgnoreCase(status)) {
+                            
+                            Booking booking = new Booking();
+                            booking.setBookingId(dataSnapshot.getKey());
+                            booking.setSpaceName(spaceName);
+                            booking.setStatus(status.toUpperCase());
+                            booking.setPurpose(getStringValue(dataSnapshot, "purpose"));
+                            booking.setDate(dateStr);
+                            booking.setTimeSlot(getStringValue(dataSnapshot, "timeSlot"));
+                            booking.setBookedBy(getStringValue(dataSnapshot, "bookedBy"));
+                            
+                            historyList.add(booking);
+                        }
                     }
                 }
                 

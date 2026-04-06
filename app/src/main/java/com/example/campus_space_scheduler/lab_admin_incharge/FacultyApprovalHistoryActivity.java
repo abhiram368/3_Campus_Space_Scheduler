@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,22 +74,41 @@ public class FacultyApprovalHistoryActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 historyList.clear();
+
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     String spaceName = getStringValue(dataSnapshot, "spaceName");
-                    Object approvalStatus = dataSnapshot.child("facultyInchargeApproval").getValue();
+                    Object approvalObj = dataSnapshot.child("facultyInchargeApproval").getValue();
+                    String status = getStringValue(dataSnapshot, "status");
+                    String dateStr = getStringValue(dataSnapshot, "date");
 
-                    // Filter by lab name and presence of faculty decision
-                    if (approvalStatus != null && spaceName.contains(labName)) {
-                        Booking booking = new Booking();
-                        booking.setBookingId(dataSnapshot.getKey());
-                        booking.setSpaceName(spaceName);
-                        booking.setStatus(String.valueOf(approvalStatus));
-                        booking.setPurpose(getStringValue(dataSnapshot, "purpose"));
-                        booking.setDate(getStringValue(dataSnapshot, "date"));
-                        booking.setTimeSlot(getStringValue(dataSnapshot, "timeSlot"));
-                        booking.setBookedBy(getStringValue(dataSnapshot, "bookedBy"));
-                        
-                        historyList.add(booking);
+                    // Convert approvalObj to boolean check
+                    boolean isApprovedByFaculty = false;
+                    if (approvalObj instanceof Boolean) {
+                        isApprovedByFaculty = (Boolean) approvalObj;
+                    } else if (approvalObj instanceof String) {
+                        isApprovedByFaculty = "true".equalsIgnoreCase((String) approvalObj) || "approved".equalsIgnoreCase((String) approvalObj);
+                    }
+
+                    // Condition: Lab Name match + facultyInchargeApproval is true
+                    // + status is Approved, Rejected, forwarded_to_hod, or Cancelled
+                    if (spaceName.contains(labName) && isApprovedByFaculty) {
+                        if ("Approved".equalsIgnoreCase(status) || 
+                            "Rejected".equalsIgnoreCase(status) || 
+                            "forwarded_to_hod".equalsIgnoreCase(status) ||
+                            "Cancelled".equalsIgnoreCase(status)) {
+                            
+                            Booking booking = new Booking();
+                            booking.setBookingId(dataSnapshot.getKey());
+                            booking.setSpaceName(spaceName);
+                            // Display status nicely: replace underscores and capitalize
+                            booking.setStatus(status.toUpperCase().replace("_", " "));
+                            booking.setPurpose(getStringValue(dataSnapshot, "purpose"));
+                            booking.setDate(dateStr);
+                            booking.setTimeSlot(getStringValue(dataSnapshot, "timeSlot"));
+                            booking.setBookedBy(getStringValue(dataSnapshot, "bookedBy"));
+                            
+                            historyList.add(booking);
+                        }
                     }
                 }
                 

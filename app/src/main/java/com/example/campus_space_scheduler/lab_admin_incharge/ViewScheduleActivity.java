@@ -2,7 +2,6 @@ package com.example.campus_space_scheduler.lab_admin_incharge;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +64,6 @@ public class ViewScheduleActivity extends AppCompatActivity {
         bookingsRef = FirebaseDatabase.getInstance().getReference("bookings");
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Set default date to today
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
         selectedDate = sdf.format(new java.util.Date());
 
@@ -152,15 +150,15 @@ public class ViewScheduleActivity extends AppCompatActivity {
     private void handleSlotClick(Slot slot) {
         String scheduleId = selectedSpaceId + "_" + selectedDate;
         if (slot.status == null || slot.status.isEmpty() || "AVAILABLE".equalsIgnoreCase(slot.status)) {
-            String[] options = {"Block for Maintenance", "Cancel"};
             new AlertDialog.Builder(this)
-                .setTitle("Manage Slot")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        schedulesRef.child(scheduleId).child("slots").child(slot.key).child("status").setValue("BLOCKED");
-                        Toast.makeText(this, "Slot blocked for maintenance", Toast.LENGTH_SHORT).show();
-                    }
+                .setTitle("Slot Management")
+                .setMessage("This slot is available. Do you want to block it for maintenance?")
+                .setPositiveButton("Block for Maintenance", (dialog, which) -> {
+                    schedulesRef.child(scheduleId).child("slots").child(slot.key).child("status").setValue("BLOCKED")
+                        .addOnSuccessListener(aVoid -> Toast.makeText(ViewScheduleActivity.this, "Slot blocked for maintenance", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e -> Toast.makeText(ViewScheduleActivity.this, "Failed to block slot", Toast.LENGTH_SHORT).show());
                 })
+                .setNegativeButton("Cancel", null)
                 .show();
         } else if ("BLOCKED".equalsIgnoreCase(slot.status)) {
             bookingsRef.orderByChild("scheduleId").equalTo(scheduleId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -169,7 +167,8 @@ public class ViewScheduleActivity extends AppCompatActivity {
                     DataSnapshot foundBooking = null;
                     for (DataSnapshot b : snapshot.getChildren()) {
                         String slotStart = String.valueOf(b.child("slotStart").getValue());
-                        if (slot.key.equals(slotStart)) {
+                        String bookingStatus = String.valueOf(b.child("status").getValue());
+                        if (slot.key.equals(slotStart) && "Approved".equalsIgnoreCase(bookingStatus)) {
                             foundBooking = b;
                             break;
                         }
@@ -180,7 +179,7 @@ public class ViewScheduleActivity extends AppCompatActivity {
                     } else {
                         new AlertDialog.Builder(ViewScheduleActivity.this)
                             .setTitle("Slot Blocked")
-                            .setMessage("This slot is under maintenance.")
+                            .setMessage("This slot is manually blocked for maintenance.")
                             .setPositiveButton("Unblock", (dialog, which) -> {
                                 schedulesRef.child(scheduleId).child("slots").child(slot.key).child("status").setValue("AVAILABLE");
                             })
@@ -195,30 +194,64 @@ public class ViewScheduleActivity extends AppCompatActivity {
     }
 
     private void showBookingDetailsDialog(DataSnapshot bookingSnap, Slot slot, String scheduleId) {
-        String userId = String.valueOf(bookingSnap.child("bookedBy").getValue());
+        String userId = "";
+        Object bookedByObj = bookingSnap.child("bookedBy").getValue();
+        if (bookedByObj instanceof String) {
+            userId = (String) bookedByObj;
+        } else if (bookingSnap.child("bookedBy").hasChild("uid")) {
+            userId = String.valueOf(bookingSnap.child("bookedBy").child("uid").getValue());
+        }
+
         String purpose = String.valueOf(bookingSnap.child("purpose").getValue());
         String bookingId = bookingSnap.getKey();
 
-        usersRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot userSnap) {
-                String name = String.valueOf(userSnap.child("name").getValue());
-                String role = String.valueOf(userSnap.child("role").getValue());
+        if (userId != null && !userId.isEmpty()) {
+            usersRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot userSnap) {
+                    String name = String.valueOf(userSnap.child("name").getValue());
+                    String role = String.valueOf(userSnap.child("role").getValue());
 
-                new AlertDialog.Builder(ViewScheduleActivity.this)
-                    .setTitle("Booking Details")
-                    .setMessage("Booked By: " + name + " (" + role + ")\nPurpose: " + purpose + "\nSlot: " + slot.time)
-                    .setPositiveButton("Cancel Booking", (dialog, which) -> {
-                        schedulesRef.child(scheduleId).child("slots").child(slot.key).child("status").setValue("AVAILABLE");
-                        bookingsRef.child(bookingId).child("status").setValue("cancelled");
-                        Toast.makeText(ViewScheduleActivity.this, "Booking cancelled", Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Close", null)
-                    .show();
+                    new AlertDialog.Builder(ViewScheduleActivity.this)
+                        .setTitle("Booking Details")
+                        .setMessage("Booked By: " + name + " (" + role + ")\nPurpose: " + purpose + "\nSlot: " + slot.time)
+                        .setPositiveButton("Cancel Booking", (dialog, which) -> {
+                            showCancelRemarksDialog(bookingId, scheduleId, slot.key);
+                        })
+                        .setNegativeButton("Close", null)
+                        .show();
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
+    }
+
+    private void showCancelRemarksDialog(String bookingId, String scheduleId, String slotKey) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Cancel Booking");
+        builder.setMessage("Please enter the reason for cancellation:");
+
+        final android.widget.EditText input = new android.widget.EditText(this);
+        builder.setView(input);
+
+        builder.setPositiveButton("Confirm Cancellation", (dialog, which) -> {
+            String remarks = input.getText().toString();
+            if (remarks.isEmpty()) {
+                Toast.makeText(this, "Remarks are required to cancel", Toast.LENGTH_SHORT).show();
+            } else {
+                schedulesRef.child(scheduleId).child("slots").child(slotKey).child("status").setValue("AVAILABLE");
+                
+                java.util.Map<String, Object> updates = new java.util.HashMap<>();
+                updates.put("status", "Cancelled");
+                updates.put("remarks", remarks);
+                
+                bookingsRef.child(bookingId).updateChildren(updates);
+                Toast.makeText(ViewScheduleActivity.this, "Booking cancelled", Toast.LENGTH_SHORT).show();
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
         });
+        builder.setNegativeButton("Back", null);
+        builder.show();
     }
 
     private static class Slot {
@@ -246,7 +279,6 @@ public class ViewScheduleActivity extends AppCompatActivity {
             Slot slot = slots.get(position);
             holder.tvTime.setText(slot.time);
             holder.tvStatus.setText(slot.status != null ? slot.status : "AVAILABLE");
-
             if (slot.status == null || "AVAILABLE".equalsIgnoreCase(slot.status)) {
                 holder.tvStatus.setTextColor(getColor(R.color.green_icon));
             } else {
