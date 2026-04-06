@@ -31,7 +31,7 @@ public class PendingRequestsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_pending_requests);
+        setContentView(R.layout.activity_appy_pending_requests);
 
         labId = getIntent().getStringExtra("labId");
         if (labId == null || labId.isEmpty()) {

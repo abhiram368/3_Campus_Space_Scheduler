@@ -40,7 +40,11 @@ public class User {
     public void setName(String name) { this.name = name; }
 
     public String getEmail() { return emailId; }
+    public String getEmailId() { return emailId; }
     public void setEmail(String emailId) { this.emailId = emailId; }
+
+    public String getRollNo() { return rollNo; }
+    public void setRollNo(String rollNo) { this.rollNo = rollNo; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }

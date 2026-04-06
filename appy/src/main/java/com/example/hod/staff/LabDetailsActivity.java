@@ -30,7 +30,7 @@ public class LabDetailsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_lab_details);
+        setContentView(R.layout.activity_appy_lab_details);
 
         // Header Configuration
         View headerView = findViewById(R.id.header_layout);

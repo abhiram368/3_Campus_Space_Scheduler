@@ -38,7 +38,7 @@ public class ApprovalHistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            setContentView(R.layout.activity_approval_history);
+            setContentView(R.layout.activity_appy_approval_history);
 
             labId = getIntent().getStringExtra("labId");
             if (labId == null || labId.isEmpty()) {

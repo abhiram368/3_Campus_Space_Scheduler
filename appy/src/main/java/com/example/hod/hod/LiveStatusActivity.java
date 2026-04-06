@@ -41,7 +41,7 @@ public class LiveStatusActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_live_status);
+        setContentView(R.layout.activity_appy_live_status);
 
         rvLiveStatus = findViewById(R.id.rvLiveStatus);
         progressBar = findViewById(R.id.progressBar);
