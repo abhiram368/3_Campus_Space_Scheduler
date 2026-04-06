@@ -71,7 +71,10 @@ public class MainActivity extends AppCompatActivity {
                         if (name != null) nameText.setText(name);
                         if (role != null) roleText.setText(role);
 
-                        // delay so user sees welcome screen
+                        // If opened from notification, skip the artificial delay
+                        boolean openNotifs = getIntent().getBooleanExtra("OPEN_NOTIFICATIONS", false);
+                        long delay = openNotifs ? 0 : 1000;
+
                         new Handler().postDelayed(() -> {
 
                             if ("App admin".equals(role)) {
@@ -80,6 +83,9 @@ public class MainActivity extends AppCompatActivity {
                             } else if ("Student".equals(role) || "Faculty".equals(role)) {
                                 Intent intent = new Intent(MainActivity.this, BookingUserActivity.class);
                                 intent.putExtra("ROLE", role);
+                                if (openNotifs) {
+                                    intent.putExtra("OPEN_NOTIFICATIONS", true);
+                                }
                                 startActivity(intent);
                                 finish();
 
@@ -111,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
                                 intent.putExtra("ROLE", role);
                                 intent.putExtra("labId", inchargeToSpace);
                                 intent.putExtra("userName", name);
+                                if (openNotifs) {
+                                    intent.putExtra("OPEN_NOTIFICATIONS", true);
+                                }
                                 startActivity(intent);
                                 finish();
 
@@ -118,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                                 navigateTo(LoginActivity.class);
                             }
 
-                        }, 1000); // 1 seconds
+                        }, delay);
                     }
 
                     @Override
@@ -154,7 +163,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateTo(Class<?> destinationClass) {
+        boolean openNotifs = getIntent().getBooleanExtra("OPEN_NOTIFICATIONS", false);
         Intent intent = new Intent(MainActivity.this, destinationClass);
+        if (openNotifs) {
+            intent.putExtra("OPEN_NOTIFICATIONS", true);
+        }
         startActivity(intent);
         finish();
     }
@@ -165,4 +178,5 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+}
 }

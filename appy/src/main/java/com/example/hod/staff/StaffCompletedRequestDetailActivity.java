@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.Booking;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -21,7 +21,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.example.hod.repository.FirebaseRepository; // Added import
+import com.example.hod.repository.FirebaseRepository; 
 import android.text.Html;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -42,7 +42,6 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_completed_request_detail);
 
-        // 1. Find all views
         tvRequester = findViewById(R.id.tvRequester);
         tvRequesterEmail = findViewById(R.id.tvRequesterEmail);
         tvRequesterPhone = findViewById(R.id.tvRequesterPhone);
@@ -61,7 +60,6 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
         btnUnblockStudent = findViewById(R.id.btnUnblockStudent);
         btnReApprove = findViewById(R.id.btnReApprove);
 
-        // 2. Null safety check
         if (tvRequester == null || tvRequesterEmail == null || tvRequesterPhone == null || tvRequesterRole == null ||
             tvPurpose == null || tvSlotUsage == null || tvBookingDate == null || tvRemarkContent == null ||
             tvBlockStatus == null || tvFinalStatus == null || tvDecisionBy == null || tvDecisionTime == null ||
@@ -70,17 +68,21 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
             throw new RuntimeException("XML id mismatch in activity_completed_request_detail");
         }
 
-        // 3. Get data from intent
         booking = (Booking) getIntent().getSerializableExtra("booking");
         requesterName = getIntent().getStringExtra("requesterName");
+        String bId = getIntent().getStringExtra("bookingId");
 
         if (booking != null) {
             updateHeader("Request Detail", "Completed Booking");
             populateBookingDetails();
             checkUserRoleAndStatus();
+        } else if (bId != null && !bId.isEmpty()) {
+            fetchBookingAndLoad(bId);
+        } else {
+            Toast.makeText(this, "Error: No booking data provided", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
-        // 4. Set up button click listeners
         btnViewDocuments.setOnClickListener(v -> {
             if (booking != null && booking.getLorUpload() != null && !booking.getLorUpload().isEmpty()) {
                 String url = booking.getLorUpload();
@@ -101,12 +103,39 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
         });
 
         btnCancelBooking.setOnClickListener(v -> showCancelBookingDialog());
-
         btnBlockStudent.setOnClickListener(v -> showBlockStudentDialog());
-        
         btnUnblockStudent.setOnClickListener(v -> showUnblockStudentDialog());
-
         btnReApprove.setOnClickListener(v -> showReApproveDialog());
+    }
+
+    private void fetchBookingAndLoad(String bId) {
+        FirebaseDatabase.getInstance().getReference("bookings").child(bId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        booking = snapshot.getValue(Booking.class);
+                        if (booking != null) {
+                            if (booking.getBookingId() == null) booking.setBookingId(snapshot.getKey());
+                            updateHeader("Request Detail", "Completed Booking");
+                            populateBookingDetails();
+                            checkUserRoleAndStatus();
+                        } else {
+                            Toast.makeText(StaffCompletedRequestDetailActivity.this, "Data parse error", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(StaffCompletedRequestDetailActivity.this, "Booking not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(StaffCompletedRequestDetailActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
     }
 
     private void showCancelBookingDialog() {
@@ -143,25 +172,19 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
     }
 
     private void populateBookingDetails() {
-        // 1. Requester name
         tvRequester.setText(Html.fromHtml("<b>Requester:</b> " + (requesterName != null ? requesterName : booking.getBookedBy()), Html.FROM_HTML_MODE_LEGACY));
-
-        // 2. Purpose of booking
         tvPurpose.setText(Html.fromHtml("<b>Purpose:</b> " + (booking.getPurpose() != null ? booking.getPurpose() : "N/A"), Html.FROM_HTML_MODE_LEGACY));
 
-        // 3. Slot and usage date
         String dateStr = booking.getDate() != null ? booking.getDate() : "";
         String timeStr = booking.getTimeSlot() != null ? booking.getTimeSlot() : "";
         tvSlotUsage.setText(Html.fromHtml("<b>Slot & Usage:</b> " + dateStr + (dateStr.isEmpty() || timeStr.isEmpty() ? "" : " | ") + timeStr, Html.FROM_HTML_MODE_LEGACY));
 
-        // 4. Date of booking
         String bookedDate = booking.getBookedTimeDisplay();
         if (bookedDate == null || bookedDate.trim().isEmpty()) {
             bookedDate = booking.getDate() != null ? booking.getDate() : "N/A";
         }
         tvBookingDate.setText(Html.fromHtml("<b>Booking Date:</b> " + bookedDate, Html.FROM_HTML_MODE_LEGACY));
 
-        // 5. Remark (show if not null/empty)
         String remark = booking.getRemark();
         tvRemarkContent.setVisibility(View.VISIBLE);
         if (remark != null && !remark.trim().isEmpty()) {
@@ -170,11 +193,9 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
             tvRemarkContent.setText(Html.fromHtml("<b>Remark:</b> -", Html.FROM_HTML_MODE_LEGACY));
         }
         
-        // Final Status
         String status = booking.getStatus() != null ? booking.getStatus() : "Unknown";
         tvFinalStatus.setText(Html.fromHtml("<b>Final Decision:</b> " + capitalize(status.replace("_", " ")), Html.FROM_HTML_MODE_LEGACY));
         
-        // 6. Decided By & Time visibility
         String decById = booking.getApprovedBy();
         String decTime = booking.getDecisionTime();
         
@@ -192,19 +213,22 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
             tvDecisionTime.setText(Html.fromHtml("<b>Time:</b> -", Html.FROM_HTML_MODE_LEGACY));
         }
 
-        // Final Status Color & Button Visibility
         String lowerStatus = status.toLowerCase();
-        if (lowerStatus.contains("rejected") || lowerStatus.equals("cancelled")) {
-            tvFinalStatus.setTextColor(Color.parseColor("#EF4444")); // Red
+        if (lowerStatus.contains("rejected") || lowerStatus.contains("cancelled")) {
+            tvFinalStatus.setTextColor(Color.parseColor("#EF4444")); 
             btnCancelBooking.setVisibility(View.GONE);
             btnReApprove.setVisibility(View.VISIBLE);
-        } else if (lowerStatus.equals("approved") || lowerStatus.equals("available") || lowerStatus.equals("booked")) {
-            tvFinalStatus.setTextColor(Color.parseColor("#10B981")); // Green
+        } else if (lowerStatus.contains("expired")) {
+            tvFinalStatus.setTextColor(Color.parseColor("#EF4444")); 
+            btnCancelBooking.setVisibility(View.GONE);
+            btnReApprove.setVisibility(View.GONE);
+        } else if (lowerStatus.equals("approved") || lowerStatus.equals("available") || lowerStatus.equals("booked") || lowerStatus.equals("used")) {
+            tvFinalStatus.setTextColor(Color.parseColor("#10B981")); 
             btnCancelBooking.setVisibility(View.VISIBLE);
             btnReApprove.setVisibility(View.GONE);
         } else {
-            // Forwarded or other transition status
-            tvFinalStatus.setTextColor(Color.parseColor("#F59E0B")); // Amber
+            // Forwarded or other transition states
+            tvFinalStatus.setTextColor(Color.parseColor("#F59E0B")); 
             btnCancelBooking.setVisibility(View.GONE);
             btnReApprove.setVisibility(View.GONE);
         }
@@ -213,8 +237,6 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
         if (isBookingExpired(booking)) {
             btnCancelBooking.setVisibility(View.GONE);
             btnReApprove.setVisibility(View.GONE);
-            // Optional: You could also hide Block/Unblock if desired, 
-            // but the request was specific about cancel/reject/reapproval.
         }
     }
 
@@ -228,9 +250,10 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) return;
 
-                // Populate Email and Phone
+                String name = snapshot.child("name").getValue(String.class);
                 String email = snapshot.child("emailId").getValue(String.class);
                 String phone = snapshot.child("phoneNumber").getValue(String.class);
+                if (name != null) tvRequester.setText(Html.fromHtml("<b>Requester:</b> " + name, Html.FROM_HTML_MODE_LEGACY));
                 if (email != null) tvRequesterEmail.setText(Html.fromHtml("<b>Email:</b> " + email, Html.FROM_HTML_MODE_LEGACY));
                 if (phone != null) tvRequesterPhone.setText(Html.fromHtml("<b>Contact No:</b> " + phone, Html.FROM_HTML_MODE_LEGACY));
 
@@ -360,7 +383,11 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
             userRef.child("blockedBy").setValue(currentStaffUid);
         }
 
-        // Refresh UI
+        if (booking != null && booking.getBookedBy() != null) {
+            FirebaseRepository repo = new FirebaseRepository();
+            repo.sendNotification(booking.getBookedBy(), "Your account has been blocked. Reason: " + reason, null, "Blocked", booking.getBookedBy(), "rejection", "student", r -> {});
+        }
+
         tvBlockStatus.setText("Student Status: Blocked");
         tvBlockStatus.setTextColor(Color.parseColor("#EF4444"));
         btnBlockStudent.setVisibility(View.GONE);
@@ -373,20 +400,21 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
         userRef.child("blockReason").removeValue();
         userRef.child("blockedBy").removeValue();
 
-        // Refresh UI
         tvBlockStatus.setText("Student Status: Active");
         tvBlockStatus.setTextColor(Color.parseColor("#10B981"));
         btnBlockStudent.setVisibility(View.VISIBLE);
         btnUnblockStudent.setVisibility(View.GONE);
+        
+        if (booking != null && booking.getBookedBy() != null) {
+            new FirebaseRepository().sendNotification(booking.getBookedBy(), "Your account has been unblocked by the Staff Incharge.", null, "Active", booking.getBookedBy(), "approval", "student", r -> {});
+        }
+        
         Toast.makeText(this, "Student unblocked successfully", Toast.LENGTH_SHORT).show();
     }
 
     private void cancelBookingInFirebase(String remark) {
         if (booking.getBookingId() == null) return;
         
-        String currentUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null 
-                ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Calendar.getInstance().getTime());
         java.util.Map<String, Object> updates = new java.util.HashMap<>();
         updates.put("status", "Cancelled");
@@ -407,13 +435,16 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
                     tvDecisionTime.setVisibility(View.VISIBLE);
                     tvDecisionTime.setText(Html.fromHtml("<b>Time:</b> " + currentTime, Html.FROM_HTML_MODE_LEGACY));
 
-                    // Show remark in UI
                     tvRemarkContent.setVisibility(View.VISIBLE);
                     tvRemarkContent.setText(Html.fromHtml("<b>Remark:</b> " + remark, Html.FROM_HTML_MODE_LEGACY));
 
-                    // Sync slot status to Available
                     FirebaseRepository repo = new FirebaseRepository();
-                    repo.updateSlotStatus(booking.getScheduleId(), booking.getTimeSlot(), "AVAILABLE", r -> {}); // Standardized to AVAILABLE
+                    repo.updateSlotStatus(booking.getScheduleId(), booking.getTimeSlot(), "AVAILABLE", r -> {}); 
+                    
+                    if (booking.getBookedBy() != null) {
+                        String msg = "Your booking for " + (booking.getSpaceName() != null ? booking.getSpaceName() : "Resource") + " has been cancelled by the Staff Incharge.";
+                        repo.sendNotification(booking.getBookedBy(), msg, booking.getBookingId(), "Cancelled", booking.getBookedBy(), "rejection", "student", r -> {});
+                    }
                 });
     }
 
@@ -461,7 +492,7 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
 
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Calendar.getInstance().getTime());
         Map<String, Object> updates = new java.util.HashMap<>();
-        updates.put("status", "forwarded_to_faculty_incharge"); // Staff re-approving sends it to Faculty Incharge
+        updates.put("status", "forwarded_to_faculty"); 
         updates.put("remark", remark);
         updates.put("approvedBy", FirebaseAuth.getInstance().getUid());
         updates.put("decisionTime", currentTime);
@@ -471,17 +502,22 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
                 .updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Booking re-submitted for approval", Toast.LENGTH_SHORT).show();
-                    tvFinalStatus.setText("Final Decision: Forwarded To Faculty Incharge");
+                    tvFinalStatus.setText("Final Decision: Forwarded To Faculty");
                     tvFinalStatus.setTextColor(Color.parseColor("#F59E0B"));
                     btnReApprove.setVisibility(View.GONE);
                     
-                    String currentUid = FirebaseAuth.getInstance().getUid();
                     tvDecisionBy.setVisibility(View.VISIBLE);
                     tvDecisionTime.setVisibility(View.VISIBLE);
                     tvDecisionTime.setText(Html.fromHtml("<b>Time:</b> " + currentTime, Html.FROM_HTML_MODE_LEGACY));
 
                     tvRemarkContent.setVisibility(View.VISIBLE);
                     tvRemarkContent.setText(Html.fromHtml("<b>Remark:</b> " + remark, Html.FROM_HTML_MODE_LEGACY));
+                    
+                    if (booking.getBookedBy() != null) {
+                        FirebaseRepository repo = new FirebaseRepository();
+                        String msg = "Your booking for " + (booking.getSpaceName() != null ? booking.getSpaceName() : "Resource") + " has been re-submitted for approval.";
+                        repo.sendNotification(booking.getBookedBy(), msg, booking.getBookingId(), "forwarded_to_faculty", booking.getBookedBy(), "escalation", "faculty", r -> {});
+                    }
                 });
     }
 
@@ -523,7 +559,6 @@ public class StaffCompletedRequestDetailActivity extends AppCompatActivity {
             if (bookingDate.before(today)) return true;
             if (bookingDate.after(today)) return false;
 
-            // Same day: Check time slot end
             String timeSlot = b.getTimeSlot();
             if (timeSlot == null) return false;
             

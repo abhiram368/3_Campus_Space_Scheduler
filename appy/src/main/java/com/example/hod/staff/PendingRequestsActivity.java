@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.RequestAdapter;
 import com.example.hod.models.Booking;
 import com.example.hod.repository.FirebaseRepository;
@@ -31,7 +31,7 @@ public class PendingRequestsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_pending_requests);
+        setContentView(R.layout.activity_appy_pending_requests);
 
         labId = getIntent().getStringExtra("labId");
         if (labId == null || labId.isEmpty()) {

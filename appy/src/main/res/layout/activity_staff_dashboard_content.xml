@@ -1,384 +1,151 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background_light">
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background_light">
 
     <!-- Top 15% Blue Header -->
-    <include
-        layout="@layout/layout_common_header"
-        android:id="@+id/header_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="100dp"
-        app:layout_constraintTop_toTopOf="parent" />
+    <include android:id="@+id/header_layout" layout="@layout/layout_common_header" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="100dp" app:layout_constraintEnd_toStartOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/header_layout">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:fillViewport="true" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/header_layout">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
 
             <!-- Main Management Grid (2 Columns) -->
-            <GridLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:rowCount="3"
-                android:alignmentMode="alignMargins"
-                android:columnOrderPreserved="false"
-                android:layout_marginBottom="24dp">
+            <GridLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="24dp" android:alignmentMode="alignMargins" android:columnCount="2" android:columnOrderPreserved="false" android:rowCount="3">
 
                 <!-- Pending Requests -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnEscalated"
-                    style="@style/AdminActionCard"
-                    android:layout_columnWeight="1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-                        <ImageView
-                            style="@style/AdminActionIcon"
-                            android:src="@drawable/ic_pending" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending Requests"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Awaiting action"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary" />
+                <com.google.android.material.card.MaterialCardView android:id="@+id/btnEscalated" style="@style/AdminActionCard" android:layout_columnWeight="1">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="" android:orientation="vertical" android:padding="16dp">
+
+                        <ImageView style="@style/AdminActionIcon" android:layout_width="28dp" android:layout_height="33dp" android:src="@drawable/ic_pending" android:tint="@color/primary_blue" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="" android:text="Pending Requests" android:textColor="@color/text_primary" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Awaiting action" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Live Status -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnLiveStatus"
-                    style="@style/AdminActionCard"
-                    android:layout_columnWeight="1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-                        <ImageView
-                            style="@style/AdminActionIcon"
-                            android:src="@drawable/ic_status_online" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Live Status"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Current lab state"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary" />
+                <com.google.android.material.card.MaterialCardView android:id="@+id/btnLiveStatus" style="@style/AdminActionCard" android:layout_columnWeight="1">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="" android:orientation="vertical" android:padding="16dp">
+
+                        <ImageView style="@style/AdminActionIcon" android:layout_width="39dp" android:layout_height="34dp" android:src="@drawable/ic_status_online" android:tint="@color/status_available" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Live Status" android:textColor="@color/text_primary" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Current lab state" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- View Schedule -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnViewSchedule"
-                    style="@style/AdminActionCard"
-                    android:layout_columnWeight="1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-                        <ImageView
-                            style="@style/AdminActionIcon"
-                            android:src="@drawable/ic_view" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="View Schedule"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Today's bookings"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary" />
+                <com.google.android.material.card.MaterialCardView android:id="@+id/btnViewSchedule" style="@style/AdminActionCard" android:layout_columnWeight="1">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="" android:orientation="vertical" android:padding="16dp">
+
+                        <ImageView style="@style/AdminActionIcon" android:layout_width="37dp" android:layout_height="42dp" android:src="@drawable/ic_view" android:tint="@color/nav_item_color" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="View Schedule" android:textColor="@color/text_primary" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Today's bookings" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Approval History -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnApprovalHistory"
-                    style="@style/AdminActionCard"
-                    android:layout_columnWeight="1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-                        <ImageView
-                            style="@style/AdminActionIcon"
-                            android:src="@drawable/ic_history" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Approval History"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Past decisions"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary" />
+                <com.google.android.material.card.MaterialCardView android:id="@+id/btnApprovalHistory" style="@style/AdminActionCard" android:layout_columnWeight="1">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="" android:orientation="vertical" android:padding="16dp">
+
+                        <ImageView style="@style/AdminActionIcon" android:layout_width="34dp" android:layout_height="35dp" android:layout_marginBottom="16dp" android:src="@drawable/ic_history" android:tint="#5FEF68" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Approval History" android:textColor="@color/text_primary" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Past decisions" android:textColor="@color/text_secondary" android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Lab Details -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnLabDetails"
-                    style="@style/AdminActionCard"
-                    android:layout_columnWeight="1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-                        <ImageView
-                            style="@style/AdminActionIcon"
-                            android:src="@drawable/ic_info" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Lab Details"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Infrastructure"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary" />
+                <com.google.android.material.card.MaterialCardView android:id="@+id/btnLabDetails" style="@style/AdminActionCard" android:layout_columnWeight="1">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="" android:orientation="vertical" android:padding="16dp">
+
+                        <ImageView style="@style/AdminActionIcon" android:layout_width="36dp" android:layout_height="34dp" android:src="@drawable/ic_info" android:tint="@color/gold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Lab Details" android:textColor="@color/text_primary" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Infrastructure" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Lab Admins -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnLabAdmins"
-                    style="@style/AdminActionCard"
-                    android:layout_columnWeight="1">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-                        <ImageView
-                            style="@style/AdminActionIcon"
-                            android:src="@drawable/ic_people" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Lab Admins"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:gravity="center" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Duty management"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary" />
+                <com.google.android.material.card.MaterialCardView android:id="@+id/btnLabAdmins" style="@style/AdminActionCard" android:layout_columnWeight="1">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="" android:orientation="vertical" android:padding="16dp">
+
+                        <ImageView style="@style/AdminActionIcon" android:layout_width="38dp" android:layout_height="wrap_content" android:src="@drawable/ic_people" android:tint="@color/primary_blue" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Lab Admins" android:textColor="@color/text_primary" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Duty management" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
 
             </GridLayout>
 
             <!-- Dashboard Analytics Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Weekly Insights"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp"
-                android:layout_marginStart="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_marginBottom="12dp" android:text="Weekly Insights" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="4">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="4">
 
                 <!-- Total Bookings -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/ProfessionalCard"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    app:cardElevation="2dp"
-                    android:layout_margin="4dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:gravity="center">
-                        <TextView
-                            android:id="@+id/tvWeeklyBookings"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/primary_blue" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Booking (Week)"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center" />
+                <com.google.android.material.card.MaterialCardView style="@style/ProfessionalCard" android:layout_width="0dp" android:layout_height="match_parent" android:layout_margin="4dp" android:layout_weight="1" app:cardElevation="2dp">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="8dp">
+
+                        <TextView android:id="@+id/tvWeeklyBookings" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:textColor="@color/primary_blue" android:textSize="18sp" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Booking (Week)" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Pending Count -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/ProfessionalCard"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    app:cardElevation="2dp"
-                    android:layout_margin="4dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:gravity="center">
-                        <TextView
-                            android:id="@+id/tvPendingCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/status_pending" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center" />
+                <com.google.android.material.card.MaterialCardView style="@style/ProfessionalCard" android:layout_width="0dp" android:layout_height="match_parent" android:layout_margin="4dp" android:layout_weight="1" app:cardElevation="2dp">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="8dp">
+
+                        <TextView android:id="@+id/tvPendingCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:textColor="@color/status_pending" android:textSize="18sp" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Pending" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Blocked Students -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/ProfessionalCard"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    app:cardElevation="2dp"
-                    android:layout_margin="4dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:gravity="center">
-                        <TextView
-                            android:id="@+id/tvBlockedCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="#EF4444" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Blocked"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center" />
+                <com.google.android.material.card.MaterialCardView style="@style/ProfessionalCard" android:layout_width="0dp" android:layout_height="match_parent" android:layout_margin="4dp" android:layout_weight="1" app:cardElevation="2dp">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="8dp">
+
+                        <TextView android:id="@+id/tvBlockedCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:textColor="#EF4444" android:textSize="18sp" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Blocked" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Today Active Slots -->
-                <com.google.android.material.card.MaterialCardView
-                    style="@style/ProfessionalCard"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    app:cardElevation="2dp"
-                    android:layout_margin="4dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="8dp"
-                        android:gravity="center">
-                        <TextView
-                            android:id="@+id/tvActiveSlots"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/status_available" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total Slots"
-                            android:textSize="10sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center" />
+                <com.google.android.material.card.MaterialCardView style="@style/ProfessionalCard" android:layout_width="0dp" android:layout_height="match_parent" android:layout_margin="4dp" android:layout_weight="1" app:cardElevation="2dp">
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="8dp">
+
+                        <TextView android:id="@+id/tvActiveSlots" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-" android:textColor="@color/status_available" android:textSize="18sp" android:textStyle="bold" />
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="Total Slots" android:textColor="@color/text_secondary" android:textSize="10sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
 
             <!-- BOOK BUTTON -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBook"
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="24dp"
-                android:text="Book Resource"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                app:backgroundTint="@color/gold"
-                app:cornerRadius="32dp"
-                app:elevation="4dp" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnBook" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="8dp" android:layout_marginBottom="24dp" android:text="Book Resource" android:textColor="@android:color/white" android:textStyle="bold" app:backgroundTint="@color/gold" app:elevation="4dp" />
 
         </LinearLayout>
     </ScrollView>

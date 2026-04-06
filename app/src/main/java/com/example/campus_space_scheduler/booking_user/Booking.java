@@ -13,12 +13,13 @@ public class Booking {
     private String scheduleId;
     private String status;
     private String spaceName;
+    private String spaceType; // New field
     private String date;
     private String timeSlot;
-    private String remarks;
+    private String remark;
     private String actionBy;
     private String slotStart; // Format: 1030 for 10:30 AM
-    private String approvedBy; // New field: stores UID of authority
+    private String approvedBy; // stores UID of authority
 
     public Booking() {
         // Required for Firebase
@@ -61,14 +62,17 @@ public class Booking {
     public String getSpaceName() { return spaceName; }
     public void setSpaceName(String spaceName) { this.spaceName = spaceName; }
 
+    public String getSpaceType() { return spaceType; }
+    public void setSpaceType(String spaceType) { this.spaceType = spaceType; }
+
     public String getDate() { return date; }
     public void setDate(String date) { this.date = date; }
 
     public String getTimeSlot() { return timeSlot; }
     public void setTimeSlot(String timeSlot) { this.timeSlot = timeSlot; }
 
-    public String getRemarks() { return remarks; }
-    public void setRemarks(String remarks) { this.remarks = remarks; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
 
     public String getActionBy() { return actionBy; }
     public void setActionBy(String actionBy) { this.actionBy = actionBy; }

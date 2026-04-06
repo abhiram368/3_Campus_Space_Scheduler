@@ -180,6 +180,11 @@ public class BookingUserActivity extends AppCompatActivity {
                 return false; // Prevents the item from staying selected
             });
         }
+
+        // Handle Notification Deep-link (Drawer Click)
+        if (getIntent().getBooleanExtra("OPEN_NOTIFICATIONS", false)) {
+            startActivity(new Intent(this, BookingHistoryActivity.class));
+        }
     }
 
     private void checkNotificationPermission() {
@@ -215,12 +220,25 @@ public class BookingUserActivity extends AppCompatActivity {
                     String bookingId = bookingSnapshot.getKey();
                     String status = bookingSnapshot.child("status").getValue(String.class);
                     String spaceName = bookingSnapshot.child("spaceName").getValue(String.class);
+                    String date = bookingSnapshot.child("date").getValue(String.class);
+                    String timeSlot = bookingSnapshot.child("timeSlot").getValue(String.class);
 
                     if (bookingId != null && status != null) {
+                        String statusLower = status.toLowerCase();
+                        
+                        // Check for Time-Based Expiration first (for Pending/Forwarded)
+                        boolean wasExpiredNotified = prefs.getBoolean(bookingId + "_expired_notified", false);
+                        if (!wasExpiredNotified && (statusLower.equals("pending") || statusLower.contains("forwarded"))) {
+                            if (isBookingExpired(date, timeSlot)) {
+                                String message = "Your booking request for " + spaceName + " has expired because the scheduled time has passed.";
+                                NotificationHelper.showNotification(BookingUserActivity.this, "Booking Expired", message, bookingId);
+                                prefs.edit().putBoolean(bookingId + "_expired_notified", true).apply();
+                            }
+                        }
+
+                        // Check for Status-Change based notifications
                         String lastStatus = prefs.getString(bookingId, null);
 
-                        // If lastStatus is null, it's the first time we're seeing this booking
-                        // We store the current status but don't notify unless it's not "Pending"
                         if (lastStatus == null) {
                             prefs.edit().putString(bookingId, status).apply();
                             continue;
@@ -229,16 +247,29 @@ public class BookingUserActivity extends AppCompatActivity {
                         if (!status.equalsIgnoreCase(lastStatus)) {
                             // Status changed!
                             String message = "";
-                            if (status.equalsIgnoreCase("Approved") || status.equalsIgnoreCase("Accepted")) {
+                            
+                            Log.d(TAG, "Booking status changed for " + bookingId + ": " + lastStatus + " -> " + status);
+
+                            if (statusLower.equals("approved") || statusLower.equals("accepted")) {
                                 message = "Your booking for " + spaceName + " has been approved!";
-                            } else if (status.equalsIgnoreCase("Rejected")) {
+                            } else if (statusLower.equals("rejected")) {
                                 message = "Your booking for " + spaceName + " has been rejected.";
-                            } else if (status.equalsIgnoreCase("Forwarded")) {
-                                message = "Your booking for " + spaceName + " has been forwarded to the HOD.";
+                            } else if (statusLower.equals("cancelled")) {
+                                message = "Your booking for " + spaceName + " has been cancelled.";
+                            } else if (statusLower.contains("expired")) {
+                                message = "Your booking for " + spaceName + " has expired.";
+                            } else if (statusLower.contains("forwarded")) {
+                                if (statusLower.contains("faculty")) {
+                                    message = "Your booking request for " + spaceName + " has been forwarded to Faculty Incharge.";
+                                } else if (statusLower.contains("hod")) {
+                                    message = "Your booking request for " + spaceName + " has been forwarded to HOD.";
+                                } else {
+                                    message = "Your booking request for " + spaceName + " has been forwarded for further approval.";
+                                }
                             }
 
                             if (!message.isEmpty()) {
-                                NotificationHelper.showNotification(BookingUserActivity.this, "Booking Update", message);
+                                NotificationHelper.showNotification(BookingUserActivity.this, "Booking Update", message, bookingId);
                             }
 
                             // Save new status
@@ -254,7 +285,67 @@ public class BookingUserActivity extends AppCompatActivity {
             }
         };
 
+        // Important: use addValueEventListener to keep monitoring changes
         bookingsRef.orderByChild("bookedBy").equalTo(currentUserId).addValueEventListener(bookingStatusListener);
+    }
+
+    private boolean isBookingExpired(String dateStr, String timeSlot) {
+        if (dateStr == null || timeSlot == null) return false;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Calendar now = Calendar.getInstance();
+            Calendar today = (Calendar) now.clone();
+            today.set(Calendar.HOUR_OF_DAY, 0);
+            today.set(Calendar.MINUTE, 0);
+            today.set(Calendar.SECOND, 0);
+            today.set(Calendar.MILLISECOND, 0);
+
+            Date parsedDate = sdf.parse(dateStr);
+            if (parsedDate == null) return false;
+            
+            Calendar bookingDate = Calendar.getInstance();
+            bookingDate.setTime(parsedDate);
+
+            if (bookingDate.before(today)) return true;
+            if (bookingDate.after(today)) return false;
+
+            // Same day: Check time slot end
+            String normalized = timeSlot.replaceAll("\\s", "");
+            String[] parts = normalized.split("[-–]");
+            if (parts.length < 2) return false;
+
+            String endTimeStr = parts[1];
+            int currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+            int endMinutes = timeToMinutes(endTimeStr);
+
+            if (endMinutes == -1) return false;
+            return currentMinutes >= endMinutes;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private int timeToMinutes(String time) {
+        if (time == null || time.isEmpty()) return -1;
+        try {
+            String upper = time.trim().toUpperCase();
+            boolean isPM = upper.contains("PM");
+            boolean isAM = upper.contains("AM");
+
+            String cleanTime = upper.replaceAll("[^0-9:]", "");
+            String[] parts = cleanTime.split(":");
+            if (parts.length < 2) return -1;
+
+            int hours = Integer.parseInt(parts[0]);
+            int minutes = Integer.parseInt(parts[1]);
+
+            if (isPM && hours < 12) hours += 12;
+            if (isAM && hours == 12) hours = 0;
+
+            return hours * 60 + minutes;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     @Override
@@ -313,72 +404,25 @@ public class BookingUserActivity extends AppCompatActivity {
         liveStatusListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                DataSnapshot currentSchedule = null;
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String date = child.child("date").getValue(String.class);
-                    if (today.equals(date)) {
-                        currentSchedule = child;
-                        break;
-                    }
-                }
-
-                if (currentSchedule == null) {
-                    updateStatusUI(true, "AVAILABLE", "No bookings for today");
-                    swipeRefreshLayout.setRefreshing(false);
-                    return;
-                }
-
-                String currentTime = new SimpleDateFormat("HHmm", Locale.getDefault()).format(new Date());
-                int currentInt = Integer.parseInt(currentTime);
-
-                DataSnapshot slotsSnapshot = currentSchedule.child("slots");
-                String currentStatus = "AVAILABLE";
-                String endTimeStr = "";
-
-                for (DataSnapshot slot : slotsSnapshot.getChildren()) {
-                    try {
-                        String startStr = slot.child("start").getValue(String.class);
-                        String endStr = slot.child("end").getValue(String.class);
-                        String status = slot.child("status").getValue(String.class);
-
-                        if (startStr != null && endStr != null) {
-                            int startTime = Integer.parseInt(startStr.replace(":", ""));
-                            int endTime = Integer.parseInt(endStr.replace(":", ""));
-
-                            if (currentInt >= startTime && currentInt < endTime) {
-                                currentStatus = (status != null) ? status.toUpperCase() : "AVAILABLE";
-                                endTimeStr = endStr;
-                                break;
+                if (!snapshot.exists()) {
+                    // Try spaceID fallback
+                    schedulesRef.orderByChild("spaceID").equalTo(spaceId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot2) {
+                            if (!snapshot2.exists()) {
+                                updateStatusUI(true, "AVAILABLE", "No schedule found");
+                                swipeRefreshLayout.setRefreshing(false);
+                            } else {
+                                processLiveStatusSnapshot(snapshot2, today);
                             }
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error parsing slot time", e);
-                    }
+                        @Override public void onCancelled(@NonNull DatabaseError error) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                    return;
                 }
-
-                String details = endTimeStr.isEmpty() ? "" : "Until " + formatTime(endTimeStr);
-
-                switch (currentStatus) {
-                    case "BOOKED":
-                        updateStatusUI(false, "BOOKED", details);
-                        break;
-                    case "BLOCKED":
-                        updateStatusUI(false, "BLOCKED", details);
-                        break;
-                    case "MAINTENANCE":
-                        updateStatusUI(false, "MAINTENANCE", details);
-                        break;
-                    case "PENDING":
-                        textViewLiveStatus.setText("PENDING");
-                        textViewStatusDetails.setText(details);
-                        statusIndicator.setBackgroundColor(Color.parseColor("#FFA500")); // Orange
-                        break;
-                    case "AVAILABLE":
-                    default:
-                        updateStatusUI(true, "AVAILABLE", "");
-                        break;
-                }
-                swipeRefreshLayout.setRefreshing(false);
+                processLiveStatusSnapshot(snapshot, today);
             }
 
             @Override
@@ -390,6 +434,75 @@ public class BookingUserActivity extends AppCompatActivity {
 
         currentQuery = schedulesRef.orderByChild("spaceId").equalTo(spaceId);
         currentQuery.addValueEventListener(liveStatusListener);
+    }
+
+    private void processLiveStatusSnapshot(DataSnapshot snapshot, String today) {
+        DataSnapshot currentSchedule = null;
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String date = child.child("date").getValue(String.class);
+            if (today.equals(date)) {
+                currentSchedule = child;
+                break;
+            }
+        }
+
+        if (currentSchedule == null) {
+            updateStatusUI(true, "AVAILABLE", "No bookings today");
+            swipeRefreshLayout.setRefreshing(false);
+            return;
+        }
+
+        String currentTime = new SimpleDateFormat("HHmm", Locale.getDefault()).format(new Date());
+        int currentInt = Integer.parseInt(currentTime);
+
+        DataSnapshot slotsSnapshot = currentSchedule.child("slots");
+        String currentStatus = "AVAILABLE";
+        String endTimeStr = "";
+
+        for (DataSnapshot slot : slotsSnapshot.getChildren()) {
+            try {
+                String startStr = slot.child("start").getValue(String.class);
+                String endStr = slot.child("end").getValue(String.class);
+                String status = slot.child("status").getValue(String.class);
+
+                if (startStr != null && endStr != null) {
+                    int startTime = Integer.parseInt(startStr.replace(":", ""));
+                    int endTime = Integer.parseInt(endStr.replace(":", ""));
+
+                    if (currentInt >= startTime && currentInt < endTime) {
+                        currentStatus = (status != null) ? status.toUpperCase() : "AVAILABLE";
+                        endTimeStr = endStr;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error parsing slot time", e);
+            }
+        }
+
+        String details = endTimeStr.isEmpty() ? "" : "Until " + formatTime(endTimeStr);
+
+        switch (currentStatus) {
+            case "BOOKED":
+                updateStatusUI(false, "BOOKED", details);
+                break;
+            case "BLOCKED":
+                updateStatusUI(false, "BLOCKED", details);
+                break;
+            case "MAINTENANCE":
+                updateStatusUI(false, "MAINTENANCE", details);
+                break;
+            case "PENDING":
+                textViewLiveStatus.setText("PENDING");
+                textViewStatusDetails.setText(details);
+                statusIndicator.setBackgroundColor(Color.parseColor("#FFA500")); // Orange
+                break;
+            case "AVAILABLE":
+            default:
+                updateStatusUI(true, "AVAILABLE", "");
+                break;
+        }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void updateStatusUI(boolean available, String statusText, String details) {

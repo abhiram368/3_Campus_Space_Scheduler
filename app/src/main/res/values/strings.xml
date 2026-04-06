@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Campus Space Scheduler</string>
+    <string name="app_name">Campus Sync</string>
     <string name="pending_requests_title">Pending Requests</string>
 
     <string name="username_john">Username: john_doe</string>
@@ -98,6 +98,9 @@
     <string name="slot_not_available">Slot no longer available.</string>
     <string name="booking_request_sent">Booking Request Sent</string>
     <string name="failed_save_booking">Failed to save booking.</string>
+    <string name="label_status">Status</string>
+    <string name="label_schedule">Schedule</string>
+    <string name="nav_notifications">Notifications</string>
     <string name="rejection_reason">Reason for Rejection: %1$s</string>
     <string name="remarks_label">Remarks: %1$s</string>
     <string name="approved_by_label">Approved by: %1$s</string>

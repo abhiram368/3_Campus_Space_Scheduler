@@ -82,7 +82,7 @@
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:strokeWidth="1dp"
-                app:strokeColor="#2A3342">
+                app:strokeColor="?attr/colorOutline">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -97,14 +97,14 @@
                         android:layout_height="wrap_content"
                         android:hint="Purpose of Booking *"
                         android:textColorHint="?attr/colorOnSurfaceVariant"
-                        app:boxStrokeColor="@color/primary_blue"
-                        app:hintTextColor="@color/primary_blue">
+                        app:boxStrokeColor="?attr/colorPrimary"
+                        app:hintTextColor="?attr/colorPrimary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPurpose"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@color/white" />
+                            android:textColor="?attr/colorOnSurface" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
@@ -123,14 +123,14 @@
                         android:layout_marginTop="4dp"
                         android:hint="LOR URL *"
                         android:textColorHint="?attr/colorOnSurfaceVariant"
-                        app:boxStrokeColor="@color/primary_blue"
-                        app:hintTextColor="@color/primary_blue">
+                        app:boxStrokeColor="?attr/colorPrimary"
+                        app:hintTextColor="?attr/colorPrimary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etLorUrl"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@color/white" />
+                            android:textColor="?attr/colorOnSurface" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
@@ -141,7 +141,7 @@
                         android:layout_gravity="end"
                         android:text="Download LOR Format"
                         android:textAllCaps="false"
-                        android:textColor="@color/accent_cyan"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="12sp" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -152,8 +152,8 @@
                         android:layout_marginTop="8dp"
                         android:hint="Description (Optional)"
                         android:textColorHint="?attr/colorOnSurfaceVariant"
-                        app:boxStrokeColor="@color/primary_blue"
-                        app:hintTextColor="@color/primary_blue">
+                        app:boxStrokeColor="?attr/colorPrimary"
+                        app:hintTextColor="?attr/colorPrimary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etDescription"
@@ -180,7 +180,7 @@
         android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:backgroundTint="@color/primary_blue"
+        app:backgroundTint="?attr/colorPrimary"
         app:cornerRadius="28dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 

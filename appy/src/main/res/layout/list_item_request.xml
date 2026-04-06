@@ -14,6 +14,15 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbSelect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Top Row: Student Name + Status Badge -->
         <TextView
             android:id="@+id/tvUsername"
@@ -47,7 +56,8 @@
             style="@style/BadgeText"
             android:textColor="@color/status_text_color"
             android:background="@drawable/badge_orange"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintEnd_toStartOf="@+id/cbSelect"
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Second Row: Lab Name -->
@@ -59,7 +69,7 @@
             android:text="Computer Lab 1"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvRequesterRole" />
 
@@ -72,7 +82,7 @@
             android:text="March 20, 2024 | 10:00 - 11:00"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/tvStatus"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvLabName" />
 
@@ -97,8 +107,9 @@
             android:layout_height="20dp"
             android:src="@android:drawable/ic_media_play"
             android:rotation="0"
+            android:layout_marginEnd="4dp"
             app:layout_constraintBottom_toBottomOf="@+id/tvReason"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/cbSelect"
             app:layout_constraintTop_toTopOf="@+id/tvReason"
             app:tint="@color/text_secondary" />
 

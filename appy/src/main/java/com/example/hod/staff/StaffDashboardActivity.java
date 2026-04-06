@@ -15,7 +15,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.Booking;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;
@@ -36,6 +36,7 @@ public class StaffDashboardActivity extends AppCompatActivity {
 
     private static final String TAG = "StaffDashboardActivity";
     private com.google.firebase.database.ValueEventListener dashboardPendingListener;
+    private com.google.firebase.database.ValueEventListener notificationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,14 +54,14 @@ public class StaffDashboardActivity extends AppCompatActivity {
             View btnBack = headerView.findViewById(R.id.btnBack);
             View menuIcon = headerView.findViewById(R.id.menuIcon);
 
-            if (title != null) title.setText("Staff Incharge Dashboard");
+            if (title != null) title.setText(R.string.staff_dashboard_title);
             if (subtitle != null) {
                 String userName = getIntent().getStringExtra("userName");
                 if (userName != null && !userName.isEmpty()) {
-                    String capitalized = userName.substring(0, 1).toUpperCase() + userName.substring(1).toLowerCase();
+                    String capitalized = userName.substring(0, 1).toUpperCase(Locale.getDefault()) + userName.substring(1).toLowerCase(Locale.getDefault());
                     subtitle.setText(capitalized);
                 } else {
-                    subtitle.setText("Staff Portal");
+                    subtitle.setText(R.string.subtitle_staff_portal);
                 }
             }
 
@@ -76,7 +77,7 @@ public class StaffDashboardActivity extends AppCompatActivity {
         String currentLabId = getIntent().getStringExtra("labId");
         final String labIdToPass;
         if (currentLabId == null || currentLabId.isEmpty()) {
-            Toast.makeText(this, "Error: No Lab assigned to your profile.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.error_no_lab_assigned, Toast.LENGTH_LONG).show();
             labIdToPass = "";
         } else {
             labIdToPass = currentLabId;
@@ -91,14 +92,26 @@ public class StaffDashboardActivity extends AppCompatActivity {
 
             String userName = getIntent().getStringExtra("userName");
             if (userName != null && !userName.isEmpty()) {
-                String capitalized = userName.substring(0, 1).toUpperCase() + userName.substring(1).toLowerCase();
+                String capitalized = userName.substring(0, 1).toUpperCase(Locale.getDefault()) + userName.substring(1).toLowerCase(Locale.getDefault());
                 tvName.setText(capitalized);
-                tvInitial.setText(userName.substring(0, 1).toUpperCase());
+                tvInitial.setText(userName.substring(0, 1).toUpperCase(Locale.getDefault()));
             } else {
-                tvName.setText("Staff User");
+                tvName.setText(R.string.label_staff_user);
                 tvInitial.setText("S");
             }
-            tvRole.setText("Staff Incharge");
+            tvRole.setText(R.string.role_staff_incharge);
+
+            // Remove My Profile and Booking History as requested
+            navView.getMenu().findItem(R.id.nav_profile).setVisible(false);
+            navView.getMenu().findItem(R.id.nav_history).setVisible(false);
+
+            // Navigate to profile when touching the header ("blue box")
+            navHeader.setOnClickListener(v -> {
+                startActivity(new Intent(this, StaffProfileActivity.class));
+                drawerLayout.closeDrawer(GravityCompat.START);
+            });
+
+            navView.setItemIconTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#3B82F6")));
 
             navView.setNavigationItemSelectedListener(item -> {
                 int id = item.getItemId();
@@ -109,25 +122,36 @@ public class StaffDashboardActivity extends AppCompatActivity {
                     blockedIntent.putExtra("labId", labIdToPass);
                     startActivity(blockedIntent);
                 } else if (id == R.id.nav_history) {
-                    Toast.makeText(StaffDashboardActivity.this, "To be implemented", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(StaffDashboardActivity.this, R.string.msg_feature_to_be_implemented, Toast.LENGTH_SHORT).show();
                 } else if (id == R.id.nav_dark) {
                     // Switch handled via ActionView logic below
                     return false;
+                } else if (id == R.id.nav_data_reset) {
+                    Intent dataUtilityIntent = new Intent(this, DataUtilityActivity.class);
+                    dataUtilityIntent.putExtra("labId", labIdToPass);
+                    startActivity(dataUtilityIntent);
                 } else if (id == R.id.nav_notifications) {
                     startActivity(new Intent(this, NotificationsActivity.class));
                 } else if (id == R.id.nav_help) {
                     startActivity(new Intent(this, HelpActivity.class));
                 } else if (id == R.id.nav_logout) {
-                    FirebaseAuth.getInstance().signOut();
-                    try {
-                        Intent intent = new Intent();
-                        intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    } catch (Exception e) {
-                        Toast.makeText(this, "Logout failed", Toast.LENGTH_SHORT).show();
-                    }
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.dialog_title_logout)
+                        .setMessage(R.string.dialog_msg_logout)
+                        .setPositiveButton(R.string.btn_confirm_logout, (dialog, which) -> {
+                            FirebaseAuth.getInstance().signOut();
+                            try {
+                                Intent intent = new Intent();
+                                intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            } catch (Exception e) {
+                                Toast.makeText(this, R.string.msg_logout_failed, Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton(R.string.btn_no, null)
+                        .show();
                 }
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
@@ -151,6 +175,8 @@ public class StaffDashboardActivity extends AppCompatActivity {
                     });
                 }
             }
+            
+            observeNotifications(navView);
         }
 
         // Map the IDs correctly from activity_staff_dashboard.xml
@@ -219,14 +245,66 @@ public class StaffDashboardActivity extends AppCompatActivity {
 
 
         // Feature disabled as per request
-        if (btnBook != null) {
+      if (btnBook != null) {
             btnBook.setOnClickListener(v -> {
-                Toast.makeText(StaffDashboardActivity.this, "Booking disabled for Staff Incharge", Toast.LENGTH_SHORT).show();
+                try {
+                    Intent intent = new Intent();
+                    // Using full class name for cross-module navigation
+                    intent.setClassName(StaffDashboardActivity.this,
+                            "com.example.campus_space_scheduler.booking_user.BookingUserActivity");
+                    intent.putExtra("ROLE", "Staff");
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(StaffDashboardActivity.this,
+                            R.string.error_unable_open_booking, Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
+
         if (!labIdToPass.isEmpty()) {
+            // Lazy Sync: Perform weekly maintenance (Monday check)
+            new FirebaseRepository().checkAndPerformWeeklyMaintenance(labIdToPass, "Your Lab", result -> {
+                if (result instanceof Result.Success) {
+                    android.util.Log.d("Maintenance", "Weekly maintenance/14-day sync completed.");
+                }
+            });
             loadInsights(labIdToPass);
+        }
+    }
+
+    private void observeNotifications(NavigationView navView) {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+
+        notificationListener = FirebaseDatabase.getInstance().getReference("notifications")
+                .child(uid)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        int unreadCount = 0;
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            Boolean read = child.child("read").getValue(Boolean.class);
+                            if (read != null && !read) {
+                                unreadCount++;
+                            }
+                        }
+                        updateNotificationBadge(navView, unreadCount);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
+    private void updateNotificationBadge(@NonNull NavigationView navView, int count) {
+        MenuItem item = navView.getMenu().findItem(R.id.nav_notifications);
+        if (item == null) return;
+        
+        if (count > 0) {
+            item.setTitle(getString(R.string.label_notifications_unread, count));
+        } else {
+            item.setTitle(R.string.notification_title); // Assuming nav_notifications exists in menu XML or R class
         }
     }
 
@@ -235,6 +313,14 @@ public class StaffDashboardActivity extends AppCompatActivity {
         super.onDestroy();
         if (dashboardPendingListener != null) {
             new FirebaseRepository().removePendingRequestsListener(dashboardPendingListener);
+        }
+        if (notificationListener != null) {
+            String uid = FirebaseAuth.getInstance().getUid();
+            if (uid != null) {
+                FirebaseDatabase.getInstance().getReference("notifications")
+                        .child(uid)
+                        .removeEventListener(notificationListener);
+            }
         }
     }
 

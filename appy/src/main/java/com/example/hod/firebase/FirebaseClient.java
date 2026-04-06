@@ -38,5 +38,13 @@ public class FirebaseClient {
     public DatabaseReference usersRef() {
         return rootRef().child(FirebasePaths.USERS);
     }
+
+    public DatabaseReference notificationsRef() {
+        return rootRef().child(FirebasePaths.NOTIFICATIONS);
+    }
+
+    public DatabaseReference labAdminsDetailsRef() {
+        return rootRef().child(FirebasePaths.LAB_ADMINS_DETAILS);
+    }
 }
 

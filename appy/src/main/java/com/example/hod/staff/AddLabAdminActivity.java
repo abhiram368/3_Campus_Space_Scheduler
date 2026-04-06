@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.models.User;
 import com.example.hod.repository.FirebaseRepository;
 import com.example.hod.utils.Result;
@@ -22,6 +22,7 @@ public class AddLabAdminActivity extends AppCompatActivity {
     private TextView tvResultLabel;
     private MaterialButton btnAddAsAdmin;
     private User selectedUser;
+    private java.util.List<User> fullUserList = new java.util.ArrayList<>();
 
     // Search Performance Helpers
     private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -44,7 +45,17 @@ public class AddLabAdminActivity extends AppCompatActivity {
         tvResultLabel = findViewById(R.id.tvResultLabel);
         btnAddAsAdmin = findViewById(R.id.btnAddAsAdmin);
 
-        updateHeader("Add Lab Admin", "Find & Nominate Student");
+        // Header Configuration
+        View headerView = findViewById(R.id.header_layout);
+        if (headerView != null) {
+            TextView title = headerView.findViewById(R.id.header_title);
+            TextView subtitle = headerView.findViewById(R.id.header_subtitle);
+            View btnBack = headerView.findViewById(R.id.btnBack);
+            
+            if (title != null) title.setText("Add Lab Admin");
+            if (subtitle != null) subtitle.setText("Find & Nominate Student");
+            if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+        }
 
         // Real-time Search with Debouncing
         etSearch.addTextChangedListener(new android.text.TextWatcher() {
@@ -71,16 +82,53 @@ public class AddLabAdminActivity extends AppCompatActivity {
         });
 
         btnAddAsAdmin.setOnClickListener(v -> addAsAdmin());
+        
+        fetchStudents();
     }
 
     private void updateHeader(String title, String subtitle) {
-        TextView tvTitle = findViewById(R.id.header_title);
-        TextView tvSubtitle = findViewById(R.id.header_subtitle);
-        if (tvTitle != null) tvTitle.setText(title);
-        if (tvSubtitle != null) tvSubtitle.setText(subtitle);
+        View headerView = findViewById(R.id.header_layout);
+        if (headerView != null) {
+            TextView tvTitle = headerView.findViewById(R.id.header_title);
+            TextView tvSubtitle = headerView.findViewById(R.id.header_subtitle);
+            if (tvTitle != null) tvTitle.setText(title);
+            if (tvSubtitle != null) tvSubtitle.setText(subtitle);
+        }
     }
 
-    private void searchUsers(String query, long requestTimestamp) {
+    private void fetchStudents() {
+        try {
+            FirebaseRepository repo = new FirebaseRepository();
+            repo.usersRef().orderByChild("role").equalTo("student")
+                .addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                        fullUserList.clear();
+                        for (com.google.firebase.database.DataSnapshot child : snapshot.getChildren()) {
+                            User u = child.getValue(User.class);
+                            if (u != null) {
+                                u.uid = child.getKey();
+                                fullUserList.add(u);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
+                        android.util.Log.e("AddAdmin", "Error fetching students: " + error.getMessage());
+                    }
+                });
+        } catch (Exception e) {
+            android.util.Log.e("AddAdmin", "Error initiating student fetch", e);
+        }
+    }
+
+    private void filter(String text) {
+        java.util.List<User> filteredList = new java.util.ArrayList<>();
+        
+        // Make sure the search text isn't null
+        String query = text != null ? text.toLowerCase().trim() : "";
+        
         if (query.isEmpty()) {
             userResultsContainer.removeAllViews();
             userResultsContainer.setVisibility(View.GONE);
@@ -90,43 +138,39 @@ public class AddLabAdminActivity extends AppCompatActivity {
             return;
         }
 
-        userResultsContainer.removeAllViews();
-        userResultsContainer.setVisibility(View.GONE);
-        tvResultLabel.setVisibility(View.VISIBLE);
-        tvResultLabel.setText("SEARCHING...");
-        btnAddAsAdmin.setVisibility(View.GONE);
-        selectedUser = null;
-
-        try {
-            FirebaseRepository repo = new FirebaseRepository();
-            repo.searchUsers(query, result -> {
-                runOnUiThread(() -> {
-                    // Ignore stale results from previous keystrokes
-                    if (requestTimestamp != lastSearchTimestamp) {
-                        return;
-                    }
-
-                    try {
-                        if (result instanceof Result.Success) {
-                            java.util.List<User> users = ((Result.Success<java.util.List<User>>) result).data;
-                            if (users != null && !users.isEmpty()) {
-                                tvResultLabel.setText(users.size() + (users.size() == 1 ? " STUDENT FOUND" : " STUDENTS FOUND"));
-                                displaySearchResults(users);
-                            } else {
-                                tvResultLabel.setText("NO STUDENTS FOUND");
-                                userResultsContainer.setVisibility(View.GONE);
-                            }
-                        } else {
-                            tvResultLabel.setText("SEARCH FAILED");
-                        }
-                    } catch (Exception e) {
-                        android.util.Log.e("AddAdmin", "Error in search result UI update", e);
-                    }
-                });
-            });
-        } catch (Exception e) {
-            android.util.Log.e("AddAdmin", "Error initiating search", e);
+        for (User user : fullUserList) {
+            // Null-safe checks for every single field
+            // Using getters we just added to User.java
+            String name = user.getName() != null ? user.getName().toLowerCase() : "";
+            String email = user.getEmailId() != null ? user.getEmailId().toLowerCase() : "";
+            String roll = user.getRollNo() != null ? user.getRollNo().toLowerCase() : "";
+            
+            if (name.contains(query) || email.contains(query) || roll.contains(query)) {
+                filteredList.add(user);
+            }
         }
+
+        // Update UI
+        runOnUiThread(() -> {
+            userResultsContainer.removeAllViews();
+            selectedUser = null;
+            btnAddAsAdmin.setVisibility(View.GONE);
+
+            if (!filteredList.isEmpty()) {
+                tvResultLabel.setVisibility(View.VISIBLE);
+                tvResultLabel.setText(filteredList.size() + (filteredList.size() == 1 ? " STUDENT FOUND" : " STUDENTS FOUND"));
+                displaySearchResults(filteredList);
+            } else {
+                tvResultLabel.setVisibility(View.VISIBLE);
+                tvResultLabel.setText("NO STUDENTS FOUND");
+                userResultsContainer.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void searchUsers(String query, long requestTimestamp) {
+        // Redirecting to the new null-safe local filter
+        filter(query);
     }
 
     private void hideKeyboard() {
@@ -222,6 +266,10 @@ public class AddLabAdminActivity extends AppCompatActivity {
             return;
         }
 
+        // Show progress on button
+        btnAddAsAdmin.setEnabled(false);
+        btnAddAsAdmin.setText("GENERATING SCHEDULE...");
+
         try {
             FirebaseRepository repo = new FirebaseRepository();
             repo.updateToLabAdmin(selectedUser.uid, labId, result -> {
@@ -229,9 +277,11 @@ public class AddLabAdminActivity extends AppCompatActivity {
                     try {
                         if (result instanceof Result.Success) {
                             android.util.Log.d("AddAdmin", "Update successful");
-                            Toast.makeText(this, "Lab Admin Added Successfully", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Lab Admin Added & Schedule Generated", Toast.LENGTH_LONG).show();
                             finish();
                         } else {
+                            btnAddAsAdmin.setEnabled(true);
+                            btnAddAsAdmin.setText("Add as Lab Admin");
                             Exception e = ((Result.Error<?>) result).exception;
                             String msg = e != null ? e.getMessage() : "Unknown error";
                             android.util.Log.e("AddAdmin", "Update failed: " + msg);
@@ -243,6 +293,8 @@ public class AddLabAdminActivity extends AppCompatActivity {
                 });
             });
         } catch (Exception e) {
+            btnAddAsAdmin.setEnabled(true);
+            btnAddAsAdmin.setText("Add as Lab Admin");
             android.util.Log.e("AddAdmin", "Error initiating admin update", e);
         }
     }

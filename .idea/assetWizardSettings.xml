@@ -307,7 +307,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../SAD%20ABHIRAM/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/apps/outline_apps_24.xml" />
+                                      <entry key="url" value="file:/$PROJECT_DIR$/../../../SAD%20ABHIRAM/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/history/outline_history_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -317,7 +317,7 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="ic_menu" />
+                            <entry key="outputName" value="ic_history" />
                             <entry key="sourceFile" value="C:\Users\SAD ABHIRAM\Downloads\CSSIcons\icons8-lock-24.svg" />
                           </map>
                         </option>

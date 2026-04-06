@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.firebase.FirebaseClient;
 import com.example.hod.firebase.FirebasePaths;
 import com.google.firebase.database.FirebaseDatabase;
@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
+import com.example.hod.repository.FirebaseRepository;
+import com.example.hod.utils.Result;
 
 public class StaffProfileActivity extends AppCompatActivity {
 
@@ -72,7 +74,7 @@ public class StaffProfileActivity extends AppCompatActivity {
         btnCancelEdit.setOnClickListener(v -> toggleEditMode(false));
         btnSaveProfile.setOnClickListener(v -> saveProfileChanges());
         findViewById(R.id.btnLogout).setOnClickListener(v -> logout());
-
+        
         loadUserProfile();
     }
 
@@ -133,7 +135,6 @@ public class StaffProfileActivity extends AppCompatActivity {
                         if (inchargeToSpace != null && !inchargeToSpace.isEmpty()) {
                             dividerIncharge.setVisibility(View.VISIBLE);
                             rowInchargeSpace.setVisibility(View.VISIBLE);
-                            // inchargeToSpace may be a space name or ID; try resolving room name first
                             loadSpaceName(inchargeToSpace);
                         }
                     }
@@ -173,15 +174,22 @@ public class StaffProfileActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // Shut down the RTDB connection cleanly so goOnline() in LoginActivity restores it fresh
-        FirebaseDatabase.getInstance().goOffline();
-        FirebaseAuth.getInstance().signOut();
-        
-        Intent intent = new Intent();
-        intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("Logout")
+            .setMessage("Do you really want to logout?")
+            .setPositiveButton("Confirm Logout", (dialog, which) -> {
+                // Shut down the RTDB connection cleanly so goOnline() in LoginActivity restores it fresh
+                FirebaseDatabase.getInstance().goOffline();
+                FirebaseAuth.getInstance().signOut();
+                
+                Intent intent = new Intent();
+                intent.setClassName(this, "com.example.campus_space_scheduler.LoginActivity");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            })
+            .setNegativeButton("No", null)
+            .show();
     }
 
     private void toggleEditMode(boolean enable) {

@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.campussync.appy.R;
+import com.example.hod.R;
 import com.example.hod.adapters.RequestAdapter;
 import com.example.hod.models.Booking;
 import com.example.hod.repository.FirebaseRepository;
@@ -38,7 +38,7 @@ public class ApprovalHistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            setContentView(R.layout.activity_approval_history);
+            setContentView(R.layout.activity_appy_approval_history);
 
             labId = getIntent().getStringExtra("labId");
             if (labId == null || labId.isEmpty()) {
@@ -77,6 +77,7 @@ public class ApprovalHistoryActivity extends AppCompatActivity {
         try {
             progressBar.setVisibility(View.VISIBLE);
             FirebaseRepository repo = new FirebaseRepository();
+            // Use a real-time listener to handle status updates
             repo.observeApprovals(labId, result -> {
                 try {
                     if (result instanceof Result.Success) {
@@ -91,18 +92,17 @@ public class ApprovalHistoryActivity extends AppCompatActivity {
                                 return t2.compareTo(t1); // Reverse order
                             });
                         }
-                        applyFilter("All");
-                        View emptyState = findViewById(R.id.empty_state_view);
-                        if (bookingList.isEmpty()) {
-                            if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
-                            historyRecyclerView.setVisibility(View.GONE);
-                            updateHeader("Approval History", 0);
-                        } else {
-                            if (emptyState != null) emptyState.setVisibility(View.GONE);
-                            historyRecyclerView.setVisibility(View.VISIBLE);
-                            requestAdapter.notifyDataSetChanged();
-                            updateHeader("Approval History", bookingList.size());
+                        // Re-apply the current filter
+                        int selectedTabPosition = filterTabLayout.getSelectedTabPosition();
+                        String currentFilter = "All";
+                        if (selectedTabPosition != -1) {
+                            TabLayout.Tab selectedTab = filterTabLayout.getTabAt(selectedTabPosition);
+                            if (selectedTab != null && selectedTab.getText() != null) {
+                                currentFilter = selectedTab.getText().toString();
+                            }
                         }
+                        applyFilter(currentFilter);
+
                     } else if (result instanceof Result.Error) {
                         progressBar.setVisibility(View.GONE);
                         String errorMsg = ((Result.Error<List<Booking>>) result).exception.getMessage();
@@ -145,44 +145,77 @@ public class ApprovalHistoryActivity extends AppCompatActivity {
         });
     }
 
-    private void applyFilter(String filter) {
-        bookingList.clear();
-        for (Booking b : fullBookingList) {
-            String status = b.getStatus() != null ? b.getStatus().toLowerCase() : "";
-            if (filter.equalsIgnoreCase("All")) {
-                bookingList.add(b);
-            } else if (filter.equalsIgnoreCase("Approved") && status.equals("approved")) {
-                bookingList.add(b);
-            } else if (filter.equalsIgnoreCase("Rejected") && status.equals("rejected")) {
-                bookingList.add(b);
-            } else if (filter.equalsIgnoreCase("Expired") && status.equals("rejected_expired")) {
-                bookingList.add(b);
-            } else if (filter.equalsIgnoreCase("Cancelled") && status.equals("cancelled")) {
-                bookingList.add(b);
-            } else if (filter.equalsIgnoreCase("Forwarded") && status.contains("forwarded")) {
-                bookingList.add(b);
+private void applyFilter(String filter) {
+    bookingList.clear();
+    for (Booking b : fullBookingList) {
+        // 1. Safe status extraction with trim()
+        String status = b.getStatus() != null ? b.getStatus().trim().toLowerCase() : "";
+        boolean isDynamicallyExpired = false;
+
+        // 2. Only apply dynamic expiry to strictly PENDING items.
+        // Forwarded items represent a completed Staff action and should stay in the Forwarded tab.
+        if (status.equals("pending") || status.equals("requested")) {
+            try {
+                String dateStr = b.getDate();
+                String timeSlot = b.getTimeSlot();
+                
+                if (dateStr != null && timeSlot != null) {
+                    // 3. Robust split: Handles regular hyphens (-), en-dashes (–), and em-dashes (—)
+                    String[] timeParts = timeSlot.split("[-–—]");
+                    String timeStr = timeParts.length > 1 ? timeParts[1].trim() : timeSlot.trim();
+
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
+                    java.util.Date bookingDateTime = sdf.parse(dateStr + " " + timeStr);
+                    
+                    if (bookingDateTime != null && bookingDateTime.before(new java.util.Date())) {
+                        isDynamicallyExpired = true;
+                    }
+                }
+            } catch (Exception e) {
+                // DO NOT leave this empty! This prints the exact reason why parsing fails to Logcat.
+                android.util.Log.e("ApprovalHistory", "Failed to parse date/time for booking ID: " + b.getBookingId(), e);
             }
         }
 
-        progressBar.setVisibility(View.GONE);
-        View emptyState = findViewById(R.id.empty_state_view);
-        if (bookingList.isEmpty()) {
-            if (emptyState != null) {
-                emptyState.setVisibility(View.VISIBLE);
-                android.widget.TextView tvEmptySubtitle = emptyState.findViewById(R.id.tv_empty_subtitle);
-                if (tvEmptySubtitle != null) {
-                    tvEmptySubtitle.setText("There are no " + filter.toLowerCase() + " items to display.");
-                }
-            }
-            historyRecyclerView.setVisibility(View.GONE);
-            updateHeader("Approval History", 0);
-        } else {
-            if (emptyState != null) emptyState.setVisibility(View.GONE);
-            historyRecyclerView.setVisibility(View.VISIBLE);
-            requestAdapter.notifyDataSetChanged();
-            updateHeader("Approval History", bookingList.size());
+        // 4. Apply the filter routing
+        if (filter.equalsIgnoreCase("All")) {
+            bookingList.add(b);
+        } else if (filter.equalsIgnoreCase("Approved") && status.equals("approved")) {
+            bookingList.add(b);
+        } else if (filter.equalsIgnoreCase("Rejected") && status.equals("rejected")) {
+            bookingList.add(b);
+        } else if (filter.equalsIgnoreCase("Expired") && (status.equals("expired") || status.equals("rejected_expired") || isDynamicallyExpired)) {
+            // Note: It's better practice to let the RequestAdapter handle setting the "EXPIRED" UI badge 
+            // dynamically rather than using b.setStatus("expired") here, as it mutates your cached list.
+            bookingList.add(b);
+        } else if (filter.equalsIgnoreCase("Cancelled") && status.equals("cancelled")) {
+            bookingList.add(b);
+        } else if (filter.equalsIgnoreCase("Forwarded") && status.contains("forwarded") && !isDynamicallyExpired) {
+            bookingList.add(b);
         }
     }
+
+    // UI Updates
+    progressBar.setVisibility(View.GONE);
+    View emptyState = findViewById(R.id.empty_state_view);
+    
+    if (bookingList.isEmpty()) {
+        if (emptyState != null) {
+            emptyState.setVisibility(View.VISIBLE);
+            TextView tvEmptySubtitle = emptyState.findViewById(R.id.tv_empty_subtitle);
+            if (tvEmptySubtitle != null) {
+                tvEmptySubtitle.setText("There are no " + filter.toLowerCase() + " items to display.");
+            }
+        }
+        historyRecyclerView.setVisibility(View.GONE);
+        updateHeader("Approval History", 0);
+    } else {
+        if (emptyState != null) emptyState.setVisibility(View.GONE);
+        historyRecyclerView.setVisibility(View.VISIBLE);
+        requestAdapter.notifyDataSetChanged();
+        updateHeader("Approval History", bookingList.size());
+    }
+}
 
     private void updateHeader(String title, int count) {
         TextView tvTitle = findViewById(R.id.header_title);

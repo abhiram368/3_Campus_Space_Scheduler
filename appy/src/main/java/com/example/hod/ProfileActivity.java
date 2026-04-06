@@ -3,7 +3,7 @@ package com.example.hod;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.campussync.appy.databinding.ActivityProfileBinding;
+import com.example.hod.databinding.ActivityProfileBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
@@ -19,7 +19,9 @@ public class ProfileActivity extends AppCompatActivity {
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.headerLayout.btnBack.setOnClickListener(v -> finish());
+        if (binding.headerLayout != null && binding.headerLayout.btnBack != null) {
+            binding.headerLayout.btnBack.setOnClickListener(v -> finish());
+        }
 
         loadProfile();
     }

@@ -54,14 +54,16 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         // Handle Remarks and Forwarded status as requested
         StringBuilder remarksBuilder = new StringBuilder();
         boolean isForwarded = status != null && status.equalsIgnoreCase("Forwarded");
+        String remarks = booking.getRemark();
+        boolean hasRemarks = remarks != null && !remarks.trim().isEmpty() && !remarks.equalsIgnoreCase("null");
         
         if (isForwarded) {
             remarksBuilder.append("Forwarded by: ").append(booking.getActionBy() != null && !booking.getActionBy().isEmpty() ? booking.getActionBy() : "Authority");
-            if (booking.getRemarks() != null && !booking.getRemarks().trim().isEmpty()) {
-                remarksBuilder.append("\nRemarks: ").append(booking.getRemarks());
+            if (hasRemarks) {
+                remarksBuilder.append("\nRemarks: ").append(remarks);
             }
-        } else if (booking.getRemarks() != null && !booking.getRemarks().trim().isEmpty()) {
-            remarksBuilder.append("Remarks: ").append(booking.getRemarks());
+        } else if (hasRemarks) {
+            remarksBuilder.append("Remarks: ").append(remarks);
         }
 
         if (remarksBuilder.length() > 0) {

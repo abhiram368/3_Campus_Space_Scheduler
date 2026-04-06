@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Campus Space Scheduler</string>
+    <string name="app_name">Campus Sync</string>
     <string name="pending_requests_title">Pending Requests</string>
     <string name="pending_requests_total">%d requests total</string>
 
@@ -146,4 +146,27 @@
     <string name="msg_provide_reapprove_reason">Provide a reason for re-approving this booking.</string>
     <string name="hint_reapprove_reason">Enter re-approval reason</string>
     <string name="msg_booking_approved">Booking approved successfully.</string>
+
+    <!-- Exit Confirmation Dialog Strings -->
+    <string name="dialog_logout_title_confirmation">Logout Confirmation</string>
+    <string name="dialog_logout_msg_confirmation">Are you sure you want to logout?</string>
+    <string name="btn_yes_logout">Yes, Logout</string>
+    <string name="btn_cancel">Cancel</string>
+
+    <!-- Dashboard/Navigation Extras -->
+    <string name="dialog_title_logout">Logout</string>
+    <string name="dialog_msg_logout">Are you sure you want to logout?</string>
+    <string name="btn_confirm_logout">Logout</string>
+    <string name="btn_no">No</string>
+    <string name="msg_logout_failed">Logout failed</string>
+    <string name="label_notifications_unread">Notifications (%d)</string>
+    <string name="notification_title">Notifications</string>
+    <string name="label_active_bookings_count">%d active bookings</string>
+    <string name="staff_dashboard_title">Staff Dashboard</string>
+    <string name="subtitle_staff_portal">Staff Portal</string>
+    <string name="error_no_lab_assigned">No lab assigned to this staff account</string>
+    <string name="label_staff_user">Staff User</string>
+    <string name="role_staff_incharge">Staff Incharge</string>
+    <string name="msg_feature_to_be_implemented">This feature is not yet implemented</string>
+    <string name="error_unable_open_booking">Unable to open booking screen</string>
 </resources>
