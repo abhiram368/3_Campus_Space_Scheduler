@@ -40,7 +40,7 @@ public class HodNotificationsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_notifications);
+        setContentView(R.layout.activity_appy_notifications);
 
         recyclerView = findViewById(R.id.notifications_recycler);
         emptyState = findViewById(R.id.empty_state);

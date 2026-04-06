@@ -40,7 +40,7 @@ public class LabLiveStatusActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_lab_live_status);
+        setContentView(R.layout.activity_appy_lab_live_status);
 
         // Header Configuration
         View headerView = findViewById(R.id.header_layout);

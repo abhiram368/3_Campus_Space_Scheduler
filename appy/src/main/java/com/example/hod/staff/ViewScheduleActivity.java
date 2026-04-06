@@ -63,7 +63,7 @@ public class ViewScheduleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_schedule);
+        setContentView(R.layout.activity_staff_view_schedule);
 
         // Header Configuration
         View headerView = findViewById(R.id.header_layout);
@@ -98,6 +98,12 @@ public class ViewScheduleActivity extends AppCompatActivity {
         }
 
         repo = new FirebaseRepository();
+
+        // Null-safety Check for mandatory views
+        if (calendarView == null || dateChipGroup == null || rvScheduleSlots == null) {
+            android.util.Log.e("ViewScheduleActivity", "Critical UI components not found in layout!");
+            // Although we renamed the layout to avoid collisions, we check just in case.
+        }
 
         // Fetch Space Name for Header
         repo.getSpaceDetails(labId, result -> {
@@ -138,6 +144,22 @@ public class ViewScheduleActivity extends AppCompatActivity {
         View btnBulkUnblock = findViewById(R.id.btnBulkUnblock);
         View btnCancelSelection = findViewById(R.id.btnCancelSelection);
 
+        if (btnBulkBlock != null) {
+            btnBulkBlock.setOnClickListener(v -> {
+                if (isPastDate) return;
+                showBulkSelectionBlockDialog();
+            });
+        }
+        if (btnBulkUnblock != null) {
+            btnBulkUnblock.setOnClickListener(v -> {
+                if (isPastDate) return;
+                showBulkUnblockDialog();
+            });
+        }
+        if (btnCancelSelection != null) {
+            btnCancelSelection.setOnClickListener(v -> adapter.exitSelectionMode());
+        }
+
         slotList = new ArrayList<>();
         adapter = new StaffScheduleAdapter(this, slotList);
         rvScheduleSlots.setLayoutManager(new LinearLayoutManager(this));
@@ -160,37 +182,29 @@ public class ViewScheduleActivity extends AppCompatActivity {
             }
         });
 
-        btnCancelSelection.setOnClickListener(v -> adapter.exitSelectionMode());
-        btnBulkBlock.setOnClickListener(v -> {
-            if (isPastDate) return;
-            showBulkSelectionBlockDialog();
-        });
-        btnBulkUnblock.setOnClickListener(v -> {
-            if (isPastDate) return;
-            showBulkUnblockDialog();
-        });
-
         setupDateChips(calendarView);
 
-        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            String selected = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
-            long currentTime = System.currentTimeMillis();
+        if (calendarView != null) {
+            calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+                String selected = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
+                long currentTime = System.currentTimeMillis();
 
-            // Double Tap Detection
-            if (selected.equals(lastTapDate) && (currentTime - lastTapTime) < 500) {
-                Intent intent = new Intent(this, DailySlotsActivity.class);
-                intent.putExtra("labId", labId);
-                intent.putExtra("date", selected);
-                startActivity(intent);
-            }
+                // Double Tap Detection
+                if (selected.equals(lastTapDate) && (currentTime - lastTapTime) < 500) {
+                    Intent intent = new Intent(this, DailySlotsActivity.class);
+                    intent.putExtra("labId", labId);
+                    intent.putExtra("date", selected);
+                    startActivity(intent);
+                }
 
-            lastTapTime = currentTime;
-            lastTapDate = selected;
+                lastTapTime = currentTime;
+                lastTapDate = selected;
 
-            Calendar cal = Calendar.getInstance();
-            cal.set(year, month, dayOfMonth);
-            updateViewForDate(cal);
-        });
+                Calendar cal = Calendar.getInstance();
+                cal.set(year, month, dayOfMonth);
+                updateViewForDate(cal);
+            });
+        }
 
         updateViewForDate(Calendar.getInstance());
     }
