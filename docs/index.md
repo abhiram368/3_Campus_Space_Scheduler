@@ -1,80 +1,81 @@
 ---
 
 layout: default
-title: Campus Space Scheduler Manual
-------------------------------------
+title: "Campus Space Scheduler Manual"
+--------------------------------------
 
 # Campus Space Scheduler – User Manual
 
-Welcome to the Campus Space Scheduler. This guide explains how to use the application to book and manage campus spaces efficiently.
+Welcome to the Campus Space Scheduler. This manual provides detailed instructions for using the application to book and manage campus spaces efficiently.
 
 ---
 
-## 1. Getting Started
+## 1. Introduction
+
+Campus Space Scheduler is an Android-based system designed to simplify the booking of classrooms, laboratories, and halls. It ensures conflict-free scheduling and provides a structured approval workflow.
+
+---
+
+## 2. Getting Started
 
 ### Installation
 
-1. Install the app on your Android device.
-2. Ensure you have an active internet connection.
-3. Open the application.
+1. Install the application on your Android device.
+2. Ensure internet connectivity.
+3. Launch the app.
 
 ### Login
 
-1. Sign in using your institutional credentials (Google or email).
-2. The system automatically assigns your role (Student / Faculty / Admin).
+1. Sign in using institutional credentials (Google or email).
+2. The system identifies your role automatically.
 
 ---
 
-## 2. Dashboard Overview
+## 3. Dashboard Overview
 
-After login, you will see:
+After login, the dashboard provides:
 
-* Available spaces (Classrooms, Labs, Halls)
-* Navigation tabs for booking, schedule, and profile
+* List of available spaces
+* Navigation to booking and profile sections
 * Real-time availability indicators
 
 ---
 
-## 3. How to Book a Space
+## 4. Booking a Space
 
-1. Open the app.
-2. Navigate to the **Dashboard**.
-3. Select the type of space:
+1. Open the Dashboard.
+2. Select a space type:
 
    * Classroom
    * Laboratory
    * Hall
-4. Choose date and time slot.
-5. Enter booking details:
+3. Choose date and time slot.
+4. Enter required details:
 
    * Purpose
    * Description
-6. For Lab/Hall (if student):
+5. If required (Lab/Hall for students):
 
    * Upload Letter of Recommendation (LOR)
-7. Click **Submit Request**
+6. Submit the request.
 
 ---
 
-## 4. Booking Approval Process
+## 5. Booking Approval Workflow
 
-Your request goes through the following flow:
+Booking requests follow a structured approval hierarchy:
 
-1. Staff In-Charge review
-2. Faculty In-Charge approval (if required)
-3. HOD final approval
+1. Staff In-Charge reviews request
+2. Faculty In-Charge approves (if applicable)
+3. HOD provides final approval
 
-You will receive notifications for:
-
-* Approval
-* Rejection
-* Cancellation
+Notifications are sent at each stage.
 
 ---
 
-## 5. View Booking Status
+## 6. Viewing Booking Status
 
-1. Go to **My Bookings**
+1. Navigate to **My Bookings**.
 2. View:
 
    * Pending requests
@@ -83,38 +84,38 @@ You will receive notifications for:
 
 ---
 
-## 6. Cancel a Booking
+## 7. Cancelling a Booking
 
-1. Open **My Bookings**
-2. Select the booking
-3. Click **Cancel**
-4. Confirm cancellation
+1. Open **My Bookings**.
+2. Select the booking.
+3. Click **Cancel**.
+4. Confirm the action.
 
 The system updates availability automatically.
 
 ---
 
-## 7. Role-Based Features
+## 8. User Roles and Permissions
 
 ### Student
 
-* Book spaces
+* Submit booking requests
 * Upload LOR
 * View booking history
 
 ### Faculty
 
 * Book labs and halls
-* View schedule and history
+* View schedules
 
 ### Staff In-Charge
 
-* Approve/reject requests
-* View schedules
+* Approve or reject requests
+* View schedules and bookings
 
 ### Faculty In-Charge
 
-* Handle escalated requests
+* Review escalated requests
 * Forward to HOD
 
 ### HOD
@@ -123,62 +124,68 @@ The system updates availability automatically.
 
 ### Admin
 
-* Manage users and roles
-* Manage spaces and schedules
+* Manage users, roles, and schedules
+* Maintain system data
 
 ---
 
-## 8. Notifications
+## 9. Notifications
 
-The system provides alerts for:
+Users receive notifications for:
 
 * Booking submission
 * Approval or rejection
-* Booking cancellation
+* Cancellation updates
 
 ---
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 ### Login Issues
 
-* Ensure correct credentials
+* Verify credentials
 * Check internet connection
 
-### Booking Failure
+### Booking Issues
 
-* Verify time slot availability
-* Ensure required fields are filled
+* Ensure selected time slot is available
+* Fill all required fields
 
 ### Upload Issues
 
-* Check file format for LOR
-* Ensure stable connection
+* Check file format and size
+* Ensure stable network connection
 
 ---
 
-## 10. Best Practices
+## 11. Best Practices
 
 * Book spaces in advance
 * Avoid duplicate requests
 * Cancel unused bookings
-* Provide accurate details
+* Provide accurate booking details
 
 ---
 
-## 11. Support
-
-For issues or support:
-
-* Contact system administrator
-* Report issues via GitHub repository
-
----
-
-## 12. Notes
+## 12. Limitations
 
 * Booking during instructional hours may be restricted
-* Some bookings require approval hierarchy
-* System enforces conflict-free scheduling
+* Some bookings require multi-level approval
+* Internet connection is required
+
+---
+
+## 13. Support
+
+For assistance:
+
+* Contact the system administrator
+* Report issues via GitHub
+
+---
+
+## 14. Conclusion
+
+Campus Space Scheduler provides a structured, transparent, and efficient approach to managing campus space bookings, ensuring optimal resource utilization and minimizing conflicts.
 
 ---
