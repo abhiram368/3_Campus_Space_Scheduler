@@ -2,7 +2,7 @@
 
 layout: default
 title: "Campus Space Scheduler Manual"
---------------------------------------
+---
 
 # Campus Space Scheduler – User Manual
 
