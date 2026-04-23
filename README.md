@@ -160,11 +160,11 @@ This application solves these issues through automation and centralized control.
 
 | Name                | Roll Number | Contribution                  |
 | ------------------- | ----------- | ----------------------------- |
-| Ch. Teja            | B230267CS   | System design, SRS            |
-| K. Abhiram          | B230669CS   | Android development, Firebase |
-| A. Somanath         | B230154CS   | UI/UX design                  |
-| B. Venkata Subbaiah | B230871CS   | Backend logic                 |
-| B. Prashanth        | B2202226CS  | Testing and documentation     |
+| Ch. Teja            | B230267CS   | Student and Faculty module, Poster design, SRS, Testing            |
+| K. Abhiram          | B230669CS   | App Admin module, Firebase, repo maintenance, SRS, Testing |
+| A. Somanath         | B230154CS   | Lab Admin and Staff, Hall Incharge module, Poster design, Testing                  |
+| B. Venkata Subbaiah | B230871CS   | Faculty Incharge and HOD module, ppt preparation, Testing                 |
+| B. Prashanth        | B2202226CS  | CSED Staff module, Testing     |
 
 ---
 
@@ -173,6 +173,8 @@ This application solves these issues through automation and centralized control.
 * feature/<feature-name>
 * fix/<bug-name>
 * docs/<docs-name>
+* refactor/<upgrade, change-name>
+* UI/<ui-name>
 
 ---
 
